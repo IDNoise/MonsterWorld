@@ -1,0 +1,34 @@
+{
+    "$schema": "https://raw.githubusercontent.com/TypeScriptToLua/TypeScriptToLua/master/tsconfig-schema.json",
+    "compilerOptions": {
+      "target": "esnext",
+      "lib": ["esnext"],
+      "moduleResolution":"Node",
+      "types": [],
+    //   "types": ["lua-types/jit"],
+      "module": "CommonJS",
+      "noImplicitAny": true,
+      "noImplicitThis": true,
+      "alwaysStrict": true,
+      "strictNullChecks": true,
+      "rootDir": ".",
+      //"outDir": "lua",
+      "outDir": "f:/Games/AnomalyMW/gamedata/scripts",
+        // Needed to hide internal functions from the auto-complete of end-users.
+      "stripInternal": true,
+        // We need to read the version of the library from the "package.json" file.
+      "resolveJsonModule": true,
+    }, 
+    "tstl": {
+      //"buildMode":"default",
+      "luaTarget": "5.1",
+      //"extension": "script",
+      "luaLibImport":"require",
+      "omitExtension" : true,
+      "noHeader": true,
+      "noImplicitSelf": true,
+      "noImplicitGlobalVariables": true,
+      "luaBundle": "monsterworld.lua",
+      "luaBundleEntry": "monsterworld.ts",
+    }
+}

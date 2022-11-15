@@ -1,0 +1,8 @@
+package.path = package.path .. string.format("%s?.lua;", getFS():update_path("$fs_root$", ""))
+
+local mw = require "gamedata\\scripts\\monsterworld"
+
+function on_game_start()
+    log("monsterworld_entry:on_game_start")
+    mw.StartMonsterWorld()
+end
