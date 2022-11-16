@@ -12,7 +12,7 @@ declare const enum HitType {
     dummy = 12,
 }
 
-declare const enum ClsId{
+declare enum clsid{
     art_bast_artefact = 0,
     art_black_drops = 1,
     art_gravi_black = 2,

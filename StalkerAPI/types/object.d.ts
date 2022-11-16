@@ -1,4 +1,4 @@
-declare interface GameObject {
+declare interface game_object {
   bleeding: number;
   health: number;
   morale: number;
@@ -8,13 +8,13 @@ declare interface GameObject {
 
   // All types
   id(): number;
-  position(): Vector;
+  position(): vector;
   level_vertex_id(): LevelVertexId;
   game_vertex_id(): GameVertexId;
   section(): string;
   name(): string;
-  clsid(): ClsId;
-  parent(): GameObject;
+  clsid(): clsid;
+  parent(): game_object;
   has_info(info: string): boolean;
   dont_has_info(info: string): boolean;
   give_info_portion(info: string): void;

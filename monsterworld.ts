@@ -18,18 +18,21 @@ class MonsterWorld extends ModScriptBase{
         };
     }
 
-    protected OnMonsterBeforeHit(monster: GameObject, hit: Hit, boneId: number): boolean{
-        super.OnMonsterBeforeHit(monster, hit, boneId);
+    protected OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: number): boolean{
+        super.OnMonsterBeforeHit(monster, shit, boneId);
         // Save(monster, "hitted", Load<number>(monster, "hitted", 0) + 1)
         return true;
     } 
 
-    protected OnNPCBeforeHit(npc: GameObject, hit: Hit, boneId: number): boolean {
-        super.OnNPCBeforeHit(npc, hit, boneId)
+    protected OnNPCBeforeHit(npc: game_object, shit: hit, boneId: number): boolean {
+        super.OnNPCBeforeHit(npc, shit, boneId)
+
+        let shitX = new hit(shit)
+        let shitY = new hit()
         return true;
     }
 
-    protected OnMonsterDeath(monster: GameObject, killer: GameObject): void {
+    protected OnMonsterDeath(monster: game_object, killer: game_object): void {
         super.OnMonsterDeath(monster, killer);
 
         // const params = new LuaTable();
@@ -48,14 +51,14 @@ class MonsterWorld extends ModScriptBase{
         super.OnActorFirstUpdate();
     }
 
-    protected OnActorBeforeHit(hit: Hit, boneId: number): boolean {
+    protected OnActorBeforeHit(hit: hit, boneId: number): boolean {
         super.OnActorBeforeHit(hit, boneId);
         return false;
     }
 
-    protected OnMonsterLootInit(monster: GameObject, lootTable: LuaMap<string, LuaMap<string, number>>): void {
+    protected OnMonsterLootInit(monster: game_object, lootTable: LuaMap<string, LuaMap<string, number>>): void {
         super.OnMonsterLootInit(monster, lootTable)
-
+        
         // const weaponSection = "wpn_ak105";
         // const params = new LuaMap<string, number>();
         // params.set("count", 1);

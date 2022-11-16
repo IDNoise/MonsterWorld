@@ -1,12 +1,12 @@
 /** @customConstructor vector */
-declare class Vector {
+declare class vector {
     x: number;
     y: number;
     z: number;
-  
+
     constructor();
   
-    set_length(length: number): Vector;
+    set_length(length: number): vector;
     // function sub(number)
     // function sub(const vector&)
     // function sub(const vector&, const vector&)
@@ -35,7 +35,7 @@ declare class Vector {
     // function clamp(const vector&, vector)
     // function inertion(const vector&, number)
     // function crossproduct(const vector&, const vector&)
-    set(x: number, y: number, z: number): Vector;
+    set(x: number, y: number, z: number): vector;
     // function set(const vector&)
     // function abs(const vector&)
     // function div(number)
@@ -54,9 +54,9 @@ declare class Vector {
     // function mul(const vector&)
     // function mul(const vector&, const vector&)
     // function mul(const vector&, number)
-    setHP(h: number, p: number): Vector;
+    setHP(h: number, p: number): vector;
     // function add(number)
-    add(vec: Vector): Vector;
+    add(vec: vector): vector;
     // function add(const vector&, const vector&)
     // function add(const vector&, number)
 }
