@@ -1,6 +1,6 @@
 declare interface Hit {
   direction: Vector;
-  draftsman: Obj;
+  draftsman: GameObject;
   impulse: number;
   power: number;
   type : HitType;
@@ -14,7 +14,7 @@ declare interface CallbackReturnFlags {
 }
 
 declare namespace db{
-  const actor: Obj;
+  const actor: GameObject;
 }
 
 declare namespace sim_squad_scripted{
@@ -57,7 +57,7 @@ declare namespace level {
   //   function remove_cam_effector(number)
   //   function high_cover_in_direction(number, const vector&)
   //   function spawn_phantom(const vector&)
-  function object_by_id(id: number): Obj;
+  function object_by_id(id: number): GameObject;
   //   function debug_object(string)
   //   function get_weather()
   //   function present()
@@ -107,7 +107,7 @@ declare namespace level {
 declare namespace item_knife{
   function is_equipped(): boolean;
   function get_condition(): number;
-  function can_loot(monster: Obj): boolean;
+  function can_loot(monster: GameObject): boolean;
   function degradate(): void;
   function is_axe(): boolean;
 }

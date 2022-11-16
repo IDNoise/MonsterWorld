@@ -9,7 +9,7 @@ type GameVertexId = number;
 type WorldPosition = [Vector, LevelVertexId, GameVertexId];
 type CreateItemParams = LuaTable | AmmoParams;
 type AmmoParams = {ammo: number};
-declare function alife_create_item(section: string, place: Obj | WorldPosition, params: CreateItemParams): void;
+declare function alife_create_item(section: string, place: GameObject | WorldPosition, params: CreateItemParams): void;
 
 type ScriptCallback = (...args: any[]) => void;
-declare function RegisterScriptCallback(this: void, callbackName: string, callback : ScriptCallback) : Obj;
+declare function RegisterScriptCallback(this: void, callbackName: string, callback : ScriptCallback) : GameObject;

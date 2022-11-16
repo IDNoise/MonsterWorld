@@ -18,25 +18,30 @@ class MonsterWorld extends ModScriptBase{
         };
     }
 
-    protected OnMonsterBeforeHit(monster: Obj, hit: Hit, boneId: number): boolean{
+    protected OnMonsterBeforeHit(monster: GameObject, hit: Hit, boneId: number): boolean{
         super.OnMonsterBeforeHit(monster, hit, boneId);
         // Save(monster, "hitted", Load<number>(monster, "hitted", 0) + 1)
         return true;
     } 
 
-    protected OnNPCBeforeHit(npc: Obj, hit: Hit, boneId: number): boolean {
+    protected OnNPCBeforeHit(npc: GameObject, hit: Hit, boneId: number): boolean {
         super.OnNPCBeforeHit(npc, hit, boneId)
         return true;
     }
 
-    protected OnMonsterDeath(monster: Obj, killer: Obj): void {
+    protected OnMonsterDeath(monster: GameObject, killer: GameObject): void {
         super.OnMonsterDeath(monster, killer);
 
-        const params = new LuaTable();
+        // const params = new LuaTable();
         // params.set("ammo", math.random(10, 100));
         // alife_create_item("ammo_357_hp_mag", db.actor, {ammo: math.random(10, 100)})
-        // alife_create_item("ammo_357_hp_mag", CreateWorldPosition(monster), params)
-        // alife_create_item("ammo_357_hp_mag", CreateWorldPosition(killer), params)
+        // for (let index = 0; index < math.random(1, 20); index++) {
+        //     let randomOffset = CreateVector(math.random(-5, 5), math.random(-5, 5), math.random(-5, 5));
+        //     let point = CreateWorldPositionAtPosWithGO(monster.position().add(randomOffset), monster);
+        //     alife_create_item("ammo_357_hp_mag", point, {ammo: math.random(10, 1000)})
+        // }
+         
+        // alife_create_item("ammo_357_hp_mag", CreateWorldPosition(killer), {ammo: math.random(10, 100))
     }
 
     protected OnActorFirstUpdate(): void {
@@ -48,7 +53,7 @@ class MonsterWorld extends ModScriptBase{
         return false;
     }
 
-    protected OnMonsterLootInit(monster: Obj, lootTable: LuaMap<string, LuaMap<string, number>>): void {
+    protected OnMonsterLootInit(monster: GameObject, lootTable: LuaMap<string, LuaMap<string, number>>): void {
         super.OnMonsterLootInit(monster, lootTable)
 
         // const weaponSection = "wpn_ak105";

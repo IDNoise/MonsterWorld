@@ -56,17 +56,7 @@ declare class Vector {
     // function mul(const vector&, number)
     setHP(h: number, p: number): Vector;
     // function add(number)
-    // function add(const vector&)
+    add(vec: Vector): Vector;
     // function add(const vector&, const vector&)
     // function add(const vector&, number)
-}
-  
-/** @customConstructor vector():set */
-declare class Vector3 extends Vector{
-    constructor(x : number, y: number, z: number);
-}
-
-/** @customConstructor vector():setHP */
-declare class VectorHP extends Vector{
-    constructor(h : number, p: number);
 }

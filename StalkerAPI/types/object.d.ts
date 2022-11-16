@@ -1,4 +1,4 @@
-declare interface Obj {
+declare interface GameObject {
   bleeding: number;
   health: number;
   morale: number;
@@ -14,7 +14,7 @@ declare interface Obj {
   section(): string;
   name(): string;
   clsid(): ClsId;
-  parent(): Obj;
+  parent(): GameObject;
   has_info(info: string): boolean;
   dont_has_info(info: string): boolean;
   give_info_portion(info: string): void;
