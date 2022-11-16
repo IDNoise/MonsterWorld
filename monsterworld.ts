@@ -3,28 +3,35 @@ import { ModScriptBase } from "./StalkerTS/modbase";
 class MonsterWorld extends ModScriptBase{
     
     constructor(){
-        super("Monster World")
+        super("MonsterWorld");
     }
 
-    OnMonsterBeforeHit(monster: Obj, hit: SHit, boneId: number, flags : CallbackReturnFlags): void{
-        this.Log("Before hitted: " + monster.id())
+    protected OnMonsterBeforeHit(monster: Obj, hit: Hit, boneId: number): boolean{
+        super.OnMonsterBeforeHit(monster, hit, boneId);
+        return true;
     } 
 
-    OnMonsterHit(monster: Obj, amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {
-        this.Log("Hitted: " + monster.id())
+    protected OnMonsterHit(monster: Obj, amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {
+        super.OnMonsterHit(monster, amount, localDirection, attacker, boneId);
     }
 
-    OnMonsterDeath(monster: Obj, killer: Obj): void {
-        this.Log(killer.id() + " Killed: " + monster.id())
+    protected OnMonsterDeath(monster: Obj, killer: Obj): void {
+        super.OnMonsterDeath(monster, killer);
+        this.Log(monster.clsid() != ClsId.dog_s ? "Is not dog" : "Is dog")
     }
 
-    OnActorFirstUpdate(): void {
-        this.Log("FIRST UPDATE")
+    protected OnActorFirstUpdate(): void {
+        super.OnActorFirstUpdate();
+    }
+
+    protected OnActorBeforeHit(hit: Hit, boneId: number): boolean {
+        super.OnActorBeforeHit(hit, boneId);
+        return false;
     }
 }
 
-declare var MW : MonsterWorld
+declare var MW : MonsterWorld;
 
 export function StartMonsterWorld(){
-    MW = new MonsterWorld()
+    MW = new MonsterWorld();
 }

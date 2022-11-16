@@ -1,29 +1,75 @@
 export class ModScriptBase {
     private modName: string;
+    private logEnabled: boolean;
 
     constructor(modName: string){
         this.modName = modName;
-        this.RegisterCallbacks()
+        this.logEnabled = true;
+        this.RegisterCallbacks();
     }
 
-    OnActorFirstUpdate() : void {}
-    OnActorUpdate() : void {}
-
-    OnMonsterBeforeHit(monster: Obj, hit: SHit, boneId: number, flags : CallbackReturnFlags): void {}
-    OnMonsterHit(monster: Obj, amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {}
-    OnMonsterDeath(monster: Obj, killer: Obj): void {}
-
-    RegisterCallbacks():void{
-        log("Register callbacks")
-
-        RegisterScriptCallback("actor_on_first_update", () => this.OnActorFirstUpdate())
-        RegisterScriptCallback("actor_on_update",  () => this.OnActorUpdate())
-
-        RegisterScriptCallback("monster_on_before_hit",  (monster, amount, localDirection, attacker, boneId) => this.OnMonsterHit(monster, amount, localDirection, attacker, boneId))
-        RegisterScriptCallback("monster_on_death_callback",  (monster, killer) => this.OnMonsterDeath(monster, killer))
+    protected OnActorFirstUpdate() : void {
+        this.Log("OnActorFirstUpdate")
+    }
+    protected OnActorUpdate() : void {
+        //this.Log("OnActorUpdate")
+    }
+    protected OnActorBeforeHit(hit: Hit, boneId: number): boolean {
+        this.Log(`OnActorBeforeHit by ${hit.draftsman && hit.draftsman.id()}`)
+        return true;
+    }
+    protected OnActorHit(amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {
+        this.Log(`OnActorHit by ${attacker.id()} for ${amount} in bone ${boneId}`)
     }
 
-    Log(message: string) {
+    protected OnMonsterBeforeHit(monster: Obj, hit: Hit, boneId: number): boolean {
+        this.Log(`OnMonsterBeforeHit ${monster.id()} by ${hit.draftsman.id()} for ${hit.power} in bone ${boneId}`)
+        return true;
+    }
+    protected OnMonsterHit(monster: Obj, amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {
+        this.Log(`OnMonsterHit ${monster.id()} by ${attacker.id()} for ${amount} in bone ${boneId}`)
+    }
+    protected OnMonsterDeath(monster: Obj, killer: Obj): void {
+        this.Log(`OnMonsterDeath ${monster.id()} by ${killer.id()}`)
+    }
+
+    protected OnNPCBeforeHit(npc: Obj, hit: Hit, boneId: number): boolean {
+        this.Log(`OnNPCBeforeHit ${npc.id()} by ${hit.draftsman.id()} for ${hit.power} in bone ${boneId}`)
+        return true;
+    }
+    protected OnNPCHit(npc: Obj, amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {
+        this.Log(`OnNPCHit ${npc.id()} by ${attacker.id()} for ${amount} in bone ${boneId}`)
+    }
+    protected OnNPCDeath(npc: Obj, killer: Obj): void {
+        this.Log(`OnNPCDeath ${npc.id()} by ${killer.id()}`)
+    }
+
+    private RegisterCallbacks():void{
+        this.Log("Register callbacks");
+
+        RegisterScriptCallback("actor_on_first_update", () => this.OnActorFirstUpdate());
+        RegisterScriptCallback("actor_on_update",  () => this.OnActorUpdate());
+        RegisterScriptCallback("actor_on_before_hit",  (hit, boneId, flags : CallbackReturnFlags) => {
+            flags.ret_value = this.OnActorBeforeHit(hit, boneId)
+        });
+        RegisterScriptCallback("actor_on_hit_callback",  (amount, localDirection, attacker, boneId) => this.OnActorHit(amount, localDirection, attacker, boneId));
+        
+        RegisterScriptCallback("monster_on_before_hit",  (monster, hit, boneId, flags : CallbackReturnFlags) => {
+            flags.ret_value = this.OnMonsterBeforeHit(monster, hit, boneId);
+        });
+        RegisterScriptCallback("monster_on_hit_callback",  (monster, amount, localDirection, attacker, boneId) => this.OnMonsterHit(monster, amount, localDirection, attacker, boneId));
+        RegisterScriptCallback("monster_on_death_callback",  (monster, killer) => this.OnMonsterDeath(monster, killer));
+
+        RegisterScriptCallback("npc_on_before_hit",  (npc, hit, boneId, flags : CallbackReturnFlags) => { 
+            flags.ret_value = this.OnNPCBeforeHit(npc, hit, boneId)
+        });
+        RegisterScriptCallback("npc_on_hit_callback",  (npc, amount, localDirection, attacker, boneId) => this.OnNPCHit(npc, amount, localDirection, attacker, boneId));
+        RegisterScriptCallback("npc_on_death_callback",  (npc, killer) => this.OnNPCDeath(npc, killer));
+    }
+
+    public Log(message: string) {
+        if ( !this.logEnabled ) 
+            return;
         log(`[${this.modName}:${time_global()}] ${message}`);
     }
 }
