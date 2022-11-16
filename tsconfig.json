@@ -4,8 +4,8 @@
       "target": "esnext",
       "lib": ["esnext"],
       "moduleResolution":"Node",
-      "types": [],
-    //   "types": ["lua-types/jit"],
+      //"types": [],
+      "types": ["lua-types/jit"],
       "module": "CommonJS",
       "noImplicitAny": true,
       "noImplicitThis": true,
@@ -17,18 +17,26 @@
         // Needed to hide internal functions from the auto-complete of end-users.
       "stripInternal": true,
         // We need to read the version of the library from the "package.json" file.
-      "resolveJsonModule": true,
+      "resolveJsonModule": true
     }, 
     "tstl": {
       //"buildMode":"default",
       "luaTarget": "5.1",
       //"extension": "script",
       "luaLibImport":"require",
-      "omitExtension" : true,
       "noHeader": true,
       "noImplicitSelf": true,
       "noImplicitGlobalVariables": true,
       "luaBundle": "monsterworld.lua",
       "luaBundleEntry": "monsterworld.ts",
+      "luaPlugins": [
+        // { 
+        //   "name": "@ts-defold/tstl-export-as-global",
+        //   "match": "monsterworld.ts$",
+        //   "globals": { 
+        //     "functions": [ "on_game_start"]
+        //   }
+        // }
+      ]
     }
 }
