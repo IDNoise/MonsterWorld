@@ -18,36 +18,36 @@ export class ModScriptBase {
         this.Log(`OnActorBeforeHit by ${hit.draftsman && hit.draftsman.id()}`)
         return true;
     }
-    protected OnActorHit(amount: number, localDirection: Vector, attacker: Object, boneId: number): void {
+    protected OnActorHit(amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {
         this.Log(`OnActorHit by ${attacker.id()} for ${amount} in bone ${boneId}`)
     }
 
-    protected OnMonsterBeforeHit(monster: Object, hit: Hit, boneId: number): boolean {
+    protected OnMonsterBeforeHit(monster: Obj, hit: Hit, boneId: number): boolean {
         const weapon = level.object_by_id(hit.weapon_id);
         this.Log(`OnMonsterBeforeHit ${monster.id()} by ${hit.draftsman.id()} with ${weapon && weapon.id() || "'no weapon'"} for ${hit.power} in bone ${boneId}`)
         return true;
     }
-    protected OnMonsterHit(monster: Object, amount: number, localDirection: Vector, attacker: Object, boneId: number): void {
+    protected OnMonsterHit(monster: Obj, amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {
         this.Log(`OnMonsterHit ${monster.id()} by ${attacker.id()} for ${amount} in bone ${boneId}`)
     }
-    protected OnMonsterDeath(monster: Object, killer: Object): void {
+    protected OnMonsterDeath(monster: Obj, killer: Obj): void {
         this.Log(`OnMonsterDeath ${monster.id()} by ${killer.id()}`)
     }
-    protected OnMonsterActorUse(monster: Object, user: Object): void {
+    protected OnMonsterActorUse(monster: Obj, user: Obj): void {
         this.Log(`OnMonsterActorUse ${monster.id()} by ${user.id()}`)
     }
-    protected OnMonsterLootInit(monster: Object, lootTable: LuaMap<string, LuaMap<string, number>>): void {
+    protected OnMonsterLootInit(monster: Obj, lootTable: LuaMap<string, LuaMap<string, number>>): void {
         this.Log(`OnMonsterLootInit ${monster.id()}`)
     }
 
-    protected OnNPCBeforeHit(npc: Object, hit: Hit, boneId: number): boolean {
+    protected OnNPCBeforeHit(npc: Obj, hit: Hit, boneId: number): boolean {
         this.Log(`OnNPCBeforeHit ${npc.id()} by ${hit.draftsman.id()} for ${hit.power} in bone ${boneId}`)
         return true;
     }
-    protected OnNPCHit(npc: Object, amount: number, localDirection: Vector, attacker: Object, boneId: number): void {
+    protected OnNPCHit(npc: Obj, amount: number, localDirection: Vector, attacker: Obj, boneId: number): void {
         this.Log(`OnNPCHit ${npc.id()} by ${attacker.id()} for ${amount} in bone ${boneId}`)
     }
-    protected OnNPCDeath(npc: Object, killer: Object): void {
+    protected OnNPCDeath(npc: Obj, killer: Obj): void {
         this.Log(`OnNPCDeath ${npc.id()} by ${killer.id()}`)
     }
 

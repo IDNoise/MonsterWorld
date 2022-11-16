@@ -6,8 +6,10 @@ declare function se_load_var<T>(id: number, name: string, varname: string): T;
 type LevelVertexId = number;
 type GameVertexId = number;
 
-type ALifePosition = [Vector, LevelVertexId, GameVertexId];
-declare function alife_create_item(section: string, place: Object | ALifePosition, params: LuaTable): void;
+type WorldPosition = [Vector, LevelVertexId, GameVertexId];
+type CreateItemParams = LuaTable | AmmoParams;
+type AmmoParams = {ammo: number};
+declare function alife_create_item(section: string, place: Obj | WorldPosition, params: CreateItemParams): void;
 
 type ScriptCallback = (...args: any[]) => void;
-declare function RegisterScriptCallback(this: void, callbackName: string, callback : ScriptCallback) : Object;
+declare function RegisterScriptCallback(this: void, callbackName: string, callback : ScriptCallback) : Obj;
