@@ -11,5 +11,7 @@ type CreateItemParams = LuaTable | AmmoParams;
 type AmmoParams = {ammo: number};
 declare function alife_create_item(section: string, place: game_object | WorldPosition, params: CreateItemParams): void;
 
+declare function alife_create(section: string, place: vector | smart_terrain.se_smart_terrain, lvid?: LevelVertexId, gvid?: GameVertexId): any; //TODO
+
 type ScriptCallback = (...args: any[]) => void;
 declare function RegisterScriptCallback(this: void, callbackName: string, callback : ScriptCallback) : game_object;

@@ -21,9 +21,28 @@ declare namespace db{
 }
 
 declare namespace sim_squad_scripted{
-  namespace sim_squad_scripted{
-    function create_npc(this: void, spawn_smart : any, pos: vector, lvid:LevelVertexId, gvid:GameVertexId): void;
+  class sim_squad_scripted{
+    static create_npc: (this: void, spawn_smart : smart_terrain.se_smart_terrain, pos: vector, lvid?:LevelVertexId, gvid?:GameVertexId) => void;
   }
+}
+
+declare namespace smart_terrain{
+  class se_smart_terrain{
+    ini: any; //TODO
+    squad_id: number; 
+    id: string;
+    m_level_vertex_id: LevelVertexId;
+    m_game_vertex_id: GameVertexId;
+    position: vector;
+  }
+}
+
+declare namespace ini_sys{
+  function section_exist(section: string): boolean;
+}
+
+declare namespace simulation_objects{
+  function is_on_the_actor_level(obj: any): boolean; //TODO
 }
 
 declare namespace level {
@@ -114,3 +133,17 @@ declare namespace item_knife{
   function degradate(): void;
   function is_axe(): boolean;
 }
+
+declare const is_squad_monster : LuaMap<string, boolean>;
+
+declare class simulation_board{
+  // self.smarts = {}
+	// self.smarts_by_names = {}
+	// self.simulation_started = true
+	// self.squads = {}
+	// self.tmp_assigned_squad = {}
+
+  start_position_filled: boolean;
+}
+
+declare const SIMBOARD : simulation_board

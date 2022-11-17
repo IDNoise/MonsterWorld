@@ -8,6 +8,7 @@ export class ModScriptBase {
         this.RegisterCallbacks();
     }
 
+    //Actor
     protected OnActorFirstUpdate() : void {
         this.Log("OnActorFirstUpdate")
     }
@@ -15,13 +16,14 @@ export class ModScriptBase {
         //this.Log("OnActorUpdate")
     }
     protected OnActorBeforeHit(shit: hit, boneId: number): boolean {
-        this.Log(`OnActorBeforeHit by ${shit.draftsman && shit.draftsman.id()}`)
+        this.Log(`OnActorBeforeHit by ${shit.draftsman && shit.draftsman.id()} with type: ${shit.type} and power: ${shit.power} from weapon_id: ${shit.weapon_id || "None"}`)
         return true;
     }
     protected OnActorHit(amount: number, localDirection: vector, attacker: game_object, boneId: number): void {
         this.Log(`OnActorHit by ${attacker.id()} for ${amount} in bone ${boneId}`)
     }
 
+    //Monster
     protected OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: number): boolean {
         const weapon = level.object_by_id(shit.weapon_id);
         this.Log(`OnMonsterBeforeHit ${monster.id()} by ${shit.draftsman.id()} with ${weapon && weapon.id() || "'no weapon'"} for ${shit.power} in bone ${boneId}`)
@@ -40,6 +42,7 @@ export class ModScriptBase {
         this.Log(`OnMonsterLootInit ${monster.id()}`)
     }
 
+    //NPC
     protected OnNPCBeforeHit(npc: game_object, shit: hit, boneId: number): boolean {
         this.Log(`OnNPCBeforeHit ${npc.id()} by ${shit.draftsman.id()} for ${shit.power} in bone ${boneId}`)
         return true;
@@ -51,9 +54,15 @@ export class ModScriptBase {
         this.Log(`OnNPCDeath ${npc.id()} by ${killer.id()}`)
     }
 
+    //Simulation
+    protected OnSimulationFillStartPosition(): void{
+        this.Log(`OnSimulationFillStartPosition`)
+    }
+
     private RegisterCallbacks():void{
         this.Log("Register callbacks");
 
+        //Actor
         RegisterScriptCallback("actor_on_first_update", () => this.OnActorFirstUpdate());
         RegisterScriptCallback("actor_on_update",  () => this.OnActorUpdate());
         RegisterScriptCallback("actor_on_before_hit",  (shit, boneId, flags : CallbackReturnFlags) => {
@@ -61,6 +70,7 @@ export class ModScriptBase {
         });
         RegisterScriptCallback("actor_on_hit_callback",  (amount, localDirection, attacker, boneId) => this.OnActorHit(amount, localDirection, attacker, boneId));
         
+        //Monster
         RegisterScriptCallback("monster_on_before_hit",  (monster, shit, boneId, flags : CallbackReturnFlags) => {
             flags.ret_value = this.OnMonsterBeforeHit(monster, shit, boneId);
         });
@@ -69,12 +79,16 @@ export class ModScriptBase {
         RegisterScriptCallback("monster_on_actor_use_callback",  (monster, actor) => this.OnMonsterActorUse(monster, actor))
         RegisterScriptCallback("monster_on_loot_init", (monster, lootTable) => this.OnMonsterLootInit(monster, lootTable));
 
-
+        //NPC
         RegisterScriptCallback("npc_on_before_hit",  (npc, shit, boneId, flags : CallbackReturnFlags) => { 
             flags.ret_value = this.OnNPCBeforeHit(npc, shit, boneId)
         });
         RegisterScriptCallback("npc_on_hit_callback",  (npc, amount, localDirection, attacker, boneId) => this.OnNPCHit(npc, amount, localDirection, attacker, boneId));
         RegisterScriptCallback("npc_on_death_callback",  (npc, killer) => this.OnNPCDeath(npc, killer));
+
+        //Simulation
+        RegisterScriptCallback("fill_start_position", () => this.OnSimulationFillStartPosition())
+
     }
 
     public Log(message: string) {
