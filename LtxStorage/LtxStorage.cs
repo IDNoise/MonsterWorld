@@ -208,6 +208,7 @@ public class File
     public List<Section> Sections { get; } = new();
     public bool IsDirty => isDirty || Sections.Any(s => s.IsDirty);
 
+    public bool HasSection(string sectionName) => SectionsByName.ContainsKey(sectionName);
     public Section this[string sectionName] => SectionsByName[sectionName];
 
     public File AddSection(Section section, bool isNew = true)
@@ -273,7 +274,33 @@ public class Section
     public List<Property> Properties { get; set; } = new();
     public bool IsDirty { get; private set; }
     
-    public Property this[string key] => Properties.Where(p => p.Key == key).Single();
+    public Property? GetProperty(string key, bool withParentSections = true)
+    {
+        var result = Properties.FirstOrDefault(p => p.Key == key);
+        if (!withParentSections || result != null)
+            return result;
+
+        Property? GetPropertyFromSections(IEnumerable<Section> sections) => sections
+            .Where(s => ParentSectionNames.Contains(s.Name))
+            .Select(s => s.GetProperty(key))
+            .FirstOrDefault(p => p != null);
+
+        result = GetPropertyFromSections(File.Sections);
+        if (result != null)
+            return result;
+
+        var currentDir = File.Directory;
+        while (currentDir != null)
+        {
+            result = GetPropertyFromSections(currentDir.Files.SelectMany(f => f.Sections));
+            if (result != null)
+                return result;
+            
+            currentDir = currentDir.ParentDirectory;
+        }
+
+        return result;
+    }
 
     public Section SetProperties(object? properties, bool isNew = true)
     {
