@@ -8,23 +8,11 @@ class MonsterWorld extends ModScriptBase{
 
     constructor(){
         super("MonsterWorld");
-
-        item_knife.is_equipped = () => true;
-        item_knife.get_condition = () => 1;
-        item_knife.degradate = () => {};
-        item_knife.can_loot = (monster) => true;
-        item_knife.is_axe = () => false;
-
-        const oldCreateNpc = sim_squad_scripted.sim_squad_scripted.create_npc;
-        sim_squad_scripted.sim_squad_scripted.create_npc = (spawn_smart : smart_terrain.se_smart_terrain, pos: vector, lvid:LevelVertexId, gvid:GameVertexId) => {
-            this.Log(`sim_squad_scripted.create_npc from ${spawn_smart && spawn_smart.name() || "not smart"}. lvid: ${lvid || spawn_smart.m_level_vertex_id}, gvid: ${gvid || spawn_smart.m_game_vertex_id}`);
-
-            oldCreateNpc(spawn_smart, pos, lvid, gvid);
-        };
     }
 
     protected OnActorFirstUpdate(): void {
         super.OnActorFirstUpdate();
+        this.EnableMutantLootingWithoutKnife();
     }
 
     protected OnActorBeforeHit(hit: hit, boneId: number): boolean {
@@ -79,6 +67,14 @@ class MonsterWorld extends ModScriptBase{
         smart.already_spawned = {"spawn_section_1": {num: 0}, "spawn_section_2": {num: 0}}
 
         return true;
+    }
+
+    EnableMutantLootingWithoutKnife(): void {
+        item_knife.is_equipped = () => true;
+        item_knife.get_condition = () => 1;
+        item_knife.degradate = () => { };
+        item_knife.can_loot = (monster) => true;
+        item_knife.is_axe = () => false;
     }
 }
 
@@ -169,3 +165,10 @@ export function StartMonsterWorld(){
 // }
 
 // alife_create("sim_default_zombied_1", spawn_smart);
+
+// const oldCreateNpc = sim_squad_scripted.sim_squad_scripted.create_npc;
+        // sim_squad_scripted.sim_squad_scripted.create_npc = (spawn_smart : smart_terrain.se_smart_terrain, pos: vector, lvid:LevelVertexId, gvid:GameVertexId) => {
+        //     this.Log(`sim_squad_scripted.create_npc from ${spawn_smart && spawn_smart.name() || "not smart"}. lvid: ${lvid || spawn_smart.m_level_vertex_id}, gvid: ${gvid || spawn_smart.m_game_vertex_id}`);
+
+        //     oldCreateNpc(spawn_smart, pos, lvid, gvid);
+        // };
