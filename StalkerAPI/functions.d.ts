@@ -1,3 +1,4 @@
+declare function callstack(): void;
 declare function log(this: void, data: string): void
 declare function time_global(): number
 declare function se_save_var<T>(id: number, name: string, varname: string, val: T): void;

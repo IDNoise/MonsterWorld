@@ -1,3 +1,5 @@
+import SmartTerrain = smart_terrain.se_smart_terrain
+
 export class ModScriptBase {
     private modName: string;
     private logEnabled: boolean;
@@ -38,7 +40,7 @@ export class ModScriptBase {
     protected OnMonsterActorUse(monster: game_object, user: game_object): void {
         this.Log(`OnMonsterActorUse ${monster.id()} by ${user.id()}`)
     }
-    protected OnMonsterLootInit(monster: game_object, lootTable: LuaMap<string, LuaMap<string, number>>): void {
+    protected OnMonsterLootInit(monster: game_object, lootTable: LootTable): void {
         this.Log(`OnMonsterLootInit ${monster.id()}`)
     }
 
@@ -58,6 +60,11 @@ export class ModScriptBase {
     protected OnSimulationFillStartPosition(): void{
         this.Log(`OnSimulationFillStartPosition`)
     }
+    protected OnSmartTerrainTryRespawn(smart: SmartTerrain) : boolean{
+        this.Log(`OnTryRespawn ${smart.name()}`)
+        return true;
+    }
+
 
     private RegisterCallbacks():void{
         this.Log("Register callbacks");
@@ -88,6 +95,9 @@ export class ModScriptBase {
 
         //Simulation
         RegisterScriptCallback("fill_start_position", () => this.OnSimulationFillStartPosition())
+        RegisterScriptCallback("on_try_respawn", (smart, flags: CallbackReturnFlags) => {
+            flags.disabled = !this.OnSmartTerrainTryRespawn(smart);
+        });
 
     }
 

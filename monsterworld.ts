@@ -1,5 +1,7 @@
-import { CreateVector } from './StalkerAPI/extensions/basic';
 import { ModScriptBase } from './StalkerAPI/modbase';
+
+import SmartTerrain = smart_terrain.se_smart_terrain;
+
 
 class MonsterWorld extends ModScriptBase{
     private lastEnemySpawnTime: number = 0;
@@ -15,22 +17,9 @@ class MonsterWorld extends ModScriptBase{
 
         const oldCreateNpc = sim_squad_scripted.sim_squad_scripted.create_npc;
         sim_squad_scripted.sim_squad_scripted.create_npc = (spawn_smart : smart_terrain.se_smart_terrain, pos: vector, lvid:LevelVertexId, gvid:GameVertexId) => {
-            this.Log(`sim_squad_scripted.create_npc from ${spawn_smart && spawn_smart.id || "not smart"}. lvid: ${lvid || spawn_smart.m_level_vertex_id}, gvid: ${gvid || spawn_smart.m_game_vertex_id}`);
-            //oldCreateNpc(...args);
+            this.Log(`sim_squad_scripted.create_npc from ${spawn_smart && spawn_smart.name() || "not smart"}. lvid: ${lvid || spawn_smart.m_level_vertex_id}, gvid: ${gvid || spawn_smart.m_game_vertex_id}`);
 
-            // if (!simulation_objects.is_on_the_actor_level(spawn_smart)){
-            //     this.Log("wrong level " + spawn_smart.m_level_vertex_id)
-            //     return;
-            // }
-
-            // if(spawn_smart != null){
-            //     this.Log("here")
-            //     alife_create("sim_default_zombied_1", spawn_smart);
-            //     this.Log("there")
-            // }
-            // else {
-            //     //alife_create("sim_default_zombied_1", pos, lvid, gvid);
-            // }
+            oldCreateNpc(spawn_smart, pos, lvid, gvid);
         };
     }
 
@@ -43,37 +32,53 @@ class MonsterWorld extends ModScriptBase{
         return false;
     }
 
-    protected OnActorUpdate(): void {
-        super.OnActorUpdate();
-
-        if (time_global() < this.lastEnemySpawnTime + 5000)
-            return;
-
-        this.lastEnemySpawnTime = time_global();
-
-        let spawned = null;
-        let section = null;
-        let rand = math.random(1, 100);
-        if (rand < 10){ section = "sim_default_zombied_1"; }
-        else if (rand < 20){ section = "flesh_01a_normal"; }
-        else if (rand < 30) { section = "pseudodog_grey_strong"; }
-        else if (rand < 40) { section = "bibliotekar_strong"; }
-        else if (rand < 50) { section = "lurker_3_weak"; }
-        else if (rand < 60) { section = "chimera_strong4"; }
-
-        if (section != null){
-            let pos = db.actor.position().add(CreateVector(math.random(-50, 50), 3, math.random(-50, 50)));
-            spawned = alife_create(section, pos, db.actor.level_vertex_id(), db.actor.game_vertex_id())
-            if (spawned != null){
-                spawned.scripted_target = "actor";
-                spawned.rush_to_target = true;
-            }   
-        }
-    }
-
     protected OnSimulationFillStartPosition(): void {
         super.OnSimulationFillStartPosition();
-        //SIMBOARD.start_position_filled = true;
+        callstack();
+        SIMBOARD.start_position_filled = true;
+    }
+
+    protected override OnSmartTerrainTryRespawn(smart: SmartTerrain): boolean {
+        if (!smart.is_on_actor_level){
+            return false;
+        }
+
+        if (smart.respawn_idle == 20){
+            return true;
+        }
+
+        super.OnSmartTerrainTryRespawn(smart);
+        this.Log(`Setup configs for smart: ${smart.name()}`)
+        smart.respawn_idle = 20;
+        smart.max_population = 5;
+
+        if (math.random(1, 100) > 60){
+            smart.respawn_params = {
+                "spawn_section_1": {
+                    num: xr_logic.parse_condlist(null, null, null, "3"), 
+                    squads: ["simulation_snork"], 
+                    helicopter: false
+                },
+                "spawn_section_2": {
+                    num: xr_logic.parse_condlist(null, null, null, "3"), 
+                    squads: ["simulation_snork"], 
+                    helicopter: false
+                }
+            }
+        }
+        else {
+            smart.respawn_params = {
+                "spawn_section_1": {
+                    num: xr_logic.parse_condlist(null, null, null, "3"), 
+                    squads: ["simulation_pseudodog", "simulation_mix_dogs"], 
+                    helicopter: false
+                }
+            } 
+        }
+
+        smart.already_spawned = {"spawn_section_1": {num: 0}, "spawn_section_2": {num: 0}}
+
+        return true;
     }
 }
 
@@ -124,3 +129,43 @@ export function StartMonsterWorld(){
 //     let shitY = new hit()
 //     return true;
 // }
+
+// protected OnActorUpdate(): void {
+//     super.OnActorUpdate();
+
+//     if (time_global() < this.lastEnemySpawnTime + 5000)
+//         return;
+
+//     this.lastEnemySpawnTime = time_global();
+
+//     let spawned = null;
+//     let section = null;
+//     let rand = math.random(1, 100);
+//     if (rand < 10){ section = "sim_default_zombied_1"; }
+//     else if (rand < 20){ section = "flesh_01a_normal"; }
+//     else if (rand < 30) { section = "pseudodog_grey_strong"; }
+//     else if (rand < 40) { section = "bibliotekar_strong"; }
+//     else if (rand < 50) { section = "lurker_3_weak"; }
+//     else if (rand < 60) { section = "chimera_strong4"; }
+
+//     if (section != null){
+//         let pos = db.actor.position().add(CreateVector(math.random(-50, 50), 3, math.random(-50, 50)));
+//         spawned = alife_create(section, pos, db.actor.level_vertex_id(), db.actor.game_vertex_id())
+//         if (spawned != null){
+//             spawned.scripted_target = "actor";
+//             spawned.assigned_target_id = 0;
+//             spawned.current_target_id = 0;
+//             spawned.rush_to_target = true;
+//         }   
+//     }
+// }
+
+// protected OnMonsterLootInit(monster: game_object, lootTable: LootTable): void {
+//     super.OnMonsterLootInit(monster, lootTable)
+    
+//     lootTable["wpn_ak105"] = {count: 1};
+
+//     log(`Monster Was hitted: ${Load<number>(monster, "hitted", 0)} times`)
+// }
+
+// alife_create("sim_default_zombied_1", spawn_smart);
