@@ -1,4 +1,7 @@
-﻿namespace LtxStorage;
+﻿using System.Globalization;
+using System.Text;
+
+namespace LtxStorage;
 
 public class Storage
 {
@@ -7,6 +10,8 @@ public class Storage
 
     public Storage(string gameDataDirPath)
     {
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        
         GameDataDirectoryPath = gameDataDirPath;
         ParseFileSystem();
     }
@@ -16,7 +21,7 @@ public class Storage
         var dir = new Directory()
         {
             Name = name,
-            Parent = parent,
+            ParentDirectory = parent,
         };
         if (parent != null)
             parent.SubDirectoriesByName.Add(dir.Name, dir);
@@ -29,7 +34,7 @@ public class Storage
         var file = new File()
         {
             Name = name,
-            Parent = directory,
+            Directory = directory,
         };
         ParseFile(file);
         
@@ -42,7 +47,7 @@ public class Storage
         var section = new Section()
         {
             Name = name,
-            Parent = file
+            File = file
         };
 
         if (parentSectionNames != null)
@@ -89,6 +94,16 @@ public class Storage
         return MakeFile(fileName, currentDir);
     }
 
+    public void SaveChanges(string outputDir)
+    {
+        foreach (var file in AllChangedFiles)
+        {
+            var dirName = outputDir + "/" + file.Directory.Path;
+            System.IO.Directory.CreateDirectory(dirName);
+            System.IO.File.WriteAllText(outputDir + "/" + file.PathWithExt, file.ToString());
+        }
+    }
+    
     private void ParseFileSystem()
     {
         RootDirectory = MakeDirectory("configs", null);
@@ -146,6 +161,7 @@ public class Storage
         }
         
         file.Includes.Reverse();
+        file.Sections.Reverse();
     }
 
     private void ParseSection(List<string> sectionLines, File parent)
@@ -163,17 +179,15 @@ public class Storage
 
 public class Directory
 {
-    public Directory? Parent { get; set; }
+    public Directory? ParentDirectory { get; set; }
     public string Name { get; set; }
+    public string Path => ParentDirectory != null ? ParentDirectory.Path + "/" + Name : Name;
     
     public Dictionary<string, Directory> SubDirectoriesByName = new();
     public Dictionary<string, File> FilesByName = new();
     
     public IEnumerable<Directory> SubDirectories => SubDirectoriesByName.Values;
     public IEnumerable<File> Files => FilesByName.Values;
-
-    public string Path => Parent != null ? Parent.Path + "/" + Name : Name;
-
     public IEnumerable<File> AllFiles => Files.Union(SubDirectories.SelectMany(d => d.AllFiles));
 
     public void AddFile(File file)
@@ -184,23 +198,45 @@ public class Directory
 
 public class File
 {
-    public Directory Parent { get; set; }
+    public Directory Directory { get; set; }
     public string Name { get; set; }
-    public List<string> Includes = new();
-    public Dictionary<string, Section> SectionsByName { get; private set; } = new();
-    public IEnumerable<Section> Sections => SectionsByName.Values;
-    public bool IsDirty => isDirty || Sections.Any(s => s.IsDirty);
-
-    public string Path => Parent.Path + "/" + Name;
+    public string Path => Directory.Path + "/" + Name;
     public string PathWithExt => Path + ".ltx";
+    
+    public List<string> Includes { get; } = new();
+    public Dictionary<string, Section> SectionsByName { get; } = new();
+    public List<Section> Sections { get; } = new();
+    public bool IsDirty => isDirty || Sections.Any(s => s.IsDirty);
 
     public Section this[string sectionName] => SectionsByName[sectionName];
 
     public File AddSection(Section section, bool isNew = true)
     {
+        Sections.Add(section);
         SectionsByName[section.Name] = section;
-        section.Parent = this;
+        section.File = this;
         if (isNew) MarkDirty();
+        return this;
+    }
+
+    public File RemoveSection(string sectionName)
+    {
+        if (SectionsByName.TryGetValue(sectionName, out var section))
+            RemoveSection(section);
+        return this;
+    }
+
+    private void RemoveSection(Section section)
+    {
+        Sections.Remove(section);
+        SectionsByName.Remove(section.Name);
+        MarkDirty();
+    }
+
+    public File RemoveSections(Func<Section, bool>? predicate = null)
+    {
+        foreach (var section in Sections.Where(s => predicate == null || predicate(s)).ToList())
+            RemoveSection(section);
         return this;
     }
 
@@ -213,12 +249,26 @@ public class File
 
     private bool isDirty = false;
     void MarkDirty() => isDirty = true;
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        foreach (var include in Includes)
+            sb.AppendLine($"#include \"{include}.ltx\"");
+
+        foreach (var section in Sections)
+            sb.AppendLine(section.ToString());
+
+        return sb.ToString();
+    }
 }
 
 public class Section
 {
-    public File Parent { get; set; }
+    public File File { get; set; }
     public string Name { get; set; }
+    public string Path => File.Path + "/" + Name;
+    
     public List<string> ParentSectionNames { get; set; } = new();
     public List<Property> Properties { get; set; } = new();
     public bool IsDirty { get; private set; }
@@ -272,10 +322,22 @@ public class Section
         
         return this;
     }
-    
-    public string Path => Parent.Path + "/" + Name;
 
     private void MakeDirty() => IsDirty = true;
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        var parents = ParentSectionNames.Count > 0 ? $" : {string.Join(", ", ParentSectionNames)}" : "";
+        sb.AppendLine($"[{Name}]{parents}");
+
+        foreach (var p in Properties)
+            sb.AppendLine(p.ToString());
+
+        sb.AppendLine();
+
+        return sb.ToString();
+    }
 }
 
 public class Property
@@ -302,7 +364,7 @@ public class Property
     
     public bool Bool
     {
-        get => stringValue == "true" ? true : false;
+        get => stringValue == "true";
         set => stringValue = value ? "true" : "false";
     }
 
@@ -314,6 +376,8 @@ public class Property
         {
             if (value is float f)
                 Float = f;
+            else if (value is double d)
+                Float = (float)d;
             else if (value is int i)
                 Int = i; 
             else if (value is bool b)
@@ -329,8 +393,17 @@ public class Property
 
     public Property(string key, object? value = null)
     {
-        Key = key;
-        Value = value;
+        if (key.Contains("="))
+        {
+            var parts = key.Split("=");
+            Key = parts[0].Trim();
+            Value = parts[1].Trim();
+        }
+        else
+        {
+            Key = key;
+            Value = value;
+        }
     }
 
     public override string ToString()
@@ -340,6 +413,6 @@ public class Property
             return Key;
         }
 
-        return $"{Key}={stringValue}";
+        return $"{Key,-20} = {stringValue}";
     }
 }
