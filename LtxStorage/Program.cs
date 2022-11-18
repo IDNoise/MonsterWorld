@@ -22,3 +22,4 @@ var explosive = section.GetProperty("explosive", true);
 Console.WriteLine(explosive?.String ?? "Not found");
 
 Console.WriteLine(storage.GetSection("wpn_sig550_luckygun_eot").GetProperty("kind")?.String ?? "Not found");
+Console.WriteLine(string.Join(", ", storage.GetSection("wpn_sig550_luckygun_eot").AllParentSectionNames));

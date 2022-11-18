@@ -172,7 +172,7 @@ public class Storage
 
         var headerLineParts = headerLine.Split("]", StringSplitOptions.TrimEntries);
         var name = headerLineParts[0];
-        var parentSectionNames = headerLineParts.Length > 1 ? headerLineParts[1].Replace(":", "").Split(",").ToList() : null;
+        var parentSectionNames = headerLineParts.Length > 1 ? headerLineParts[1].Replace(":", "").Split(",", StringSplitOptions.RemoveEmptyEntries).ToList() : null;
         MakeSection(name, parent, parentSectionNames: parentSectionNames, properties: properties, isNew: false);
     }
 }
@@ -280,27 +280,35 @@ public class Section
         if (!withParentSections || result != null)
             return result;
 
-        Property? GetPropertyFromSections(IEnumerable<Section> sections) => sections
-            .Where(s => ParentSectionNames.Contains(s.Name))
-            .Select(s => s.GetProperty(key))
-            .FirstOrDefault(p => p != null);
-
-        result = GetPropertyFromSections(File.Sections);
-        if (result != null)
-            return result;
-
-        var currentDir = File.Directory;
-        while (currentDir != null)
-        {
-            result = GetPropertyFromSections(currentDir.Files.SelectMany(f => f.Sections));
-            if (result != null)
-                return result;
-            
-            currentDir = currentDir.ParentDirectory;
-        }
-
-        return result;
+        return AllParentSections.Select(s => s.GetProperty(key)).FirstOrDefault(p => p != null);
     }
+
+    public IEnumerable<Section> ParentSections
+    {
+        get
+        {
+            var parents = new HashSet<Section>();
+
+            var currentDir = File.Directory;
+            while (currentDir != null)
+            {
+                foreach (var p in currentDir.Files.SelectMany(f => f.Sections).Where(s => ParentSectionNames.Contains(s.Name)))
+                {
+                    parents.Add(p);
+                    if (parents.Count == ParentSectionNames.Count)
+                        return parents;
+                }
+
+                currentDir = currentDir.ParentDirectory;
+            }
+
+            return parents;
+        }
+    }
+
+    public IEnumerable<Section> AllParentSections => ParentSections.Union(ParentSections.SelectMany(s => s.AllParentSections)).Distinct();
+
+    public IEnumerable<string> AllParentSectionNames => AllParentSections.Select(s => s.Name);
 
     public Section SetProperties(object? properties, bool isNew = true)
     {
