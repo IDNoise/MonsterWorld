@@ -31,54 +31,54 @@ export class ModScriptBase {
         //this.Log("OnActorUpdate")
     }
     protected OnActorBeforeHit(shit: hit, boneId: BoneId): boolean {
-        this.Log(`OnActorBeforeHit by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman && shit.draftsman.id()} with type: ${shit.type} and power: ${shit.power} from weapon_id: ${shit.weapon_id || "None"}`)
+        //this.Log(`OnActorBeforeHit by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman && shit.draftsman.id()} with type: ${shit.type} and power: ${shit.power} from weapon_id: ${shit.weapon_id || "None"}`)
         return true;
     }
     protected OnActorHit(amount: number, localDirection: vector, attacker: game_object, boneId: BoneId): void {
-        this.Log(`OnActorHit by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
+        //this.Log(`OnActorHit by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
     }
 
     //Monster
     protected OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
-        this.Log(`OnMonsterNetSpawn ${monster.section()}:${monster.id()} by ${serverObject.id}`)
+        //this.Log(`OnMonsterNetSpawn ${monster.section()}:${monster.id()} by ${serverObject.id}`)
     }
     protected OnMonsterNetDestroy(monster: game_object): void {
-        this.Log(`OnMonsterNetDestroy ${monster.section()}:${monster.id()}`)
+        //this.Log(`OnMonsterNetDestroy ${monster.section()}:${monster.id()}`)
     }
     protected OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: BoneId): boolean {
         const weapon = level.object_by_id(shit.weapon_id);
-        this.Log(`OnMonsterBeforeHit ${monster.section()}:${monster.id()} by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman.id()} with ${weapon && weapon.id() || "'no weapon'"} for ${shit.power} in bone ${boneId}`)
+        //this.Log(`OnMonsterBeforeHit ${monster.section()}:${monster.id()} by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman.id()} with ${weapon && weapon.id() || "'no weapon'"} for ${shit.power} in bone ${boneId}`)
         return true;
     }
     protected OnMonsterHit(monster: game_object, amount: number, localDirection: vector, attacker: game_object, boneId: BoneId): void {
-        this.Log(`OnMonsterHit ${monster.section()}:${monster.id()} by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
+        //this.Log(`OnMonsterHit ${monster.section()}:${monster.id()} by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
     }
     protected OnMonsterDeath(monster: game_object, killer: game_object): void {
-        this.Log(`OnMonsterDeath ${monster.section()}:${monster.id()} by ${killer.section()}:${killer.id()}`)
+        //this.Log(`OnMonsterDeath ${monster.section()}:${monster.id()} by ${killer.section()}:${killer.id()}`)
     }
     protected OnMonsterActorUse(monster: game_object, user: game_object): void {
-        this.Log(`OnMonsterActorUse ${monster.section()}:${monster.id()} by ${user.section()}:${user.id()}`)
+        //this.Log(`OnMonsterActorUse ${monster.section()}:${monster.id()} by ${user.section()}:${user.id()}`)
     }
     protected OnMonsterLootInit(monster: game_object, lootTable: LootTable): void {
-        this.Log(`OnMonsterLootInit ${monster.section()}:${monster.id()}`)
+        //this.Log(`OnMonsterLootInit ${monster.section()}:${monster.id()}`)
     }
 
     //NPC
     protected OnNpcNetSpawn(npc: game_object, serverObject: cse_alife_creature_actor): void {
-        this.Log(`OnNpcNetSpawn ${npc.section()}:${npc.id()} by ${serverObject.id}`)
+        //this.Log(`OnNpcNetSpawn ${npc.section()}:${npc.id()} by ${serverObject.id}`)
     }
     protected OnNpcNetDestroy(npc: game_object): void {
-        this.Log(`OnNpcNetDestroy ${npc.section()}:${npc.id()}`)
+        //this.Log(`OnNpcNetDestroy ${npc.section()}:${npc.id()}`)
     }
     protected OnNPCBeforeHit(npc: game_object, shit: hit, boneId: BoneId): boolean {
-        this.Log(`OnNPCBeforeHit ${npc.section()}:${npc.id()} by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman.id()} for ${shit.power} in bone ${boneId}`)
+        //this.Log(`OnNPCBeforeHit ${npc.section()}:${npc.id()} by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman.id()} for ${shit.power} in bone ${boneId}`)
         return true;
     }
     protected OnNPCHit(npc: game_object, amount: number, localDirection: vector, attacker: game_object, boneId: BoneId): void {
-        this.Log(`OnNPCHit ${npc.section()}:${npc.id()} by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
+        //this.Log(`OnNPCHit ${npc.section()}:${npc.id()} by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
     }
     protected OnNPCDeath(npc: game_object, killer: game_object): void {
-        this.Log(`OnNPCDeath ${npc.section()}:${npc.id()} by ${killer.section()}:${killer.id()}`)
+        //this.Log(`OnNPCDeath ${npc.section()}:${npc.id()} by ${killer.section()}:${killer.id()}`)
     }
 
     //Simulation
@@ -86,16 +86,16 @@ export class ModScriptBase {
         this.Log(`OnSimulationFillStartPosition`)
     }
     protected OnSmartTerrainTryRespawn(smart: SmartTerrain) : boolean{
-        this.Log(`OnSmartTerrainTryRespawn ${smart.id} ${smart.name()}`)
+        //this.Log(`OnSmartTerrainTryRespawn ${smart.id} ${smart.name()}`)
         return true;
     }
 
     //Server objects
     protected OnServerEntityRegister(serverObject: cse_alife_object, type: ServerObjectType): void{
-        this.Log(`OnServerEntityRegister ${type} - ${serverObject.section_name()}:${serverObject.id} ${serverObject.name()}`)
+        //this.Log(`OnServerEntityRegister ${type} - ${serverObject.section_name()}:${serverObject.id} ${serverObject.name()}`)
     }
     protected OnServerEntityUnregister(serverObject: cse_alife_object, type: ServerObjectType): void{
-        this.Log(`OnServerEntityUnregister ${type} - ${serverObject.section_name()}:${serverObject.id} ${serverObject.name()}`)
+        //this.Log(`OnServerEntityUnregister ${type} - ${serverObject.section_name()}:${serverObject.id} ${serverObject.name()}`)
     }
 
     //Files

@@ -11,12 +11,12 @@ class MonsterWorld extends ModScriptBase{
 
     protected override OnSaveState(data: { [key: string]: any; }): void {
         super.OnSaveState(data);
-        data["safeSmarts"] = this.safeSmarts;
+        data.safeSmarts = this.safeSmarts;
     }
 
     protected OnLoadState(data: { [key: string]: any; }): void {
         super.OnLoadState(data);
-        this.safeSmarts = data["safeSmarts"] || [];
+        this.safeSmarts = data.safeSmarts || [];
     }
 
     protected OnActorFirstUpdate(): void {
@@ -88,7 +88,7 @@ class MonsterWorld extends ModScriptBase{
         if (smart.respawn_idle == 5)
             return true;
 
-        super.OnSmartTerrainTryRespawn(smart);
+        //super.OnSmartTerrainTryRespawn(smart);
         this.Log(`Setup configs for smart: ${smart.name()}`)
         smart.respawn_idle = 5;
         smart.max_population = 5;
