@@ -21,6 +21,44 @@ class MonsterWorld extends ModScriptBase{
     protected OnSimulationFillStartPosition(): void {
         super.OnSimulationFillStartPosition();
         callstack();
+
+        let setting_ini = new ini_file("misc\\simulation.ltx");
+        setting_ini.section_for_each((section) => {
+            this.Log(`Iterating on ${section}`)
+            let smart = SIMBOARD.smarts_by_names[section];
+            if (!smart) {
+                this.Log(`sim_board:fill_start_position incorrect smart by name ${section}`)
+                return false;
+            }
+
+            const lineCount = setting_ini.line_count(section);
+            for(let line = 0; line < lineCount; line++){
+                let [_res, squad_section, countStr] = setting_ini.r_line(section, line)
+                let count = tonumber(countStr) || 1
+
+                let common = ini_sys.r_bool_ex(squad_section,"common", false)
+                let faction = ini_sys.r_string_ex(squad_section,"faction")
+
+                if (common){
+                    let countMult = is_squad_monster[faction] ? 5 : 1;
+                    count = round_idp(count * countMult)
+                }
+                    
+                this.Log(`     ${line + 1}/${lineCount}: ${squad_section} =${count} (${common})`)
+
+                if (common) 
+                    continue;
+                if (!squad_section.includes("trader") && !squad_section.includes("mechanic") && !squad_section.includes("barman")) 
+                    continue;
+
+                for (let i = 0; i < count; i++){
+                    SIMBOARD.create_squad(smart, squad_section)
+                }
+            }
+
+            return false;
+        });
+
         SIMBOARD.start_position_filled = true;
     }
 

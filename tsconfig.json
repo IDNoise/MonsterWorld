@@ -21,7 +21,7 @@
     }, 
     "tstl": {
       //"buildMode":"default",
-      "luaTarget": "5.1",
+      "luaTarget": "JIT",
       //"extension": "script",
       "luaLibImport":"require",
       "noHeader": true,

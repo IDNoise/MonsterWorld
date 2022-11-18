@@ -8,6 +8,7 @@ declare const BoosterID : {[key: string]: number};
 declare const SCANNED_SLOTS : {[key: number]: true};
 declare const time_infinite : number;
 declare const actor_move_states : {[key: string]: number};
+declare const ini_sys: ini_file;
 
 //funs
 declare function callstack(): void;
