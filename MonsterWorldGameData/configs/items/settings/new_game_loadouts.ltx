@@ -1,0 +1,83 @@
+
+;; ===========================< Loadout >=============================
+;; To add items in the item lists:
+;; -------------------------------
+;; add a new line: "item_section			= value_1,value_2,value3" under the correct section below
+;; "item_section": is the section name of the your item. NOTE: don't make lines with the same "item_section", only the last one will be read
+;; "value_1": (boolean  value, must be true or false) determines wether this item should be added to player's inventory list (false) or to the loadout pick list (true)
+;; "value_2": (number) the amount of the said item
+;; "value_3": (number) how many points it requires
+;; "value_4": (number) what progression difficulty is this item locked at (2 means it's available for difficulty 1 and 2) [no value means its available for all difficulties]
+;; ========================================================
+;; put your custom items under "custom" section, they will always appear to pick from
+;; NOTE: you will get a single bolt only no matter how many you put in here, due to technical engine reasons
+
+
+[points]
+total_points_eco_1 = 100
+total_points_eco_2 = 100
+total_points_eco_3 = 100
+
+[custom]	
+
+[shared]:custom
+device_pda_1 			        = false,1,0
+bolts_pack						= false,1,0
+device_flashlight               = false,1,0
+itm_sleepbag                    = false,1,0
+
+wpn_knife                       = false,1,0
+wpn_aps                         = false,1,0
+ammo_9x18_fmj	                = false,1,0
+novice_outfit_tourist           = false,1,0
+helm_respirator                 = false,1,0
+
+bandage					        = false,5,0
+medkit 					        = false,5,0
+wpn_binoc_inv                   = false,1,0
+
+[stalker_loadout]:shared
+[bandit_loadout]:shared
+[ecolog_loadout]:shared
+[dolg_loadout]:shared
+[freedom_loadout]:shared
+[killer_loadout]:shared
+[army_loadout]:shared
+[monolith_loadout]:shared
+[csky_loadout]:shared
+[renegade_loadout]:shared
+[greh_loadout]:shared
+[isg_loadout]:shared
+[zombied_loadout]:shared,stalker_loadout
+
+
+;; ===========================< Ammo >=============================
+;-- defined ammo type per weapon here (weapon section = ammo section) - Example: wpn_glock = ammo_9x19_fmj_bad
+;-- when a weapon in this section found in your inventory, you will be given the ammo stated for it
+;-- otherwise, ammo type will be the first one define in weapon's config
+[ammo_type_per_wpn]
+
+
+;-- define ammo count per ammo section (section = count) here - Example: ammo_9x19_fmj_bad = 60
+;-- When an ammo type is picked for a weapon in your inventory, it will be given to player by the count defined here
+;-- otherwise, ammo's count will be a full box size
+[ammo_count]
+ammo_9x18_fmj = 300
+
+;; ===========================< Money >=============================
+[base_money]
+money = 1000
+
+[stalker_money]: base_money
+[bandit_money]: base_money
+[ecolog_money]: base_money
+[dolg_money]: base_money
+[freedom_money]: base_money
+[killer_money]: base_money
+[army_money]: base_money
+[monolith_money]: base_money
+[csky_money]: base_money
+[renegade_money]: base_money
+[greh_money]: base_money
+[isg_money]: base_money
+[zombied_money]: base_money
