@@ -21,3 +21,11 @@ export function CreateWorldPositionAtPosWithGO(pos: vector, object: game_object)
 export function CreateVector(x : number, y: number = 0, z: number = 0): vector {
     return new vector().set(x, y, z);
 }
+
+export function EnableMutantLootingWithoutKnife(): void {
+    item_knife.is_equipped = () => true;
+    item_knife.get_condition = () => 1;
+    item_knife.degradate = () => { };
+    item_knife.can_loot = (monster) => true;
+    item_knife.is_axe = () => false;
+}

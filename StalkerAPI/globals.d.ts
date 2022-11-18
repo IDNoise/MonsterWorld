@@ -51,14 +51,17 @@ declare function IsMoveState(state: string, compare_state?: string): boolean;
 declare function se_save_var<T>(id: number, name: string, varname: string, val: T): void;
 declare function se_load_var<T>(id: number, name: string, varname: string): T;
 
-declare function iempty_table(table: LuaTable | any[]): void;
-declare function empty_table(table: LuaTable | {[key: string]: any}): void;
-declare function is_empty(table: LuaTable | {[key: string]: any}): boolean;
-declare function is_not_empty(table: LuaTable | {[key: string]: any}): boolean;
-declare function size_table(table: LuaTable | {[key: string]: any}): number;
-declare function random_key_table(table: LuaTable | {[key: string]: any}): string;
-declare function dup_table(table: LuaTable | {[key: string]: any}): LuaTable | {[key: string]: any};
-declare function copy_table(source: LuaTable | {[key: string]: any}, target: LuaTable | {[key: string]: any}): void;
+type LTable = LuaTable | {[key: string]: any};
+type LArray = LuaTable | {[key: number]: any} | any[];
+
+declare function iempty_table(table: LArray): void;
+declare function empty_table(table: LTable): void;
+declare function is_empty(table: LTable): boolean;
+declare function is_not_empty(table: LTable): boolean;
+declare function size_table(table: LTable): number;
+declare function random_key_table(table: LTable): string;
+declare function dup_table(table: LTable): LuaTable | {[key: string]: any};
+declare function copy_table(source: LTable, target: LTable): void;
 
 // declare function game_ini()
 // declare function bit_and(number, number)

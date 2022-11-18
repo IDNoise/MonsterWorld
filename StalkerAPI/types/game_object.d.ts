@@ -617,7 +617,7 @@ declare interface game_object {
   // function cast_CustomOutfit()
   // function cast_Helmet()
   // function cast_Artefact()
-  // function cast_Ammo()
+  cast_Ammo(): CWeaponAmmo;
   cast_Weapon(): CWeapon;
   // function cast_WeaponMagazined()
   // function cast_WeaponMagazinedWGrenade()

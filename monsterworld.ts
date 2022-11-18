@@ -1,4 +1,5 @@
 import { ModScriptBase, SmartTerrain } from './modbase';
+import { EnableMutantLootingWithoutKnife } from './StalkerAPI/extensions/basic';
 
 class MonsterWorld extends ModScriptBase{
     private lastEnemySpawnTime: number = 0;
@@ -9,7 +10,7 @@ class MonsterWorld extends ModScriptBase{
 
     protected OnActorFirstUpdate(): void {
         super.OnActorFirstUpdate();
-        this.EnableMutantLootingWithoutKnife();
+        EnableMutantLootingWithoutKnife();
     }
 
     protected OnActorBeforeHit(hit: hit, boneId: BoneId): boolean {
@@ -64,14 +65,6 @@ class MonsterWorld extends ModScriptBase{
         smart.already_spawned = {"spawn_section_1": {num: 0}, "spawn_section_2": {num: 0}}
 
         return true;
-    }
-
-    EnableMutantLootingWithoutKnife(): void {
-        item_knife.is_equipped = () => true;
-        item_knife.get_condition = () => 1;
-        item_knife.degradate = () => { };
-        item_knife.can_loot = (monster) => true;
-        item_knife.is_axe = () => false;
     }
 }
 
