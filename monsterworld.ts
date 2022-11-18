@@ -3,9 +3,20 @@ import { EnableMutantLootingWithoutKnife } from './StalkerAPI/extensions/basic';
 
 class MonsterWorld extends ModScriptBase{
     private lastEnemySpawnTime: number = 0;
+    private safeSmarts: Id[] = [];
 
     constructor(){
         super("MonsterWorld");
+    }
+
+    protected override OnSaveState(data: { [key: string]: any; }): void {
+        super.OnSaveState(data);
+        data["safeSmarts"] = this.safeSmarts;
+    }
+
+    protected OnLoadState(data: { [key: string]: any; }): void {
+        super.OnLoadState(data);
+        this.safeSmarts = data["safeSmarts"] || [];
     }
 
     protected OnActorFirstUpdate(): void {
@@ -24,12 +35,14 @@ class MonsterWorld extends ModScriptBase{
 
         let setting_ini = new ini_file("misc\\simulation.ltx");
         setting_ini.section_for_each((section) => {
-            this.Log(`Iterating on ${section}`)
+            
             let smart = SIMBOARD.smarts_by_names[section];
             if (!smart) {
                 this.Log(`sim_board:fill_start_position incorrect smart by name ${section}`)
                 return false;
             }
+
+            this.Log(`Iterating on ${section}. Smart: ${smart.id} ${smart.name()}`)
 
             const lineCount = setting_ini.line_count(section);
             for(let line = 0; line < lineCount; line++){
@@ -43,13 +56,14 @@ class MonsterWorld extends ModScriptBase{
                     let countMult = is_squad_monster[faction] ? 5 : 1;
                     count = round_idp(count * countMult)
                 }
-                    
+                
                 this.Log(`     ${line + 1}/${lineCount}: ${squad_section} =${count} (${common})`)
 
-                if (common) 
-                    continue;
-                if (!squad_section.includes("trader") && !squad_section.includes("mechanic") && !squad_section.includes("barman")) 
-                    continue;
+                if (common) continue;
+                if (!squad_section.includes("trader") && !squad_section.includes("mechanic") && !squad_section.includes("barman")) continue;
+
+                this.safeSmarts.push(smart.id);
+                this.Log(`Added to safe smarts: ${smart.id}. safe smarts#: ${this.safeSmarts.length}`)
 
                 for (let i = 0; i < count; i++){
                     SIMBOARD.create_squad(smart, squad_section)
@@ -63,17 +77,20 @@ class MonsterWorld extends ModScriptBase{
     }
 
     protected override OnSmartTerrainTryRespawn(smart: SmartTerrain): boolean {
-        if (!smart.is_on_actor_level){
+        if (!smart.is_on_actor_level)
             return false;
-        }
 
-        if (smart.respawn_idle == 20){
+        if (this.safeSmarts.indexOf(smart.id) >= 0) {
+            //this.Log(`Smart is safe: ${smart.id} ${smart.name()}`)
+            return false;
+        }       
+
+        if (smart.respawn_idle == 5)
             return true;
-        }
 
         super.OnSmartTerrainTryRespawn(smart);
         this.Log(`Setup configs for smart: ${smart.name()}`)
-        smart.respawn_idle = 20;
+        smart.respawn_idle = 5;
         smart.max_population = 5;
 
         if (math.random(1, 100) > 60){
@@ -93,7 +110,7 @@ class MonsterWorld extends ModScriptBase{
         else {
             smart.respawn_params = {
                 "spawn_section_1": {
-                    num: xr_logic.parse_condlist(null, null, null, "3"), 
+                    num: xr_logic.parse_condlist(null, null, null, "10"), 
                     squads: ["simulation_pseudodog", "simulation_mix_dogs"], 
                     helicopter: false
                 }

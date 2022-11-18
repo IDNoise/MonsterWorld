@@ -86,7 +86,7 @@ export class ModScriptBase {
         this.Log(`OnSimulationFillStartPosition`)
     }
     protected OnSmartTerrainTryRespawn(smart: SmartTerrain) : boolean{
-        this.Log(`OnSmartTerrainTryRespawn ${smart.name()}`)
+        this.Log(`OnSmartTerrainTryRespawn ${smart.id} ${smart.name()}`)
         return true;
     }
 

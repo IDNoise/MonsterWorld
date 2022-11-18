@@ -10,11 +10,11 @@ declare namespace smart_terrain {
   type AlreadySpawnnParams = { [key: string]: { num: number; }; };
 
   interface se_smart_terrain {
-    ini: any; //TODO
+    id: Id;
+    ini: ini_file;
     squad_id: number;
     max_population: number;
     respawn_idle: number;
-    id: string;
     m_level_vertex_id: LevelVertexId;
     m_game_vertex_id: GameVertexId;
     position: vector;
