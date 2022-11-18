@@ -24,11 +24,11 @@ export class ModScriptBase {
     protected OnActorUpdate() : void {
         //this.Log("OnActorUpdate")
     }
-    protected OnActorBeforeHit(shit: hit, boneId: number): boolean {
+    protected OnActorBeforeHit(shit: hit, boneId: BoneId): boolean {
         this.Log(`OnActorBeforeHit by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman && shit.draftsman.id()} with type: ${shit.type} and power: ${shit.power} from weapon_id: ${shit.weapon_id || "None"}`)
         return true;
     }
-    protected OnActorHit(amount: number, localDirection: vector, attacker: game_object, boneId: number): void {
+    protected OnActorHit(amount: number, localDirection: vector, attacker: game_object, boneId: BoneId): void {
         this.Log(`OnActorHit by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
     }
 
@@ -39,12 +39,12 @@ export class ModScriptBase {
     protected OnMonsterNetDestroy(monster: game_object): void {
         this.Log(`OnMonsterNetDestroy ${monster.section()}:${monster.id()}`)
     }
-    protected OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: number): boolean {
+    protected OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: BoneId): boolean {
         const weapon = level.object_by_id(shit.weapon_id);
         this.Log(`OnMonsterBeforeHit ${monster.section()}:${monster.id()} by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman.id()} with ${weapon && weapon.id() || "'no weapon'"} for ${shit.power} in bone ${boneId}`)
         return true;
     }
-    protected OnMonsterHit(monster: game_object, amount: number, localDirection: vector, attacker: game_object, boneId: number): void {
+    protected OnMonsterHit(monster: game_object, amount: number, localDirection: vector, attacker: game_object, boneId: BoneId): void {
         this.Log(`OnMonsterHit ${monster.section()}:${monster.id()} by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
     }
     protected OnMonsterDeath(monster: game_object, killer: game_object): void {
@@ -64,11 +64,11 @@ export class ModScriptBase {
     protected OnNpcNetDestroy(npc: game_object): void {
         this.Log(`OnNpcNetDestroy ${npc.section()}:${npc.id()}`)
     }
-    protected OnNPCBeforeHit(npc: game_object, shit: hit, boneId: number): boolean {
+    protected OnNPCBeforeHit(npc: game_object, shit: hit, boneId: BoneId): boolean {
         this.Log(`OnNPCBeforeHit ${npc.section()}:${npc.id()} by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman.id()} for ${shit.power} in bone ${boneId}`)
         return true;
     }
-    protected OnNPCHit(npc: game_object, amount: number, localDirection: vector, attacker: game_object, boneId: number): void {
+    protected OnNPCHit(npc: game_object, amount: number, localDirection: vector, attacker: game_object, boneId: BoneId): void {
         this.Log(`OnNPCHit ${npc.section()}:${npc.id()} by ${attacker.section()}:${attacker.id()} for ${amount} in bone ${boneId}`)
     }
     protected OnNPCDeath(npc: game_object, killer: game_object): void {

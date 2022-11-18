@@ -1,3 +1,5 @@
+type BoneId = number;
+
 /** @customConstructor hit */
 declare class hit {
   constructor(otherHit?: hit);

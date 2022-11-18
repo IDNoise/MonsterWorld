@@ -12,7 +12,7 @@ class MonsterWorld extends ModScriptBase{
         this.EnableMutantLootingWithoutKnife();
     }
 
-    protected OnActorBeforeHit(hit: hit, boneId: number): boolean {
+    protected OnActorBeforeHit(hit: hit, boneId: BoneId): boolean {
         super.OnActorBeforeHit(hit, boneId);        
         return false;
     }
