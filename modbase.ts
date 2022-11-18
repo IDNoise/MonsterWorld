@@ -86,10 +86,10 @@ export class ModScriptBase {
 
     //Server objects
     protected OnServerEntityRegister(serverObject: cse_alife_object, type: ServerObjectType): void{
-        this.Log(`OnServerEntityRegister ${type} - ${serverObject.name()} ${serverObject.section_name()}`)
+        this.Log(`OnServerEntityRegister ${type} - ${serverObject.section_name()}:${serverObject.id} ${serverObject.name()}`)
     }
     protected OnServerEntityUnregister(serverObject: cse_alife_object, type: ServerObjectType): void{
-        this.Log(`OnServerEntityUnregister ${type} - ${serverObject.name()} ${serverObject.section_name()}`)
+        this.Log(`OnServerEntityUnregister ${type} - ${serverObject.section_name()}:${serverObject.id} ${serverObject.name()}`)
     }
 
     private RegisterCallbacks():void{

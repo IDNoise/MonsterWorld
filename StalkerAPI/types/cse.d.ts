@@ -24,6 +24,19 @@ type ServerObjectType = ServerObjectTypeActor | ServerObjectTypeArtefact | Serve
 | ServerObjectTypeMonster | ServerObjectTypeSmartCover | ServerObjectTypeStalker 
 | ServerObjectTypeZones | ServerObjectTypeSimSquadScripted | ServerObjectTypeSmartTerrain; 
 
+type Reputation = number;
+type Rank = number;
+type Community = string;
+type ProfileName = string;
+type ScriptVersion = number;
+type StoryId = number;
+type StartupAnimation = any;//TODO
+type Group = number;
+type Squad = number;
+type Team = number;
+type GroupId = number;
+type SmartTerrainId = number;
+
 declare interface cpure_server_object {}
 declare interface cse_alife_group_abstract {}
 declare interface cse_visual {}
@@ -38,18 +51,18 @@ declare interface cse_alife_schedulable extends ipure_schedulable_object {
 declare interface cse_alife_object_climable extends cse_shape,cse_abstract {}
 
 declare interface cse_alife_trader_abstract {
-  profile_name(): string;
-  reputation(): any;//TODO - WTF?
-  rank(): any;//TODO - WTF?
-  community(): any;//TODO - WTF?
+  profile_name(): ProfileName;
+  reputation(): Reputation;
+  rank(): Rank;
+  community(): Community;
 }
 
 declare interface cse_abstract extends cpure_server_object {
-  angle: number;
-  id: any; //TODO - WTF?
+  angle: vector;
+  id: Id;
   parent_id: number;
   position: vector;
-  script_version: any; //TODO - WTF?
+  script_version: ScriptVersion;
 
   name(): string;
   clsid(): ClsId;
@@ -69,7 +82,7 @@ declare interface cse_alife_graph_point extends cse_abstract {}
 declare interface cse_alife_object extends cse_abstract {
   m_game_vertex_id: GameVertexId;
   m_level_vertex_id: LevelVertexId;
-  m_story_id: any; //TODO - WTF?
+  m_story_id: StoryId;
   online: boolean;
 
   can_save(): boolean;
@@ -87,7 +100,7 @@ declare interface cse_alife_object extends cse_abstract {
 }
 
 declare interface CSE_AbstractVisual extends cse_visual,cse_abstract {
-  getStartupAnimation(): any; //TODO - WTF?
+  getStartupAnimation(): StartupAnimation;
 }
 
 declare interface cse_alife_dynamic_object extends cse_alife_object {
@@ -110,7 +123,7 @@ declare interface cse_alife_smart_zone extends cse_alife_space_restrictor,cse_al
   // function register_npc(cse_alife_monster_abstract*)
   // function suitable(cse_alife_monster_abstract*) const
   // function task(cse_alife_monster_abstract*)
-  // function enabled(cse_alife_monster_abstract*) const}
+  enabled(): boolean;
 }
 
 declare interface cse_custom_zone extends cse_alife_dynamic_object,cse_shape {}
@@ -132,7 +145,7 @@ declare interface cse_alife_online_offline_group extends cse_alife_dynamic_objec
   // function squad_members() const
   // function force_change_position(vector)
   // function add_location_type(string)
-  // function npc_count() const    
+  npc_count(): number;
 }
 
 declare interface cse_alife_dynamic_object_visual extends cse_alife_dynamic_object,cse_visual {}
@@ -149,15 +162,15 @@ declare interface cse_alife_object_physic extends cse_alife_dynamic_object_visua
 declare interface cse_alife_object_projector extends cse_alife_dynamic_object_visual {}
 
 declare interface cse_alife_creature_abstract extends cse_alife_dynamic_object_visual {
-  group: any; //TODO - WTF?
-  squad: any; //TODO - WTF?
-  team: any; //TODO - WTF?
+  group: Group; 
+  squad: Squad; 
+  team: Team;
 
   on_death(): void;
   alive(): boolean;
-  g_team(): any;//TODO - WTF?
-  g_group(): any;//TODO - WTF?
-  g_squad(): any;//TODO - WTF?
+  g_team(): Team;
+  g_group(): Group;
+  g_squad(): Squad;
   health(): number;
   o_torso(): void;//TODO - WTF?
 }
@@ -167,12 +180,12 @@ declare interface cse_alife_creature_crow extends cse_alife_creature_abstract {}
 declare interface cse_alife_creature_phantom extends cse_alife_creature_abstract {}
 
 declare interface cse_alife_monster_abstract extends cse_alife_creature_abstract, cse_alife_schedulable {
-  group_id: any;//TODO - WTF?
-  m_smart_terrain_id: any;//TODO - WTF?
+  group_id: GroupId;
+  m_smart_terrain_id: SmartTerrainId;
 
   kill():void;
   update():void;
-  //force_set_goodwill(number, number):void;
+  force_set_goodwill(val1: number, val2: number):void;//TODO - WTF?
   clear_smart_terrain():void;
   travel_speed(): number;
   travel_speed(speed: number):void;
@@ -180,10 +193,10 @@ declare interface cse_alife_monster_abstract extends cse_alife_creature_abstract
   smart_terrain_task_activate():void;
   current_level_travel_speed(): number;
   current_level_travel_speed(speed: number):void;
-  brain(): any;//TODO - WTF?
+  brain(): CALifeMonsterBrain;
   has_detector(): boolean;
-  smart_terrain_id(): any;//TODO - WTF?
-  rank(): any;//TODO - WTF?
+  smart_terrain_id(): SmartTerrainId;
+  rank(): Rank;
 }
 
 declare interface cse_alife_monster_base extends cse_alife_monster_abstract,cse_ph_skeleton {}
@@ -191,7 +204,8 @@ declare interface cse_alife_psydog_phantom extends cse_alife_monster_base {}
 declare interface cse_alife_monster_rat extends cse_alife_monster_abstract,cse_alife_inventory_item {}
 declare interface cse_alife_monster_zombie extends cse_alife_monster_abstract {}
 declare interface cse_alife_human_abstract extends cse_alife_trader_abstract,cse_alife_monster_abstract {
-    set_rank(rank: number): void;
+    set_rank(rank: Rank): void;
+    brain(): CALifeHumanBrain;
 }
 declare interface cse_alife_human_stalker extends cse_alife_human_abstract,cse_ph_skeleton {}
 
