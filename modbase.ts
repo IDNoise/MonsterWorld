@@ -1,16 +1,20 @@
-import SmartTerrain = smart_terrain.se_smart_terrain
+export type SmartTerrain = smart_terrain.se_smart_terrain
 
 type LootTableEntryParams = {count?: number}
 type LootTable = {[key: string]: LootTableEntryParams}
 
 export class ModScriptBase {
-    private modName: string;
     private logEnabled: boolean;
 
-    constructor(modName: string){
-        this.modName = modName;
+    constructor(public modName: string){
         this.logEnabled = true;
         this.RegisterCallbacks();
+    }
+
+    public Log(message: string) {
+        if ( !this.logEnabled ) 
+            return;
+        log(`[${this.modName}:${time_global()}] ${message}`);
     }
 
     //Player
@@ -29,6 +33,12 @@ export class ModScriptBase {
     }
 
     //Monster
+    protected OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
+        this.Log(`OnMonsterNetSpawn ${monster.id()} by ${serverObject.id()}`)
+    }
+    protected OnMonsterNetDestroy(monster: game_object): void {
+        this.Log(`OnMonsterNetDestroy ${monster.id()}`)
+    }
     protected OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: number): boolean {
         const weapon = level.object_by_id(shit.weapon_id);
         this.Log(`OnMonsterBeforeHit ${monster.id()} by ${shit.draftsman.id()} with ${weapon && weapon.id() || "'no weapon'"} for ${shit.power} in bone ${boneId}`)
@@ -48,6 +58,12 @@ export class ModScriptBase {
     }
 
     //NPC
+    protected OnNpcNetSpawn(npc: game_object, serverObject: cse_alife_creature_actor): void {
+        this.Log(`OnNpcNetSpawn ${npc.id()} by ${serverObject.id()}`)
+    }
+    protected OnNpcNetDestroy(npc: game_object): void {
+        this.Log(`OnNpcNetDestroy ${npc.id()}`)
+    }
     protected OnNPCBeforeHit(npc: game_object, shit: hit, boneId: number): boolean {
         this.Log(`OnNPCBeforeHit ${npc.id()} by ${shit.draftsman.id()} for ${shit.power} in bone ${boneId}`)
         return true;
@@ -68,6 +84,13 @@ export class ModScriptBase {
         return true;
     }
 
+    //Server objects
+    protected OnServerEntityRegister(serverObject: cse_alife_object, type: ServerObjectType): void{
+        this.Log(`OnServerEntityRegister ${type} - ${serverObject.name()}`)
+    }
+    protected OnServerEntityUnregister(serverObject: cse_alife_object, type: ServerObjectType): void{
+        this.Log(`OnServerEntityUnregister ${type} - ${serverObject.name()}`)
+    }
 
     private RegisterCallbacks():void{
         this.Log("Register callbacks");
@@ -82,8 +105,8 @@ export class ModScriptBase {
         
         //Monster
 
-        // monster_on_net_spawn   = {}, -- Params: (<game_object>,<server_object>)
-        // monster_on_net_destroy = {}, -- Params: (<game_object>)
+        RegisterScriptCallback("monster_on_net_spawn",  (monster, serverObject) => this.OnMonsterNetSpawn(monster, serverObject));
+        RegisterScriptCallback("monster_on_net_destroy",  (monster) => this.OnMonsterNetDestroy(monster));
         RegisterScriptCallback("monster_on_before_hit",  (monster, shit, boneId, flags : CallbackReturnFlags) => {
             flags.ret_value = this.OnMonsterBeforeHit(monster, shit, boneId);
         });
@@ -93,8 +116,8 @@ export class ModScriptBase {
         RegisterScriptCallback("monster_on_loot_init", (monster, lootTable) => this.OnMonsterLootInit(monster, lootTable));
 
         //NPC
-        // npc_on_net_spawn		 = {}, -- Params: (<game_object>,<server_object>)
-        // npc_on_net_destroy 	 = {}, -- Params: (<game_object>)
+        RegisterScriptCallback("npc_on_net_spawn",  (npc, serverObject) => this.OnNpcNetSpawn(npc, serverObject));
+        RegisterScriptCallback("npc_on_net_destroy",  (npc) => this.OnNpcNetDestroy(npc));
         RegisterScriptCallback("npc_on_before_hit",  (npc, shit, boneId, flags : CallbackReturnFlags) => { 
             flags.ret_value = this.OnNPCBeforeHit(npc, shit, boneId)
         });
@@ -107,11 +130,8 @@ export class ModScriptBase {
             flags.disabled = !this.OnSmartTerrainTryRespawn(smart);
         });
 
-    }
-
-    public Log(message: string) {
-        if ( !this.logEnabled ) 
-            return;
-        log(`[${this.modName}:${time_global()}] ${message}`);
+        //Server objects
+        RegisterScriptCallback("server_entity_on_register", (serverObject, type) => this.OnServerEntityRegister(serverObject, type));
+        RegisterScriptCallback("server_entity_on_unregister", (serverObject, type) => this.OnServerEntityUnregister(serverObject, type));
     }
 }

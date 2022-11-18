@@ -9,7 +9,7 @@ declare namespace smart_terrain {
 
   type AlreadySpawnnParams = { [key: string]: { num: number; }; };
 
-  class se_smart_terrain {
+  interface se_smart_terrain {
     ini: any; //TODO
     squad_id: number;
     max_population: number;

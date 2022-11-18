@@ -1,7 +1,4 @@
-import { ModScriptBase } from './StalkerAPI/modbase';
-
-import SmartTerrain = smart_terrain.se_smart_terrain;
-
+import { ModScriptBase, SmartTerrain } from './modbase';
 
 class MonsterWorld extends ModScriptBase{
     private lastEnemySpawnTime: number = 0;
