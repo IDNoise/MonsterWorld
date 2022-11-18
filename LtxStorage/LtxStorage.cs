@@ -273,6 +273,17 @@ public class Section
     public List<string> ParentSectionNames { get; set; } = new();
     public List<Property> Properties { get; set; } = new();
     public bool IsDirty { get; private set; }
+
+    public Property? this[string key] => GetProperty(key);
+
+    public bool HasProperty(string key, bool withParentSections = true) => GetProperty(key, withParentSections) != null;
+    
+    public string GetString(string key, string def = null, bool withParentSections = true) => GetProperty(key, withParentSections)?.String ?? def;
+    public float GetFloat(string key, float def = 0, bool withParentSections = true) => GetProperty(key, withParentSections)?.Float ?? def;
+    public int GetInt(string key, int def = 0, bool withParentSections = true) => GetProperty(key, withParentSections)?.Int ?? def;
+    public bool GetBool(string key, bool def = false, bool withParentSections = true) => GetProperty(key, withParentSections)?.Bool ?? def;
+
+    public bool HasParent(string parentName, bool allHierarchy = true) => (allHierarchy ? AllParentSectionNames : ParentSectionNames).Any(n => n == parentName);
     
     public Property? GetProperty(string key, bool withParentSections = true)
     {
