@@ -1,3 +1,8 @@
+type Id = number;
+type Section = string;
+type LevelVertexId = number;
+type GameVertexId = number;
+
 declare interface game_object {
   bleeding: number;
   health: number;
@@ -7,13 +12,13 @@ declare interface game_object {
   radiation: number;
 
   // All types
-  id(): number;
+  id(): Id;
   position(): vector;
   level_vertex_id(): LevelVertexId;
   game_vertex_id(): GameVertexId;
-  section(): string;
+  section(): Section;
   name(): string;
-  clsid(): clsid;
+  clsid(): ClsId;
   parent(): game_object;
   has_info(info: string): boolean;
   dont_has_info(info: string): boolean;

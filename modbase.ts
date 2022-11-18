@@ -1,5 +1,8 @@
 import SmartTerrain = smart_terrain.se_smart_terrain
 
+type LootTableEntryParams = {count?: number}
+type LootTable = {[key: string]: LootTableEntryParams}
+
 export class ModScriptBase {
     private modName: string;
     private logEnabled: boolean;
@@ -10,7 +13,7 @@ export class ModScriptBase {
         this.RegisterCallbacks();
     }
 
-    //Actor
+    //Player
     protected OnActorFirstUpdate() : void {
         this.Log("OnActorFirstUpdate")
     }
@@ -61,7 +64,7 @@ export class ModScriptBase {
         this.Log(`OnSimulationFillStartPosition`)
     }
     protected OnSmartTerrainTryRespawn(smart: SmartTerrain) : boolean{
-        this.Log(`OnTryRespawn ${smart.name()}`)
+        this.Log(`OnSmartTerrainTryRespawn ${smart.name()}`)
         return true;
     }
 
@@ -78,6 +81,9 @@ export class ModScriptBase {
         RegisterScriptCallback("actor_on_hit_callback",  (amount, localDirection, attacker, boneId) => this.OnActorHit(amount, localDirection, attacker, boneId));
         
         //Monster
+
+        // monster_on_net_spawn   = {}, -- Params: (<game_object>,<server_object>)
+        // monster_on_net_destroy = {}, -- Params: (<game_object>)
         RegisterScriptCallback("monster_on_before_hit",  (monster, shit, boneId, flags : CallbackReturnFlags) => {
             flags.ret_value = this.OnMonsterBeforeHit(monster, shit, boneId);
         });
@@ -87,6 +93,8 @@ export class ModScriptBase {
         RegisterScriptCallback("monster_on_loot_init", (monster, lootTable) => this.OnMonsterLootInit(monster, lootTable));
 
         //NPC
+        // npc_on_net_spawn		 = {}, -- Params: (<game_object>,<server_object>)
+        // npc_on_net_destroy 	 = {}, -- Params: (<game_object>)
         RegisterScriptCallback("npc_on_before_hit",  (npc, shit, boneId, flags : CallbackReturnFlags) => { 
             flags.ret_value = this.OnNPCBeforeHit(npc, shit, boneId)
         });

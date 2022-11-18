@@ -12,7 +12,7 @@ declare const enum HitType {
     dummy = 12,
 }
 
-declare enum clsid{
+declare const enum ClsId{
     art_bast_artefact = 0,
     art_black_drops = 1,
     art_gravi_black = 2,
@@ -241,5 +241,5 @@ declare enum clsid{
     zone_rusty_hair = 225,
     team_base_zone = 226,
     torrid_zone = 227,
-    zone = 228,
+    zone = 228
 }
