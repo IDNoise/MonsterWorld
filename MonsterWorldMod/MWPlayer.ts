@@ -1,12 +1,13 @@
 import { BaseMWObject } from './BaseMWObject';
+import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
 
 export class MWPlayer extends BaseMWObject {
-    constructor(public go: game_object) {
-        super(go);
+    constructor(public mw: MonsterWorld, public id: Id) {
+        super(mw, id);
     }
 
-    protected override Initialize(): void {
+    override Initialize(): void {
         let baseHP = cfg.PlayerHPBase;
 
         this.Level = 1;

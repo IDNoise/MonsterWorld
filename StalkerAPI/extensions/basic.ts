@@ -1,9 +1,9 @@
-export function Save<T>(object: game_object, varname: string, val: T): void {
-    se_save_var(object.id(), object.name(), varname, val);
+export function Save<T>(id: Id, varname: string, val: T): void {
+    se_save_var(id, "", varname, val);
 };
 
-export function Load<T>(object: game_object, varname: string, def?: T): T {
-    let result = se_load_var<T>(object.id(), object.name(), varname);
+export function Load<T>(id: Id, varname: string, def?: T): T {
+    let result = se_load_var<T>(id, "", varname);
     if (!result && def) {
         return def;
     }
@@ -28,4 +28,23 @@ export function EnableMutantLootingWithoutKnife(): void {
     item_knife.degradate = () => { };
     item_knife.can_loot = (monster) => true;
     item_knife.is_axe = () => false;
+}
+
+export function IsPctRolled(value: number): boolean {
+    return math.random(100) < value;
+}
+
+export function MapToTable<K extends AnyNotNil, V>(map: Map<K, V>) : LuaTable<K, V>{
+    let result = new LuaTable<K, V>();
+    map.forEach((v, k, _map) => result.set(k, v));
+    return result;
+}
+
+
+export function TableToMap<K extends AnyNotNil, V>(tbl: LuaTable<K, V>) : Map<K, V>{
+    
+    let result = new Map<K, V>();
+    for(const [key, value] of tbl)
+        result.set(key, value);
+    return result;
 }

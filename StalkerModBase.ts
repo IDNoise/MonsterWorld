@@ -13,16 +13,15 @@ export class StalkerModBase {
     static ModName: string = "StarlkerModBase";
     static IsLogEnabled: boolean = true;
 
-    constructor(){
-        this.RegisterCallbacks();
-    }
-
     //Player
     protected OnBeforeLevelChanging() : void {
         Log("OnBeforeLevelChanging")
     }
     protected OnLevelChanging() : void {
         Log("OnLevelChanging")
+    }
+    protected OnActorNetDestroy() : void {
+        Log("OnActorNetDestroy")
     }
     protected OnActorFirstUpdate() : void {
         Log("OnActorFirstUpdate")
@@ -40,7 +39,7 @@ export class StalkerModBase {
 
     //Monster
     protected OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
-        //Log(`OnMonsterNetSpawn ${monster.section()}:${monster.id()} by ${serverObject.id}`)
+        //Log(`OnMonsterNetSpawn ${monster.section()}:${monster.id()} - ${serverObject.id}`)
     }
     protected OnMonsterNetDestroy(monster: game_object): void {
         //Log(`OnMonsterNetDestroy ${monster.section()}:${monster.id()}`)
@@ -65,7 +64,7 @@ export class StalkerModBase {
 
     //NPC
     protected OnNpcNetSpawn(npc: game_object, serverObject: cse_alife_creature_actor): void {
-        //Log(`OnNpcNetSpawn ${npc.section()}:${npc.id()} by ${serverObject.id}`)
+        //Log(`OnNpcNetSpawn ${npc.section()}:${npc.id()} - ${serverObject.id}`)
     }
     protected OnNpcNetDestroy(npc: game_object): void {
         //Log(`OnNpcNetDestroy ${npc.section()}:${npc.id()}`)
@@ -107,7 +106,13 @@ export class StalkerModBase {
         Log(`OnLoadState`)
     }
 
-    private RegisterCallbacks():void{
+    // GUI
+    protected OnItemFocusReceive(item: game_object): void{
+        Log(`OnItemFocusReceive ${item.section()}:${item.id()}`);
+    }
+
+
+    protected RegisterCallbacks():void{
         Log("Register callbacks");
 
         //
@@ -115,6 +120,7 @@ export class StalkerModBase {
         //
         RegisterScriptCallback("on_before_level_changing", () => this.OnBeforeLevelChanging());
         RegisterScriptCallback("on_level_changing", () => this.OnLevelChanging());
+        RegisterScriptCallback("actor_on_net_destroy", () => this.OnActorNetDestroy());
         RegisterScriptCallback("actor_on_first_update", () => this.OnActorFirstUpdate());
         RegisterScriptCallback("actor_on_update",  () => this.OnActorUpdate());
         RegisterScriptCallback("actor_on_before_hit",  (shit, boneId, flags : CallbackReturnFlags) => {
@@ -122,7 +128,6 @@ export class StalkerModBase {
         });
         RegisterScriptCallback("actor_on_hit_callback",  (amount, localDirection, attacker, boneId) => this.OnActorHit(amount, localDirection, attacker, boneId));
         // actor_on_before_death		            = {}, -- Params: (<number>,<table>)
-        // actor_on_net_destroy		            = {}, -- Params: (<binder>)
         // actor_on_weapon_fired		            = {}, -- Params: (<game_object>,<game_object>,<number>,<number>,<number>,<number>)
         // actor_on_weapon_jammed		            = {}, -- Params: (<game_object>)
         // actor_on_weapon_no_ammo		            = {}, -- Params: (<game_object>,<number>)
@@ -260,7 +265,7 @@ export class StalkerModBase {
         // ActorMenu_on_before_init_mode			= {}, -- Params: (<string>,<table>,<game_object>)
         // ActorMenu_on_mode_changed			    = {}, -- Params: (<number>,<number>)
         // ActorMenu_on_item_drag_drop		        = {}, -- Params: (<game_object>,<game_object>,<number>,<number>)
-        // ActorMenu_on_item_focus_receive         = {}, -- Params: (<game_object>)
+        RegisterScriptCallback("ActorMenu_on_item_focus_receive", (item) => this.OnItemFocusReceive(item));
         // ActorMenu_on_item_focus_lost 	        = {}, -- Params: (<game_object>)
         // ActorMenu_on_item_before_move 	        = {}, -- Params: (<table>,<number>,<game_object>,<string>,,<number>)
         // ActorMenu_on_item_after_move 	        = {}, -- Params: (<number>,<game_object>,<string>,,<number>)
@@ -305,6 +310,5 @@ export class StalkerModBase {
         // on_before_surge							= {}, -- Params: (<table>)
         // on_before_psi_storm						= {}, -- Params: (<table>)
         // on_get_item_cost						= {}, -- look at bottom of utils_item.script for detailed explanation
-	
     }
 }

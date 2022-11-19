@@ -142,14 +142,38 @@ export const MonsterConfigs: {[type in MonsterType]: MonsterConfig} = {
     },
 }
 
+//Player params
 export let PlayerHPBase = 100;
-//export let PlayerHP
-export let MonsterHPBase = 100;
-export let MonsterHPExpPerLevel = 1.1;
-export let MonsterHPPctPerLevel = 0.5;
-export let MonsterHpDeltaPct = 30;
 
-export let MonsterDamageBase = PlayerHPBase / 10;
-export let MonsterDamageExpPerLevel = 1.1;
+export let PlayerXPForFirstLevel = 1000;
+export let PlayerXPExp = 1.25;
+export let PlayerXPPct = 1.25;
 
-export let EnemyExpRewardPerLevelBase = 10;
+//Monster params
+export let EnemyHPBase = 100;
+export let EnemyHPExpPerLevel = 1.1;
+export let EnemyHPPctPerLevel = 100;
+export let EnemyHpDeltaPct = 30;
+
+export let EnemyDamageBase = PlayerHPBase / 20;
+export let EnemyDamageExpPerLevel = 1.1;
+
+export let EnemyXpRewardBase = 10;
+export let EnemyXpRewardExpPerLevel = 10;
+export let EnemyXpRewardPctPerLevel = 10;
+
+export let EnemyHigherLevelChance = 5;
+export let EnemyBossChance = 5;
+
+export let EnemyBossHPMult = 10;
+export let EnemyBossXPRewardMult = 10;
+export let EnemyBossDamageMult = 2.5;
+
+//Weapons
+export let WeaponDPSBase = EnemyHPBase;
+export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel;
+export let WeaponDPSDeltaPctMin = -25;
+export let WeaponDPSDeltaPctMax = 50;
+
+//Drops
+export let EnemyDropChance = 100;
