@@ -1,3 +1,4 @@
+import { Log } from '../StalkerModBase';
 import { MonsterWorldMod } from './MonsterWorldMod';
 import { MWMonster } from './MWMonster';
 import { MWPlayer } from './MWPlayer';
@@ -7,8 +8,6 @@ export class MonsterWorld {
     private safeSmarts: Id[] = [];
 
     constructor(public mod: MonsterWorldMod){}
-
-    Log(text: string): void { this.mod.Log(text); }
 
     GetPlayer() { return new MWPlayer(db.actor); }
 
@@ -26,11 +25,11 @@ export class MonsterWorld {
             
             let smart = SIMBOARD.smarts_by_names[section];
             if (!smart) {
-                this.Log(`sim_board:fill_start_position incorrect smart by name ${section}`)
+                Log(`sim_board:fill_start_position incorrect smart by name ${section}`)
                 return false;
             }
 
-            this.Log(`Iterating on ${section}. Smart: ${smart.id} ${smart.name()}`)
+            Log(`Iterating on ${section}. Smart: ${smart.id} ${smart.name()}`)
 
             const lineCount = setting_ini.line_count(section);
             for(let line = 0; line < lineCount; line++){
@@ -45,13 +44,13 @@ export class MonsterWorld {
                     count = round_idp(count * countMult)
                 }
                 
-                this.Log(`     ${line + 1}/${lineCount}: ${squad_section} =${count} (${common})`)
+                Log(`     ${line + 1}/${lineCount}: ${squad_section} =${count} (${common})`)
 
                 if (common) continue;
                 if (!squad_section.includes("trader") && !squad_section.includes("mechanic") && !squad_section.includes("barman")) continue;
 
                 this.safeSmarts.push(smart.id);
-                this.Log(`Added to safe smarts: ${smart.id}. safe smarts#: ${this.safeSmarts.length}`)
+                Log(`Added to safe smarts: ${smart.id}. safe smarts#: ${this.safeSmarts.length}`)
 
                 for (let i = 0; i < count; i++){
                     SIMBOARD.create_squad(smart, squad_section)
@@ -77,7 +76,7 @@ export class MonsterWorld {
             return true;
 
         //super.OnSmartTerrainTryRespawn(smart);
-        this.Log(`Setup configs for smart: ${smart.name()}`)
+        Log(`Setup configs for smart: ${smart.name()}`)
         smart.respawn_idle = 5;
         smart.max_population = 5;
 
@@ -106,14 +105,14 @@ export class MonsterWorld {
     public OnPlayerHit(monster: MWMonster) {
         let player = this.GetPlayer();
         player.HP -= monster.Damage;
-        this.Log(`Player [${player.HP} / ${player.MaxHP}] was hit by ${monster.Name} for ${monster.Damage} damage`);
+        Log(`Player [${player.HP} / ${player.MaxHP}] was hit by ${monster.Name} for ${monster.Damage} damage`);
     }
 
     public OnMonsterHit(monster: MWMonster) {
         let damage = monster.MaxHP / 3;
         monster.HP -= damage;
         //actor_menu.set_msg(2, `Enemy ${monster.Name} was hit for ${damage}`, 3, GetARGB(255, 240, 20, 20))
-        this.Log(`${monster.Name} [${monster.HP} / ${monster.MaxHP}] was hit by player for ${damage} damage`);
+        Log(`${monster.Name} [${monster.HP} / ${monster.MaxHP}] was hit by player for ${damage} damage`);
     }
 
     public OnMonsterKilled(monster: MWMonster) {
