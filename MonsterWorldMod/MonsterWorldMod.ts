@@ -123,30 +123,6 @@ export function StartMonsterWorld(){
 //     alife_create_item("ammo_357_hp_mag", CreateWorldPosition(killer), {ammo: math.random(10, 100))
 // }
 
-// protected OnMonsterLootInit(monster: game_object, lootTable: LuaMap<string, LuaMap<string, number>>): void {
-//     super.OnMonsterLootInit(monster, lootTable)
-    
-//     const weaponSection = "wpn_ak105";
-//     const params = new LuaMap<string, number>();
-//     params.set("count", 1);
-//     lootTable.set(weaponSection, params);
-
-//     log(`Monster Was hitted: ${Load<number>(monster, "hitted", 0)} times`)
-// }
-
-// protected OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: number): boolean{
-//     super.OnMonsterBeforeHit(monster, shit, boneId);
-//     // Save(monster, "hitted", Load<number>(monster, "hitted", 0) + 1)
-//     return true;
-// } 
-
-// protected OnNPCBeforeHit(npc: game_object, shit: hit, boneId: number): boolean {
-//     super.OnNPCBeforeHit(npc, shit, boneId)
-
-//     let shitX = new hit(shit)
-//     let shitY = new hit()
-//     return true;
-// }
 
 // protected OnActorUpdate(): void {
 //     super.OnActorUpdate();
