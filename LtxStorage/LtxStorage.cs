@@ -129,7 +129,12 @@ public class Storage
     
     private void ParseFile(File file)
     {
-        var lines = System.IO.File.ReadAllLines(GameDataDirectoryPath + "/" + file.PathWithExt)
+        var fileName = GameDataDirectoryPath + "/" + file.PathWithExt;
+        if (!System.IO.File.Exists(fileName))
+            return;
+            
+        
+        var lines = System.IO.File.ReadAllLines(fileName)
             .Select(s =>
             {
                 var commentStart = s.IndexOf(';');
@@ -331,13 +336,11 @@ public class Section
         {
             var newProperties = new List<Property>();
             if (properties is IEnumerable<string> stringCollection)
-            {
                 newProperties.AddRange(stringCollection.Select(s => new Property(s)));
-            }
+            else if (properties is List<string> listCollection)
+                newProperties.AddRange(listCollection.Select(s => new Property(s)));
             else if (properties is Dictionary<string, object> dict)
-            {
                 newProperties.AddRange(dict.Select(kv => new Property(kv.Key, kv.Value)));
-            }
             else
             {
                 var type = properties.GetType();
@@ -374,7 +377,7 @@ public class Section
     public override string ToString()
     {
         var sb = new StringBuilder();
-        var parents = ParentSectionNames.Count > 0 ? $" : {string.Join(", ", ParentSectionNames)}" : "";
+        var parents = ParentSectionNames.Count > 0 ? $":{string.Join(",", ParentSectionNames)}" : "";
         sb.AppendLine($"[{Name}]{parents}");
 
         foreach (var p in Properties)
@@ -388,6 +391,8 @@ public class Section
 
 public class Property
 {
+    public static string FloatFormat = "0.######";
+    
     public string Key { get; }
 
     public string String
@@ -399,7 +404,7 @@ public class Property
     public float Float
     {
         get => float.Parse(stringValue);
-        set => stringValue = value.ToString("0.######");
+        set => stringValue = value.ToString(FloatFormat);
     }
     
     public int Int

@@ -1,0 +1,3 @@
+function precondition_functor_a( param1, section ) 
+    return 0 
+end
