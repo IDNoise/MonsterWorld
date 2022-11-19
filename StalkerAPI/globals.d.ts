@@ -15,7 +15,7 @@ declare function callstack(): void;
 declare function reload_ini_sys(): void;
 declare function log(this: void, data: string): void;
 declare function time_global(): number;
-declare function time_continual(): number;
+declare function time_continual(): number; //like time_global but not stopped when the game is paused (used for some UI screens)
 declare function round(value: number): number;
 declare function round_idp(value: number, idp?: number): number;
 declare function round_100(value: number): number;
@@ -92,28 +92,28 @@ declare function reload_system_ini(): void; //Alundaio: Reloads system_ini. Can 
 declare function alife(): alife_simulator;
 // declare function flush()
 // declare function editor()
-// declare function bit_or(number, number)
+declare function bit_or(a: number, b: number): number;
 // declare function prefetch(string)
-// declare function time_global()
-// declare function time_continual() -- like time_global but not stopped when the game is paused (used for some UI screens)
 // declare function verify_if_thread_is_running()
 // declare function script_server_object_version()
-// declare function bit_not(number)
+declare function bit_not(a: number): number;
 // declare function ef_storage()
 // declare function user_name()
-// declare function bit_xor(number, number)
+declare function bit_xor(a: number, b: number): number;
 
-// declare function GetARGB(number, number, number, number)
-// declare function GetFontSmall()
-// declare function GetFontMedium()
-// declare function GetFontDI()
-// declare function GetFontLetterica16Russian()
-// declare function GetFontLetterica18Russian()
-// declare function GetFontLetterica25()
-// declare function GetFontGraffiti19Russian()
-// declare function GetFontGraffiti22Russian()
-// declare function GetFontGraffiti32Russian()
-// declare function GetFontGraffiti50Russian()
+type Color = any;//TODO
+declare function GetARGB(a: number, r: number, g: number, b: number): Color;
+type Font = any;//TODO
+declare function GetFontSmall(): Font;
+declare function GetFontMedium(): Font;
+declare function GetFontDI(): Font;
+declare function GetFontLetterica16Russian(): Font;
+declare function GetFontLetterica18Russian(): Font;
+declare function GetFontLetterica25(): Font;
+declare function GetFontGraffiti19Russian(): Font;
+declare function GetFontGraffiti22Russian(): Font;
+declare function GetFontGraffiti32Russian(): Font;
+declare function GetFontGraffiti50Russian(): Font;
 
 declare const VEC_ZERO: vector;
 declare const VEC_X: vector;
@@ -200,7 +200,13 @@ declare interface CallbackReturnFlags {
     disabled: boolean;
 }
 type ScriptCallback = (...args: any[]) => void;
-declare function RegisterScriptCallback(this: void, callbackName: string, callback : ScriptCallback) : void;
-declare function UnregisterScriptCallback(this: void, callbackName: string) : void;
-declare function SendScriptCallback(this: void, callbackName: string, ...args: any[]) : void;
-declare function AddScriptCallback(this: void, callbackName: string) : void;
+declare function RegisterScriptCallback(callbackName: string, callback : ScriptCallback) : void;
+declare function UnregisterScriptCallback(callbackName: string) : void;
+declare function SendScriptCallback(callbackName: string, ...args: any[]) : void;
+declare function AddScriptCallback(callbackName: string) : void;
+
+//declare function  CreateTimeEvent(ev_id: string, act_id: string,timerSeconds: number, callback: (...args:any[]) => void, ...args: any[]): void;
+declare function  CreateTimeEvent<T1, T2, T3, T4, T5, T6>(ev_id: string, act_id: string,timerSeconds: number, 
+    callback: (arg1?: T1, arg2?: T2, arg3?: T3, arg4?: T4, arg5?: T5, arg6?: T6) => void, arg1?: T1, arg2?: T2, arg3?: T3, arg4?: T4, arg5?: T5, arg6?: T6): void;
+declare function  RemoveTimeEvent(ev_id: string, act_id: string): void;
+declare function  ResetTimeEvent(ev_id: string, act_id: string, timerSeconds: number): void;

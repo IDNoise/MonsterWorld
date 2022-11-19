@@ -4,7 +4,7 @@ declare namespace smart_terrain {
   type RespawnParam = {
     num: Condlist;
     squads: string[];
-    helicopter: boolean;
+    helicopter?: boolean;
   };
 
   type AlreadySpawnnParams = { [key: string]: { num: number; }; };
@@ -25,3 +25,5 @@ declare namespace smart_terrain {
     name(): string;
   }
 }
+
+declare type SmartTerrain = smart_terrain.se_smart_terrain

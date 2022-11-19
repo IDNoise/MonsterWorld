@@ -1,5 +1,5 @@
 
-enum MonsterType {
+export enum MonsterType {
     Dog = 0,
     PseudoDog,
     Cat,
@@ -7,7 +7,7 @@ enum MonsterType {
     Snork,
 }
 
-class MonsterConfig {
+export class MonsterConfig {
     level_start?: number = 1;
     hp_mult?: number = 1;
     damage_mult?: number = 1;
@@ -15,26 +15,27 @@ class MonsterConfig {
     squad_size_max?: number = 15;
 }
 
-class LevelConfig {
+export class LevelConfig {
     level?: number = 1;
     enemy_types?: MonsterType[];
 }
 
-const LevelConfigs: {[name: string]: LevelConfig} = {
+export const LocationConfigs: {[name: string]: LevelConfig} = {
     ["l01_escape"]				: {
         level: 1,
     },
     ["l02_garbage"]				: {
         level: 2
     },
+    ["k00_marsh"]				: {
+        level: 3
+    },
+
     // 
     ["jupiter"]					: {
 
     },
     ["jupiter_underground"]		: {
-
-    },
-    ["k00_marsh"]				: {
 
     },
     ["k01_darkscape"]			: {
@@ -123,7 +124,7 @@ const LevelConfigs: {[name: string]: LevelConfig} = {
     },
 }
 
-const MonsterConfigs: {[type in MonsterType]: MonsterConfig} = {
+export const MonsterConfigs: {[type in MonsterType]: MonsterConfig} = {
     [MonsterType.Dog]: {
 
     },
@@ -140,3 +141,15 @@ const MonsterConfigs: {[type in MonsterType]: MonsterConfig} = {
         
     },
 }
+
+export let PlayerHPBase = 100;
+//export let PlayerHP
+export let MonsterHPBase = 100;
+export let MonsterHPExpPerLevel = 1.1;
+export let MonsterHPPctPerLevel = 0.5;
+export let MonsterHpDeltaPct = 30;
+
+export let MonsterDamageBase = PlayerHPBase / 10;
+export let MonsterDamageExpPerLevel = 1.1;
+
+export let EnemyExpRewardPerLevelBase = 10;

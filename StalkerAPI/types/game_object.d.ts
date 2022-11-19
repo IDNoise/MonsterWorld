@@ -135,7 +135,8 @@ declare interface game_object {
   // function get_task_state(string)
   // function get_task(string, boolean)
   // function change_bleeding(number): void;
-  // function change_health(number): void;
+  set_health_ex(health: number): void;
+  change_health(health: number): void;
   // function change_morale(number): void;
   // function change_power(number): void;
   // function change_psy_health(number): void;

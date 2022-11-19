@@ -1,9 +1,8 @@
-export type SmartTerrain = smart_terrain.se_smart_terrain
 
 type LootTableEntryParams = {count?: number}
 type LootTable = {[key: string]: LootTableEntryParams}
 
-export class ModScriptBase {
+export class StalkerModBase {
     private logEnabled: boolean;
 
     constructor(public modName: string){

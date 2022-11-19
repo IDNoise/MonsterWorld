@@ -28,7 +28,7 @@
       "noImplicitSelf": true,
       "noImplicitGlobalVariables": true,
       "luaBundle": "monsterworld.lua",
-      "luaBundleEntry": "monsterworld.ts",
+      "luaBundleEntry": "MonsterWorldMod/MonsterWorldMod.ts",
       "luaPlugins": [
         // { 
         //   "name": "@ts-defold/tstl-export-as-global",
