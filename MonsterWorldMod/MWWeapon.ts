@@ -15,11 +15,12 @@ export class MWWeapon extends BaseMWObject {
         this.Bonuses = new LuaTable();
 
         if (this.GO.section().indexOf("knife") >= 0){
+            this.DamagePerHit = cfg.WeaponDPSBase * 5;
             //DO smth with knife or fuck it?
             return;
         }
 
-        let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1) * (1 + math.random(cfg.WeaponDPSDeltaPctMin, cfg.WeaponDPSDeltaPctMax) / 100);
+        let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
         if (ini_sys.r_string_ex(this.GO.section(), "tri_state_reload", "off") == "on"){
             baseDPS *= 2;
         }
@@ -83,6 +84,7 @@ export class MWWeapon extends BaseMWObject {
                 if (bonusValue != 0){
                     if (BonusParams.PctBonuses.includes(t)){
                         const defaultValue = ini_sys.r_float_ex(this.GO.section(), BonusParams.SectionFields[t], 1);
+                        Log(`Bonus ${t}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`)
                         bonusValue = bonusValue / defaultValue * 100;
                     }
                     //Log(`After change: ${bonusValue}`)
@@ -95,12 +97,15 @@ export class MWWeapon extends BaseMWObject {
         //Log(`After selecting ugprades ${allSelectedUpgrades.length}`)
 
         damageBonus += cfg.WeaponDPSPctPerQuality * this.Quality;
+        if (damageBonus >= 20){
+            damageBonus += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
+        }
         this.Bonuses.set(BonusParams.Type.Damage, damageBonus);
         dps *= (1 + damageBonus / 100)
 
 
-        const fireRate = this.GO.cast_Weapon().RPM();
-        this.DamagePerHit = dps * fireRate;
+        const rps = ini_sys.r_float_ex(this.GO.section(), "rpm", 1) / 60;
+        this.DamagePerHit = dps / rps;
 
         //Log(`Base DPS: ${baseDPS} DPS: ${dps}. Damage per hit: ${this.DamagePerHit}. Fire rate: ${fireRate}`)
  
@@ -132,7 +137,7 @@ export class MWWeapon extends BaseMWObject {
             //Log(`Bonus ${type}: ${this.Bonuses.get(type) || -1}`)
             const value = this.Bonuses.get(type) || 0;
             if (value != 0)
-                result += BonusParams.GetBonusDescription(type, value) + "\n";
+                result += BonusParams.GetBonusDescription(type, value) + "\\n";
         }
 
         return result;
@@ -181,7 +186,7 @@ export module BonusParams {
         rpm: "Fire Rate",
         mag_size: "Mag size",
         fire_mode: "Full AUTO",
-        dispersion: "Accurecy",
+        dispersion: "Accuracy",
         inertion: "Handling",
         recoil: "Recoil",
         bullet_speed: "Flatness"

@@ -13,6 +13,24 @@ export class MonsterWorldMod extends StalkerModBase {
 
         utils_item.get_upgrades_tree = (wpn, _t) => {};
 
+        const oldPrepareStatsTable = utils_ui.prepare_stats_table;
+        utils_ui.prepare_stats_table = () => this.world.PrepareUIItemStatsTable(oldPrepareStatsTable);
+
+        const oldGetStatsValue = utils_ui.get_stats_value;
+        utils_ui.get_stats_value = (obj, sec, gr, stat) => {
+            if (type(gr.value_functor) == "function") {
+                const cb = gr.value_functor;
+                return cb(obj, sec);
+            } 
+            return oldGetStatsValue(obj, sec, gr, stat);
+        };
+
+        const oldGetItemName = ui_item.get_obj_name;
+        ui_item.get_obj_name = (obj) => this.world.UIGetItemName(obj, oldGetItemName(obj));
+
+        const oldGetItemDesc = ui_item.get_obj_desc;
+        ui_item.get_obj_desc = (obj) => this.world.UIGetItemDescription(obj, oldGetItemDesc(obj));
+
         this.world = new MonsterWorld(this);
         this.RegisterCallbacks();
     }

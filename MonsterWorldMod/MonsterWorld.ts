@@ -47,6 +47,13 @@ export class MonsterWorld {
         this.weaponDrops.delete(id);
     }
 
+    GetWeapon(itemId: Id): MWWeapon {
+        if (!this.weapons.has(itemId)){
+            this.weapons.set(itemId, new MWWeapon(this, itemId));
+        }
+        return this.weapons.get(itemId);
+    }
+
     CreateItem(item: game_object){
         if (!IsWeapon(item))
             return;
@@ -195,4 +202,70 @@ export class MonsterWorld {
             this.weaponDrops.set(sgo.id, {level: monster.Level})
         }
     }
+
+    PrepareUIItemStatsTable(oldPrepareStatsTable: () => utils_ui.StatsTable): utils_ui.StatsTable {
+        let result = oldPrepareStatsTable() || utils_ui.stats_table;
+
+        let weaponStats = result[utils_ui.ItemType.Weapon];
+
+        let dpsConfig: utils_ui.StatConfig = { index: 1, name: "DPS", value_functor: (obj: game_object, sec: Section) => this.UIGetWeaponDPS(obj), typ: "float", icon_p: "", track: false, magnitude: 1, unit: "", compare: false, sign: false,  show_always: true};
+        weaponStats["dps"] = dpsConfig;
+
+        weaponStats[utils_ui.StatType.Damage].index = 10;
+        weaponStats[utils_ui.StatType.Damage].track = false;
+        weaponStats[utils_ui.StatType.Damage].sign = false;
+        weaponStats[utils_ui.StatType.Damage].magnitude = 1;
+        weaponStats[utils_ui.StatType.Damage].value_functor = (obj: game_object, sec: Section) => this.UIGetWeaponDamagePerHit(obj);
+
+        weaponStats[utils_ui.StatType.FireRate].index = 11;
+        weaponStats[utils_ui.StatType.FireRate].track = false;
+        weaponStats[utils_ui.StatType.FireRate].sign = false;
+        weaponStats[utils_ui.StatType.FireRate].magnitude = 1;
+        weaponStats[utils_ui.StatType.FireRate].unit = "RPM";
+        weaponStats[utils_ui.StatType.FireRate].value_functor = (obj: game_object, sec: Section) => this.UIGetWeaponRPM(obj);
+
+        weaponStats[utils_ui.StatType.AmmoMagSize].index = 12;
+        weaponStats[utils_ui.StatType.AmmoMagSize].track = false;
+        weaponStats[utils_ui.StatType.AmmoMagSize].sign = false;
+        weaponStats[utils_ui.StatType.AmmoMagSize].magnitude = 1;
+        weaponStats[utils_ui.StatType.AmmoMagSize].value_functor = (obj: game_object, sec: Section) => this.UIGetWeaponAmmoMagSize(obj);
+
+        weaponStats[utils_ui.StatType.Accuracy].index = 100;
+        weaponStats[utils_ui.StatType.Handling].index = 101;
+
+        return result;
+    }
+
+    qualities: {[key: number]: string} = {
+        1: "Common",
+        2: "Uncommon",
+        3: "Rare",
+        4: "Epic",
+        5: "Legendary",
+    };
+
+    UIGetItemName(obj: game_object, current: string): string{
+        if (!IsWeapon(obj))
+            return current;
+
+        const weapon = this.GetWeapon(obj.id());
+        return `[${this.qualities[weapon.Quality]}] ${current} L.${weapon.Level}`
+    }
+
+    UIGetItemDescription(obj: game_object, current: string): string{
+        if (!IsWeapon(obj))
+            return current;
+
+        return this.GetWeapon(obj.id()).GetBonusDescription();
+    }
+
+    UIGetItemLevel(obj: game_object): number { return this.GetWeapon(obj.id()).Level; }
+
+    UIGetWeaponDPS(obj: game_object): number { return this.GetWeapon(obj.id()).DamagePerHit * (1 / obj.cast_Weapon().RPM()); }
+
+    UIGetWeaponDamagePerHit(obj: game_object): number { return this.GetWeapon(obj.id()).DamagePerHit; }
+
+    UIGetWeaponRPM(obj: game_object): number { return 60 / obj.cast_Weapon().RPM(); }
+
+    UIGetWeaponAmmoMagSize(obj: game_object): number { return obj.cast_Weapon().GetAmmoMagSize(); }
 }
