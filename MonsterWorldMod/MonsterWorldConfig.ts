@@ -177,3 +177,25 @@ export let WeaponDPSPctPerQuality = 25;
 
 //Drops
 export let EnemyDropChance = 100;
+export let MinQuality = 1;
+export let MaxQuality = 5;
+
+export let Qualities: {[key: number]: string} = {
+    1: "Common",
+    2: "Uncommon",
+    3: "Rare",
+    4: "Epic",
+    5: "Legendary",
+};
+
+export let QualityColors: {[key: number]: string} = {
+    1: "%c[255,180,180,180]", //greish
+    2: "%c[255,30,30,220]", //blue
+    3: "%c[255,30,220,30]",  //green
+    4: "%c[255,220,30,30]",  //red
+    5: "%c[255,240,165,5]",   //orange
+};
+
+export let EndColorTag: string = "%c[default]"
+
+export let LevelColor: string = "%c[255,104,210,26]"; //greenish

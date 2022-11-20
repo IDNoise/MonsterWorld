@@ -109,7 +109,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (!this.CanHit(monster.id(), shit.draftsman.id())) 
             return false;
 
-        this.world.OnMonsterHit(monster, shit.draftsman);
+        this.world.OnMonsterHit(monster, shit);
 
         shit.power = 0.0000001;
         return true;

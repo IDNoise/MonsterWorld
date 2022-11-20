@@ -340,7 +340,7 @@ public class MonsterWorldWeaponsGenerator
         }
         else
         {
-            var fireModes = fireModesString.Split(",", StringSplitOptions.RemoveEmptyEntries);
+            var fireModes = fireModesString.Replace(" ", "").Split(",", StringSplitOptions.RemoveEmptyEntries);
             if (fireModes.Length < 3 && !fireModes.Contains("-1"))
             {
                 if (fireModes.Contains("3"))
