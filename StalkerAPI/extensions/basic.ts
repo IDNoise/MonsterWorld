@@ -48,3 +48,15 @@ export function TableToMap<K extends AnyNotNil, V>(tbl: LuaTable<K, V>) : Map<K,
         result.set(key, value);
     return result;
 }
+
+export function RandomFromArray<T>(array: T[]): T{
+    const index = math.random(0, array.length - 1);
+    return array[index];
+}
+
+export function TakeRandomFromArray<T>(array: T[]): T {
+    const index = math.random(0, array.length - 1);
+    const element = array[index];
+    array.splice(index, 1);
+    return element;
+}

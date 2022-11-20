@@ -7,8 +7,10 @@ declare class ini_file {
     line_exist(section: Section, key: string): boolean;
     remove_line(section: Section, key: string): void;
     r_bool(section: Section, key: string): boolean;
+    //r_bool_ex(section: Section, key: string): boolean | undefined;;
     r_bool_ex(section: Section, key: string, def?: boolean): boolean;
-    r_float(section: Section, key: string): number;
+    //r_float(section: Section, key: string): number;
+    //r_float_ex(section: Section, key: string): number | undefined;
     r_float_ex(section: Section, key: string, def?: number): number;
     r_clsid(section: Section, key: string): ClsId;
     r_s32(section: Section, key: string): number;
@@ -19,7 +21,9 @@ declare class ini_file {
     r_u32(section: Section, key: string): number;
     r_string_wq(section: Section, key: string): string;
     r_string(section: Section, key: string): string;
+    //r_string_ex(section: Section, key: string): string | undefined;;
     r_string_ex(section: Section, key: string, def?: string): string;
+    //r_sec_ex(section: Section, key: string): Section | undefined;
     r_sec_ex(section: Section, key: string, def?: Section): Section;
     r_string_to_condlist(section: Section, key: string, def?: Condlist): Condlist;
     r_list(section: Section, key: string, def?: any[]): any[];

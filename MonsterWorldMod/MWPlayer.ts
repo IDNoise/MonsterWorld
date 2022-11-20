@@ -11,11 +11,11 @@ export class MWPlayer extends BaseMWObject {
         let baseHP = cfg.PlayerHPBase;
 
         this.Level = 1;
-        this.Exp = 0;
+        this.CurrentXP = 0;
         this.MaxHP = baseHP;
         this.HP = baseHP;
     }
 
-    get Exp(): number { return this.Load("MW_EXP"); }
-    set Exp(exp: number) { this.Save("MW_EXP", exp); }
+    get CurrentXP(): number { return this.Load("CurrentXP"); }
+    set CurrentXP(exp: number) { this.Save("CurrentXP", exp); }
 }

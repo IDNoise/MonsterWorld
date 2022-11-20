@@ -172,8 +172,9 @@ export let EnemyBossDamageMult = 2.5;
 //Weapons
 export let WeaponDPSBase = EnemyHPBase;
 export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel;
-export let WeaponDPSDeltaPctMin = -25;
-export let WeaponDPSDeltaPctMax = 50;
+export let WeaponDPSDeltaPctMin = -15;
+export let WeaponDPSDeltaPctMax = 25;
+export let WeaponDPSPctPerQuality = 25;
 
 //Drops
 export let EnemyDropChance = 100;

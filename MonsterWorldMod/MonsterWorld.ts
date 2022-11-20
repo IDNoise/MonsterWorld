@@ -104,14 +104,16 @@ export class MonsterWorld {
                 Log(`     ${line + 1}/${lineCount}: ${squad_section} =${count} (${common})`)
 
                 if (common) continue;
-                if (!squad_section.includes("trader") && !squad_section.includes("mechanic") && !squad_section.includes("barman")) continue;
+                if (!squad_section.includes("trader") && !squad_section.includes("mechanic") && !squad_section.includes("barman")){
+                    continue;
+                }
 
                 this.safeSmarts.add(smart.id);
                 //Log(`Added to safe smarts: ${smart.id}. safe smarts#: ${this.safeSmarts.length}`)
-
-                for (let i = 0; i < count; i++){
-                    SIMBOARD.create_squad(smart, squad_section)
-                }
+                continue;
+                // for (let i = 0; i < count; i++){
+                //     SIMBOARD.create_squad(smart, squad_section)
+                // }
             }
 
             return false;
@@ -185,10 +187,10 @@ export class MonsterWorld {
             return;
 
         actor_menu.set_msg(1, `EXP +${monster.XPReward} for ${monster.Name}`, 3, GetARGB(255, 20, 240, 20))
-        this.Player.Exp += monster.XPReward;
+        this.Player.CurrentXP += monster.XPReward;
 
         if (IsPctRolled(cfg.EnemyDropChance)){
-            let sgo = alife_create_item("wpn_aps", db.actor);
+            let sgo = alife_create_item("wpn_aps_mw", db.actor);
             Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
             this.weaponDrops.set(sgo.id, {level: monster.Level})
         }

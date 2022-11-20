@@ -50,12 +50,12 @@ export class MWMonster extends BaseMWObject{
         return cfg.EnemyDamageBase * math.pow(cfg.EnemyDamageExpPerLevel, level - 1);
     }
 
-    get XPReward(): number { return this.Load("MW_XPReward"); }
-    set XPReward(expReward: number) { this.Save("MW_XPReward", expReward); }
+    get XPReward(): number { return this.Load("XPReward"); }
+    set XPReward(expReward: number) { this.Save("XPReward", expReward); }
 
-    get Damage(): number { return this.Load("MW_DMG"); }
-    set Damage(damage: number) { this.Save("MW_DMG", damage); }
+    get Damage(): number { return this.Load("DMG"); }
+    set Damage(damage: number) { this.Save("DMG", damage); }
 
-    get IsBoss(): boolean { return this.Load("MW_Boss"); }
-    set IsBoss(isBoss: boolean) { this.Save("MW_Boss", isBoss); }
+    get IsBoss(): boolean { return this.Load("Boss"); }
+    set IsBoss(isBoss: boolean) { this.Save("Boss", isBoss); }
 }

@@ -1,3 +1,11 @@
 function precondition_functor_a( param1, section ) 
     return 0 
 end
+
+function effect_functor_a( param2, section, loading )
+    return
+end
+
+function prereq_functor_a( param3, section )
+    return ""
+end

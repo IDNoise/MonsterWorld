@@ -11,6 +11,8 @@ export class MonsterWorldMod extends StalkerModBase {
         StalkerModBase.ModName = "MonsterWorldMod";
         StalkerModBase.IsLogEnabled = true;
 
+        utils_item.get_upgrades_tree = (wpn, _t) => {};
+
         this.world = new MonsterWorld(this);
         this.RegisterCallbacks();
     }
@@ -72,10 +74,6 @@ export class MonsterWorldMod extends StalkerModBase {
         return this.world.OnTryRespawn(smart);
     }
 
-    // protected override OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
-    //     this.GetMWMonster(monster);
-    // }
-
     hitsThisFrame: [Id, Id][] = [];
     lastHitFrame: number = -1;
     protected override OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: number): boolean {
@@ -125,7 +123,6 @@ export let MOD : MonsterWorldMod;
 export function StartMonsterWorld(){
     MOD = new MonsterWorldMod();
 }
-
 
 
 // protected OnMonsterDeath(monster: game_object, killer: game_object): void {
