@@ -21,6 +21,7 @@ declare namespace smart_terrain {
     is_on_actor_level: boolean;
     respawn_params: RespawnParams;
     already_spawned: AlreadySpawnnParams;
+    faction: string;
 
     name(): string;
   }

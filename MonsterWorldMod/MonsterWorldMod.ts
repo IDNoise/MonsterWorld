@@ -11,31 +11,6 @@ export class MonsterWorldMod extends StalkerModBase {
         StalkerModBase.ModName = "MonsterWorldMod";
         StalkerModBase.IsLogEnabled = true;
 
-        utils_item.get_upgrades_tree = (wpn, _t) => {};
-
-        const oldPrepareStatsTable = utils_ui.prepare_stats_table;
-        utils_ui.prepare_stats_table = () => this.world.PrepareUIItemStatsTable(oldPrepareStatsTable);
-
-        const oldGetStatsValue = utils_ui.get_stats_value;
-        utils_ui.get_stats_value = (obj, sec, gr, stat) => {
-            if (type(gr.value_functor) == "function") {
-                const cb = gr.value_functor;
-                return cb(obj, sec);
-            } 
-            return oldGetStatsValue(obj, sec, gr, stat);
-        };
-
-        const oldGetItemName = ui_item.get_obj_name;
-        ui_item.get_obj_name = (obj) => this.world.UIGetItemName(obj, oldGetItemName(obj));
-
-        const oldGetItemDesc = ui_item.get_obj_desc;
-        ui_item.get_obj_desc = (obj) => this.world.UIGetItemDescription(obj, oldGetItemDesc(obj));
-
-        const oldSimSquadAddSquadMember = sim_squad_scripted.sim_squad_scripted.add_squad_member;
-        const newSimSquadAddSquadMember = (obj: any, section: string, pos: vector, lvid: number, gvid: number) => this.world.OnSimSquadAddMember(obj, section, pos, lvid, gvid, oldSimSquadAddSquadMember);
-        sim_squad_scripted.sim_squad_scripted.add_squad_member = newSimSquadAddSquadMember;
-        
-
         this.world = new MonsterWorld(this);
         this.RegisterCallbacks();
     }
@@ -51,22 +26,32 @@ export class MonsterWorldMod extends StalkerModBase {
     }
 
     protected override OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
-        super.OnMonsterNetSpawn(monster, serverObject);
-        this.world.CreateMonster(monster);
+        //super.OnMonsterNetSpawn(monster, serverObject);
+        this.world.GetMonster(monster.id());
     }
 
-    protected override OnItemFocusReceive(item: game_object): void {
-        super.OnItemFocusReceive(item);
-        this.world.CreateItem(item);
+    // protected override OnItemNetSpawn(item: game_object, serverObject: cse_alife_item): void {
+    //     super.OnItemNetSpawn(item, serverObject);
+    //     this.world.GetWeapon(item.id());
+    // }
+
+    protected override OnItemTake(item: game_object): void {
+        //super.OnItemTake(item);
+        this.world.GetWeapon(item.id());
     }
+
+    // protected override OnItemFocusReceive(item: game_object): void {
+    //     super.OnItemFocusReceive(item);
+    //     //this.world.GetWeapon(item.id());
+    // }
 
     protected override OnMonsterNetDestroy(monster: game_object): void {
-        super.OnMonsterNetDestroy(monster)
+        //super.OnMonsterNetDestroy(monster)
         this.world?.DestroyObject(monster.id());
     }
 
     protected override OnServerEntityUnregister(serverObject: cse_alife_object, type: ServerObjectType): void {
-        super.OnServerEntityUnregister(serverObject, type)
+        //super.OnServerEntityUnregister(serverObject, type)
         this.world?.DestroyObject(serverObject.id);
     }
 
@@ -90,11 +75,11 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected OnSimulationFillStartPosition(): void {
         super.OnSimulationFillStartPosition();
-        this.world.FillStartPositions();
+        this.world.SpawnManager.FillStartPositions();
     }
 
     protected override OnSmartTerrainTryRespawn(smart: SmartTerrain): boolean {
-        return this.world.OnTryRespawn(smart);
+        return this.world.SpawnManager.OnTryRespawn(smart);
     }
 
     hitsThisFrame: [Id, Id][] = [];

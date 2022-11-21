@@ -1,6 +1,5 @@
-
-declare namespace sim_squad_scripted {
-  class sim_squad_scripted {
-    static create_npc: (this: void, spawn_smart: smart_terrain.se_smart_terrain, pos: vector, lvid?: LevelVertexId, gvid?: GameVertexId) => void;
-  }
+declare namespace sim_squad_scripted{
+    namespace sim_squad_scripted{
+        function add_squad_member(s: any, spawn_section: Section, spawn_position: vector, lv_id: LevelVertexId, gv_id: GameVertexId): Id | undefined;
+    }
 }

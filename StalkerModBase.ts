@@ -9,7 +9,6 @@ export function Log(message: string): void {
 }
 
 export class StalkerModBase {
-
     static ModName: string = "StarlkerModBase";
     static IsLogEnabled: boolean = true;
 
@@ -106,11 +105,19 @@ export class StalkerModBase {
         Log(`OnLoadState`)
     }
 
+    //Items
+    protected OnItemNetSpawn(item: game_object, serverObject: cse_alife_item) {
+        Log(`OnItemNetSpawn ${item.name()}`)
+    }
+
+    protected OnItemTake(item: game_object) {
+        Log(`OnItemTake ${item.name()}`)
+    }
+
     // GUI
     protected OnItemFocusReceive(item: game_object): void{
         Log(`OnItemFocusReceive ${item.section()}:${item.id()}`);
     }
-
 
     protected RegisterCallbacks():void{
         Log("Register callbacks");
@@ -310,5 +317,17 @@ export class StalkerModBase {
         // on_before_surge							= {}, -- Params: (<table>)
         // on_before_psi_storm						= {}, -- Params: (<table>)
         // on_get_item_cost						= {}, -- look at bottom of utils_item.script for detailed explanation
+
+        RegisterScriptCallback("actor_on_item_take", (item: game_object) => this.OnItemTake(item))
+
+        let oldItemNetSpawn = bind_item.item_binder.net_spawn;
+        let newItemNetSpawn = (s: any, serverGO: cse_alife_item) => {
+            let result = oldItemNetSpawn(s, serverGO);
+            Log(`Net iem spawn: ${serverGO.name()}`)
+            if (result)
+                this.OnItemNetSpawn(s.object, serverGO)
+            return result;
+        }
+        bind_item.item_binder.net_spawn = newItemNetSpawn;
     }
 }

@@ -37,6 +37,8 @@ export abstract class BaseMWObject {
 
     get IsDead(): boolean { return this.HP <= 0; }
 
+    get Section(): string { return this.ServerGO.section_name(); }
+
     protected Save<T>(varname: string, val: T): void { Save(this.id, "MW_" + varname, val); };
     protected Load<T>(varname: string, def?: T): T { return Load(this.id, "MW_" + varname, def); }
     

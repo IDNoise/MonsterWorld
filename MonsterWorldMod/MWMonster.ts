@@ -2,7 +2,7 @@ import { IsPctRolled } from '../StalkerAPI/extensions/basic';
 import { BaseMWObject } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
-import { MonsterSpawnConfig, MonsterRank } from './MonsterWorldConfig';
+import { MonsterSpawnParams, MonsterRank, MonsterType } from './MonsterWorldConfig';
 
 export class MWMonster extends BaseMWObject{
     constructor(public mw: MonsterWorld, public id: Id) {
@@ -10,8 +10,9 @@ export class MWMonster extends BaseMWObject{
     }
 
     override Initialize(): void {
-        let spawnConfig = this.Load<MonsterSpawnConfig>("SpawnParams")
+        let spawnConfig = this.Load<MonsterSpawnParams>("SpawnParams")
 
+        this.Type = spawnConfig.type;
         this.Level = spawnConfig.level;
         this.Rank = spawnConfig.rank;
 
@@ -23,6 +24,11 @@ export class MWMonster extends BaseMWObject{
             enemyHP *= cfg.EnemyBossHPMult;
             xpReward *= cfg.EnemyBossXPRewardMult;
             enemyDamage *= cfg.EnemyBossDamageMult;
+        }
+        else if (spawnConfig.rank == MonsterRank.Elite){
+            enemyHP *= cfg.EnemyEliteHPMult;
+            xpReward *= cfg.EnemyEliteXPRewardMult;
+            enemyDamage *= cfg.EnemyEliteDamageMult;
         }
         
         this.MaxHP = enemyHP;
@@ -56,4 +62,7 @@ export class MWMonster extends BaseMWObject{
 
     get Rank(): MonsterRank { return this.Load("Rank"); }
     set Rank(rank: MonsterRank) { this.Save("Rank", rank); }
+
+    get Type(): MonsterType { return this.Load("Type"); }
+    set Type(type: MonsterType) { this.Save("Type", type); }
 }

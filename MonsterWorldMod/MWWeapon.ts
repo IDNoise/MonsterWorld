@@ -3,34 +3,34 @@ import { Log } from '../StalkerModBase';
 import { BaseMWObject } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
+import { WeaponSpawnParams } from './MonsterWorldConfig';
 
 export class MWWeapon extends BaseMWObject {
-    constructor(public mw: MonsterWorld, public id: Id, private spawnLevel?: number, private spawnQualityLevel?: number) {
+    constructor(public mw: MonsterWorld, public id: Id) {
         super(mw, id);
     }
 
     override Initialize(): void {
-        this.Level = this.spawnLevel || 1;
-        this.Quality = math.max(cfg.MinQuality, math.min(cfg.MaxQuality, this.spawnQualityLevel || 1));
+        let spawnCfg = this.Load<WeaponSpawnParams>("SpawnParams", {level: 1, quality: 1})
+
+        this.Level = spawnCfg.level;
+        this.Quality = math.max(cfg.MinQuality, math.min(cfg.MaxQuality, spawnCfg.quality));
         this.Bonuses = new LuaTable();
 
-        if (this.GO.section().indexOf("knife") >= 0){
+        if (this.Section.indexOf("knife") >= 0){
             this.DamagePerHit = cfg.WeaponDPSBase * 5;
             //DO smth with knife or fuck it?
             return;
         }
 
-        const ammoMagSize = ini_sys.r_float_ex(this.GO.section(), "ammo_mag_size", 1);
-        const rpm = ini_sys.r_float_ex(this.GO.section(), "rpm", 1);
+        const ammoMagSize = ini_sys.r_float_ex(this.Section, "ammo_mag_size", 1);
+        const rpm = ini_sys.r_float_ex(this.Section, "rpm", 1);
         const fireRate = 60 / rpm;
         let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
 
         let dps = baseDPS;
-        if (ini_sys.r_string_ex(this.GO.section(), "tri_state_reload", "off") == "on"){
+        if (ini_sys.r_string_ex(this.Section, "tri_state_reload", "off") == "on"){
             dps += baseDPS * 0.5;
-        }
-        if (ammoMagSize < 8){
-            dps += baseDPS * 0.15;
         }
 
         let upgradesByType: [BonusParams.Type, string[]][] = [];
@@ -40,16 +40,13 @@ export class MWWeapon extends BaseMWObject {
         for(let i = 0; i < upgradeTypes.length; i++){
             let uType = upgradeTypes[i];
             if (uType == BonusParams.Type.Damage) continue;
-            if (ini_sys.r_string_ex(this.GO.section(), uType + "_upgrades", "") != "" ) {
-                let upgrades = ini_sys.r_list(this.GO.section(), uType + "_upgrades", [])
+            if (ini_sys.r_string_ex(this.Section, uType + "_upgrades", "") != "" ) {
+                let upgrades = ini_sys.r_list(this.Section, uType + "_upgrades", [])
                 if (upgrades.length != 0)
                     upgradesByType.push([uType, upgrades]);
             }
-            //Log(`After getting upgrade list ${uType}: ${upgrades.length}`)
         }
 
-        //Log(`After filing map by upgrade type. ${upgradesByType.length}`)
-        
         let selectedUpgradeTypes: [BonusParams.Type, string[]][] = [];
         let upgradeTypesToAdd = 2 + math.random(0, (this.Quality - 1));
         const upgradeTypesToSelect = math.min(upgradesByType.length, upgradeTypesToAdd);
@@ -58,14 +55,11 @@ export class MWWeapon extends BaseMWObject {
             selectedUpgradeTypes.push(upgrades)
         }
 
-        //Log(`After selecting upgrade types. ${upgradeTypesToAdd} ${upgradeTypesToSelect} ${selectedUpgradeTypes.length} `)
-
         let damageBonus = 0;
         let allSelectedUpgrades: string[] = []
         for(let i = 0; i < selectedUpgradeTypes.length; i++){
             let upgradesPerTypeToSelect = 1 + (this.Level / 10) + (this.Quality - 1) / 2;
             let [t, upgrades] = selectedUpgradeTypes[i];
-            //Log(`Adding ugprades ${upgradesPerTypeToSelect} from ${t} (${upgrades.length})`)
             if (t == BonusParams.Type.Damage){
                 let bonus = 0;
                 for(let j = 0; j < upgradesPerTypeToSelect; j++){
@@ -93,25 +87,22 @@ export class MWWeapon extends BaseMWObject {
                     bonusValue += ini_sys.r_float_ex(upgrade.replace("mwu", "mwb"), BonusParams.SectionFields[t], 0)
                 }
 
-                //Log(`Bonus ${t}: ${bonusValue}`)
-
                 if (bonusValue != 0){
                     if (BonusParams.PctBonuses.includes(t)){
-                        const defaultValue = ini_sys.r_float_ex(this.GO.section(), BonusParams.SectionFields[t], 1);
+                        const defaultValue = ini_sys.r_float_ex(this.Section, BonusParams.SectionFields[t], 1);
                         Log(`Bonus ${t}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`)
                         bonusValue = bonusValue / defaultValue * 100;
                     }
-                    //Log(`After change: ${bonusValue}`)
 
                     this.Bonuses.set(t, math.abs(bonusValue));
                 }
             }
         }
 
-        //Log(`After selecting ugprades ${allSelectedUpgrades.length}`)
-
         damageBonus += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
-        damageBonus += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
+        if (damageBonus >= cfg.WeaponDPSDeltaPct){
+            damageBonus += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
+        }
         this.Bonuses.set(BonusParams.Type.Damage, damageBonus);
         dps *= (1 + damageBonus / 100)
 
@@ -121,7 +112,6 @@ export class MWWeapon extends BaseMWObject {
  
         for(let i = 0; i < allSelectedUpgrades.length; i++){
             let upgrade = allSelectedUpgrades[i].replace("mwu", "mwe");
-            //Log(`Before install ${upgrade}`) 
             this.GO.install_upgrade(upgrade);
             //Log(`After install ${upgrade}`) 
         }
@@ -144,7 +134,6 @@ export class MWWeapon extends BaseMWObject {
         let result = "";
 
         for(const type of BonusParams.AllParams){
-            //Log(`Bonus ${type}: ${this.Bonuses.get(type) || -1}`)
             const value = this.Bonuses.get(type) || 0;
             if (value != 0)
                 result += BonusParams.GetBonusDescription(type, value) + " \\n";

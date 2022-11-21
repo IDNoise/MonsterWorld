@@ -127,11 +127,11 @@ export const LocationConfigs: {[name: string]: LevelConfig} = {
 }
 
 export enum MonsterType {
-    Dog = 0,
-    PseudoDog,
-    Cat,
-    Boar,
-    Snork,
+    Dog = "Dog",
+    PseudoDog = "Pseudo Dog",
+    Cat = "Cat",
+    Boar = "Boar",
+    Snork = "Snork",
 };
 
 export enum MonsterRank {
@@ -140,7 +140,8 @@ export enum MonsterRank {
     Boss
 };
 
-export type MonsterSpawnConfig = {
+export type MonsterSpawnParams = {
+    type: MonsterType,
     level: number,
     rank: MonsterRank,
     hpMult: number,
@@ -148,9 +149,15 @@ export type MonsterSpawnConfig = {
     damageMult: number
 };
 
+export type  WeaponSpawnParams = {
+    level: number;
+    quality: number;
+}
+
 export type MonsterConfig = {
-    level_start?: number;
-    level_type?: LevelType;
+    type: MonsterType,
+    level_start: number;
+    level_type: LevelType;
     max_squads_per_smart?: number;
 
     squad_size_min?: number;
@@ -159,54 +166,75 @@ export type MonsterConfig = {
     hp_mult?: number;
     damage_mult?: number;
     xp_mult?: number;
-    common_section?: Section;
-    elite_section?: Section;
-    boss_section?: Section;
+    common_section: Section;
+    elite_section: Section;
+    boss_section: Section;
 };
 
 export const MonsterConfigs: LuaTable<MonsterType, MonsterConfig> = new LuaTable();
 MonsterConfigs.set(MonsterType.Dog, {
+    type: MonsterType.Dog,
+    level_type: LevelType.Open,
+    level_start: 1,
     hp_mult: 0.5,
     xp_mult: 0.5,
     squad_size_min: 6,
     squad_size_max: 12,
-    level_type: LevelType.Open,
-    common_section: "dog_build",
+    common_section: "dog_weak_white",
+    elite_section: "dog_strong_red",
+    boss_section: "dog_strong_black",
 });
 
 MonsterConfigs.set(MonsterType.Boar, {
+    type: MonsterType.Boar,
+    level_type: LevelType.Open,
+    level_start: 1,
     hp_mult: 1.25,
     squad_size_min: 4,
     squad_size_max: 10,
-    level_type: LevelType.Open,
-    common_section: "boar_01a_hard",
+    common_section: "boar_01a_weak",
+    elite_section: "boar_02a_strong",
+    boss_section: "boar_02a_hard",
 });
 
 MonsterConfigs.set(MonsterType.Cat, {
+    type: MonsterType.Cat,
     level_start: 2,
+    level_type: LevelType.Open,
     hp_mult: 0.75,
     xp_mult: 0.75,
     squad_size_min: 4,
     squad_size_max: 8,
-    level_type: LevelType.Open,
+    common_section: "cat_normal_d",
+    elite_section: "cat_strong_b",
+    boss_section: "cat_strong_afro",
 });
 
 MonsterConfigs.set(MonsterType.PseudoDog, {
+    type: MonsterType.PseudoDog,
     level_start: 3,
+    level_type: LevelType.All,
     hp_mult: 1.25,
     damage_mult: 1.25,
     xp_mult: 1.25,
     squad_size_min: 3,
-    squad_size_max: 6
+    squad_size_max: 6,
+    common_section: "pseudodog_weak",
+    elite_section: "pseudodog_strong",
+    boss_section: "pseudodog_arena",
 });
 
 MonsterConfigs.set(MonsterType.Snork, {
+    type: MonsterType.Snork,
     level_start: 5,
+    level_type: LevelType.All,
     hp_mult: 1.5,
     xp_mult: 1.25,
     squad_size_min: 4,
     squad_size_max: 8,
-    level_type: LevelType.All,
+    common_section: "snork_weak3",
+    elite_section: "snork_strong2",
+    boss_section: "snork_strong_no_mask",
 });
 
 //Player params
@@ -226,16 +254,24 @@ export let EnemyDamageBase = PlayerHPBase / 20;
 export let EnemyDamageExpPerLevel = 1.1;
 
 export let EnemyXpRewardBase = 10;
-export let EnemyXpRewardExpPerLevel = 10;
-export let EnemyXpRewardPctPerLevel = 10;
+export let EnemyXpRewardExpPerLevel = 1.25;
+export let EnemyXpRewardPctPerLevel = 25;
 
 export let EnemyHigherLevelChance = 5;
-export let EnemyEliteChance = 5;
+export let EnemyEliteChance = 15;
 export let EnemyBossChance = 5;
 
 export let EnemyBossHPMult = 10;
 export let EnemyBossXPRewardMult = 10;
 export let EnemyBossDamageMult = 2.5;
+export let EnemyBossDropLevelIncreaseChance = 50;
+export let EnemyBossDropQualityIncreaseChance = 50;
+
+export let EnemyEliteHPMult = 3;
+export let EnemyEliteXPRewardMult = 3;
+export let EnemyEliteDamageMult = 1.5;
+export let EnemyEliteDropLevelIncreaseChance = 20;
+export let EnemyEliteDropQualityIncreaseChance = 20;
 
 //Weapons
 export let WeaponDPSBase = EnemyHPBase / 0.33;
@@ -244,17 +280,19 @@ export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
 
 //Drops
-export let EnemyDropChance = 100;
+export let EnemyDropChance = 10;
+export let EnemyBossDropChance = 75;
+export let EnemyEliteDropChance = 25;
 export let MinQuality = 1;
 export let MaxQuality = 5;
 
-export let HigherLevelDropChancePct = 5;
+export let HigherLevelDropChancePct = 3;
 
 export let QualityDropChance: [chance: number, level: number][] = [
-    [25, 2],
-    [12, 3],
-    [6, 4],
-    [3, 5],
+    [20, 2],
+    [10, 3],
+    [4, 4],
+    [1, 5],
 ];
 
 export let Qualities: {[key: number]: string} = {
