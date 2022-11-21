@@ -94,9 +94,9 @@ declare class CUITextWnd extends CUIWindow {
     // function SetTextAlignment(enum CGameFont::EAligment)
     // function SetTextComplexMode(boolean)
     // function GetTextColor()
-    // function SetTextColor(number)
-    // function GetFont()
-    // function SetFont(CGameFont*)
+    SetTextColor(color: ARGBColor): void;
+    GetFont(): CGameFont;
+    SetFont(font: CGameFont): void;
     // function SetTextOffset(number, number)
     // function AdjustHeightToText()
     // function AdjustWidthToText()

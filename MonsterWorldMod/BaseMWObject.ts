@@ -25,6 +25,8 @@ export abstract class BaseMWObject {
         this.Save("HP", newHp);
         if(this.GO != undefined)
             this.GO.set_health_ex(newHp / this.MaxHP);
+        if (this.IsDead)
+            this.OnDeath();
     }
 
     get MaxHP(): number { return this.Load("MaxHP"); }
@@ -45,4 +47,6 @@ export abstract class BaseMWObject {
     protected Load<T>(varname: string, def?: T): T { return Load(this.id, "MW_" + varname, def); }
     
     protected abstract Initialize(): void;
+
+    protected OnDeath(): void {}
 }

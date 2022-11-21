@@ -1,4 +1,4 @@
-import { IsPctRolled } from '../StalkerAPI/extensions/basic';
+import { IsPctRolled, Save } from '../StalkerAPI/extensions/basic';
 import { BaseMWObject } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
@@ -35,6 +35,8 @@ export class MWMonster extends BaseMWObject{
         this.HP = enemyHP;
         this.Damage = enemyDamage;
         this.XPReward = xpReward;
+
+        se_save_var(this.id, this.GO.name(), "looted", true)
     }
 
     GetMaxHP(level: number): number{
@@ -47,7 +49,8 @@ export class MWMonster extends BaseMWObject{
     GetXPReward(level: number): number{
         let pctMult = 1 + cfg.EnemyXpRewardPctPerLevel * (level - 1);
         let expMult = math.pow(cfg.EnemyXpRewardExpPerLevel, level - 1);
-        return cfg.EnemyHPBase * pctMult * expMult;
+        let xp = cfg.EnemyXpRewardBase * pctMult * expMult;
+        return math.floor(xp)
     }
 
     GetDamage(level: number) {

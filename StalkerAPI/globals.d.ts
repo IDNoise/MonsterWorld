@@ -103,17 +103,17 @@ declare function bit_xor(a: number, b: number): number;
 
 type ARGBColor = any;//TODO
 declare function GetARGB(a: number, r: number, g: number, b: number): ARGBColor;
-type Font = any;//TODO
-declare function GetFontSmall(): Font;
-declare function GetFontMedium(): Font;
-declare function GetFontDI(): Font;
-declare function GetFontLetterica16Russian(): Font;
-declare function GetFontLetterica18Russian(): Font;
-declare function GetFontLetterica25(): Font;
-declare function GetFontGraffiti19Russian(): Font;
-declare function GetFontGraffiti22Russian(): Font;
-declare function GetFontGraffiti32Russian(): Font;
-declare function GetFontGraffiti50Russian(): Font;
+type CGameFont = any;//TODO
+declare function GetFontSmall(): CGameFont;
+declare function GetFontMedium(): CGameFont;
+declare function GetFontDI(): CGameFont;
+declare function GetFontLetterica16Russian(): CGameFont;
+declare function GetFontLetterica18Russian(): CGameFont;
+declare function GetFontLetterica25(): CGameFont;
+declare function GetFontGraffiti19Russian(): CGameFont;
+declare function GetFontGraffiti22Russian(): CGameFont;
+declare function GetFontGraffiti32Russian(): CGameFont;
+declare function GetFontGraffiti50Russian(): CGameFont;
 
 declare const VEC_ZERO: vector;
 declare const VEC_X: vector;
@@ -207,6 +207,6 @@ declare function AddScriptCallback(callbackName: string) : void;
 
 //declare function  CreateTimeEvent(ev_id: string, act_id: string,timerSeconds: number, callback: (...args:any[]) => void, ...args: any[]): void;
 declare function  CreateTimeEvent<T1, T2, T3, T4, T5, T6>(ev_id: string, act_id: string,timerSeconds: number, 
-    callback: (arg1?: T1, arg2?: T2, arg3?: T3, arg4?: T4, arg5?: T5, arg6?: T6) => void, arg1?: T1, arg2?: T2, arg3?: T3, arg4?: T4, arg5?: T5, arg6?: T6): void;
+    callback: (arg1?: T1, arg2?: T2, arg3?: T3, arg4?: T4, arg5?: T5, arg6?: T6) => boolean, arg1?: T1, arg2?: T2, arg3?: T3, arg4?: T4, arg5?: T5, arg6?: T6): void;
 declare function  RemoveTimeEvent(ev_id: string, act_id: string): void;
 declare function  ResetTimeEvent(ev_id: string, act_id: string, timerSeconds: number): void;

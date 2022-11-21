@@ -20,10 +20,10 @@ export class StalkerModBase {
         Log("OnLevelChanging")
     }
     protected OnActorNetDestroy() : void {
-        Log("OnActorNetDestroy")
+        //Log("OnActorNetDestroy")
     }
     protected OnActorFirstUpdate() : void {
-        Log("OnActorFirstUpdate")
+        //Log("OnActorFirstUpdate")
     }
     protected OnActorUpdate() : void {
         //Log("OnActorUpdate")
@@ -107,16 +107,16 @@ export class StalkerModBase {
 
     //Items
     protected OnItemNetSpawn(item: game_object, serverObject: cse_alife_item) {
-        Log(`OnItemNetSpawn ${item.name()}`)
+        //Log(`OnItemNetSpawn ${item.name()}`)
     }
 
     protected OnItemTake(item: game_object) {
-        Log(`OnItemTake ${item.name()}`)
+        //Log(`OnItemTake ${item.name()}`)
     }
 
     // GUI
     protected OnItemFocusReceive(item: game_object): void{
-        Log(`OnItemFocusReceive ${item.section()}:${item.id()}`);
+        //Log(`OnItemFocusReceive ${item.section()}:${item.id()}`);
     }
 
     protected RegisterCallbacks():void{
@@ -323,7 +323,7 @@ export class StalkerModBase {
         let oldItemNetSpawn = bind_item.item_binder.net_spawn;
         let newItemNetSpawn = (s: any, serverGO: cse_alife_item) => {
             let result = oldItemNetSpawn(s, serverGO);
-            Log(`Net iem spawn: ${serverGO.name()}`)
+            //Log(`Net iem spawn: ${serverGO.name()}`)
             if (result)
                 this.OnItemNetSpawn(s.object, serverGO)
             return result;

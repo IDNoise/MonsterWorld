@@ -14,8 +14,8 @@ export function CreateWorldPositionAtGO(object: game_object) : WorldPosition {
     return [object.position(), object.level_vertex_id(), object.game_vertex_id()];
 }
 
-export function CreateWorldPositionAtPosWithGO(pos: vector, object: game_object) : WorldPosition{
-    return [pos, object.level_vertex_id(), object.game_vertex_id()];
+export function CreateWorldPositionAtPosWithGO(offset: vector, object: game_object) : WorldPosition{
+    return [object.position().add(offset), object.level_vertex_id(), object.game_vertex_id()];
 }
 
 export function CreateVector(x : number, y: number = 0, z: number = 0): vector {

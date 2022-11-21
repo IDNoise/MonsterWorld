@@ -9,79 +9,102 @@ export enum LevelType { //if ((types & EnemyLevelType.Open) === EnemyLevelType.O
 
 export type LevelConfig = {
     level: number;
-    type?: LevelType;
+    type: LevelType;
 }
 
 let level: number = 1;
 export const LocationConfigs: {[name: string]: LevelConfig} = {
     ["l01_escape"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l02_garbage"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["k00_marsh"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l03_agroprom"]			: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l04_darkvalley"]			: {
         level: level++,
+        type: LevelType.Open,
     },
     ["k01_darkscape"]			: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l05_bar"]					: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l06_rostok"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l08_yantar"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l07_military"]			: {
         level: level++,
+        type: LevelType.Open,
     },
     ["k02_trucks_cemetery"]		: {
-        level: level++
+        level: level++,
+        type: LevelType.Open,
     },
     ["l09_deadcity"]			: {
-        level: level++  
+        level: level++,
+        type: LevelType.Open,
     },
     ["l10_limansk"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l10_radar"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l10_red_forest"]			: {
         level: level++,
+        type: LevelType.Open,
     },
     ["pripyat"]					: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l11_pripyat"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l12_stancia"]				: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l12_stancia_2"]			: {
         level: level++,
+        type: LevelType.Open,
     },
     ["l13_generators"]			: {
         level: level++,
+        type: LevelType.Open,
     },
     ["y04_pole"]				: { ///wtf is this?
         level: level++,
+        type: LevelType.Open,
     },
     ["jupiter"]					: {
         level: level++,
+        type: LevelType.Open,
     },
     ["zaton"]					: {
         level: level++,
+        type: LevelType.Open,
     },
 
     ["l03u_agr_underground"]	: {
@@ -240,9 +263,9 @@ MonsterConfigs.set(MonsterType.Snork, {
 //Player params
 export let PlayerHPBase = 100;
 
-export let PlayerXPForFirstLevel = 1000;
-export let PlayerXPExp = 1.25;
-export let PlayerXPPct = 1.25;
+export let PlayerXPForFirstLevel = 250;
+export let PlayerXPExp = 1.3;
+export let PlayerXPPct = 100;
 
 export let PlayerPointsPerLevelUp = 1;
 
@@ -252,7 +275,7 @@ export let EnemyHPExpPerLevel = 1.1;
 export let EnemyHPPctPerLevel = 100;
 export let EnemyHpDeltaPct = 30;
 
-export let EnemyDamageBase = PlayerHPBase / 20;
+export let EnemyDamageBase = PlayerHPBase / 25;
 export let EnemyDamageExpPerLevel = 1.1;
 
 export let EnemyXpRewardBase = 10;
@@ -282,19 +305,19 @@ export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
 
 //Drops
-export let EnemyDropChance = 10;
-export let EnemyBossDropChance = 75;
-export let EnemyEliteDropChance = 25;
+export let EnemyDropChance = 100;//20;
+export let EnemyBossDropChance = 100;
+export let EnemyEliteDropChance = 50;
 export let MinQuality = 1;
 export let MaxQuality = 5;
 
-export let HigherLevelDropChancePct = 3;
+export let HigherLevelDropChancePct = 5;
 
 export let QualityDropChance: [chance: number, level: number][] = [
-    [20, 2],
-    [10, 3],
-    [4, 4],
-    [1, 5],
+    [30, 2],
+    [15, 3],
+    [7, 4],
+    [3, 5],
 ];
 
 export let Qualities: {[key: number]: string} = {

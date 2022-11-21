@@ -351,7 +351,6 @@ declare interface game_object {
   // function sniper_update_rate(boolean)
   // function sniper_update_rate() const
   // function get_current_point_index()
-  // function stop_particles(string, string)
   // function set_alien_control(boolean)
   // function inv_box_can_take(boolean)
   // function set_patrol_path(string, enum PatrolPathManager::EPatrolStartType, enum PatrolPathManager::EPatrolRouteType, boolean)
@@ -404,7 +403,8 @@ declare interface game_object {
   // function inv_box_can_take_status()
   // function force_visibility_state(number)
   // function night_vision_enabled() const
-  // function start_particles(string, string)
+  start_particles(path: string, bone_name: string): void;
+  stop_particles(path: string, bone_name: string): void;
   // function enable_vision(boolean)
   // function vertex_in_direction(number, vector, number) const
   // function set_dest_loophole(string)

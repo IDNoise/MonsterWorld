@@ -37,7 +37,7 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected override OnItemTake(item: game_object): void {
         //super.OnItemTake(item);
-        this.world.GetWeapon(item.id());
+        this.world.OnTakeItem(item);
     }
 
     // protected override OnItemFocusReceive(item: game_object): void {
@@ -89,7 +89,7 @@ export class MonsterWorldMod extends StalkerModBase {
 
     hitsThisFrame: [Id, Id][] = [];
     lastHitFrame: number = -1;
-    protected override OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: number): boolean {
+    protected override OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: BoneId): boolean {
         super.OnMonsterBeforeHit(monster, shit, boneId);
 
         if (monster.health <= 0)
@@ -104,7 +104,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (!this.CanHit(monster.id(), shit.draftsman.id())) 
             return false;
 
-        this.world.OnMonsterHit(monster, shit);
+        this.world.OnMonsterHit(monster, shit, boneId);
 
         shit.power = 0.0000001;
         return true;

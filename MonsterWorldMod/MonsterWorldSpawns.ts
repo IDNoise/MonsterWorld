@@ -102,11 +102,11 @@ export class MonsterWorldSpawns {
 
             let selectedMonsters: MonsterType[] = [];
             for(const [monsterType, monsterCfg] of cfg.MonsterConfigs){
-                //Log(`Level check: ${monsterCfg.level_start} > ${locationCfg.level} = ${(monsterCfg.level_start > locationCfg.level)}`)
+                Log(`Level check: ${monsterCfg.level_start} > ${locationCfg.level} = ${(monsterCfg.level_start > locationCfg.level)}`)
                 if (monsterCfg.level_start > locationCfg.level)
                     continue;
-                //Log(`LevelType check: ${monsterCfg.level_type} & ${locationCfg.level} = ${(monsterCfg.level_type & locationCfg.level)}`)
-                if ((monsterCfg.level_type & locationCfg.level) != locationCfg.level)
+                Log(`LevelType check: ${monsterCfg.level_type} & ${locationCfg.type} = ${(monsterCfg.level_type & locationCfg.type)}`)
+                if ((monsterCfg.level_type & locationCfg.type) != locationCfg.type)
                     continue;
                 selectedMonsters.push(monsterType);
             }
@@ -135,7 +135,7 @@ export class MonsterWorldSpawns {
     public OnSimSquadAddMember(obj: any, section: string, pos: vector, lvid: number, gvid: number, defaultFunction: (...args: any[]) => Id | undefined): Id | undefined {
         //Log(`OnSimSquadAddMember: ${section} ${type(obj)}`)
         if (section != "dog_normal_red"){
-            Log(`SPAWN PROBLEM Wrong section`)
+            Log(`SPAWN PROBLEM Wrong section ${section}`)
             return;
         }
 
@@ -147,15 +147,23 @@ export class MonsterWorldSpawns {
         let monsterType = Load<MonsterType>(obj.smart_id, "MW_MonsterType", undefined);
         let monsterCfg = cfg.MonsterConfigs.get(monsterType);
         if (monsterCfg == undefined){
-            Log(`SPAWN PROBLEM  NO monsterCfg!`)
+            Log(`SPAWN PROBLEM  NO monsterCfg! ${monsterType}`)
         }
 
         let squadSize = math.random(monsterCfg.squad_size_min, monsterCfg.squad_size_max);
         let isBossSpawned = false;
         let elitesSpawned = 0;
+
+        let locCfg = cfg.LocationConfigs[level.name()];
+        let locLevel = locCfg.level || 1;
+
+        if (locLevel < 5){
+            squadSize *= 0.5 + 0.1 * locLevel
+        }
+
         for(let i = 0; i < squadSize;){
-            let locCfg = cfg.LocationConfigs[level.name()];
-            let enemyLvl = math.max(locCfg.level || 1, this.world.Player.Level - 3);
+            
+            let enemyLvl = math.max(locLevel, this.world.Player.Level - 3);
 
             if (IsPctRolled(cfg.EnemyHigherLevelChance))
                 enemyLvl++;

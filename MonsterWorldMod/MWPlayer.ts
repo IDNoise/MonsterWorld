@@ -17,18 +17,25 @@ export class MWPlayer extends BaseMWObject {
     }
 
     get RequeiredXP(): number {
-        return cfg.PlayerXPForFirstLevel * math.pow(cfg.EnemyXpRewardExpPerLevel, this.Level - 1) * (1 + cfg.PlayerXPPct * (this.Level - 1) / 100)
+        let expMult = math.pow(cfg.PlayerXPExp, this.Level - 1);
+        let pctMult = (1 + cfg.PlayerXPPct * (this.Level - 1) / 100)
+        let xp = cfg.PlayerXPForFirstLevel * expMult * pctMult;
+        return math.floor(xp)
     }
 
     get CurrentXP(): number { return this.Load("CurrentXP", 0); }
     set CurrentXP(exp: number) { 
-        let required = this.RequeiredXP;
-        if (exp >= required){
-            this.Level++;
-            this.StatPoints += cfg.PlayerPointsPerLevelUp;
-            exp -= required;
+        while (exp >= this.RequeiredXP){
+            exp -= this.RequeiredXP;
+            this.LevelUp();
         }
         this.Save("CurrentXP", exp); 
+    }
+
+    private LevelUp(): void{
+        this.Level++;
+        this.StatPoints += cfg.PlayerPointsPerLevelUp;
+        //TODO lvl up notification
     }
 
     get StatPoints(): number { return this.Load("StatPoints", 0); }

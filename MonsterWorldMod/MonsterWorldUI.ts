@@ -78,12 +78,14 @@ export class MonsterWorldUI {
         for(let i = 0; i < this.damageNumbers.length; i++){
             let entry = this.damageNumbers[i];
             if (entry.text.IsShown()) continue;
+
+            let msg = `${math.floor(damage)}`
+
             entry.text.SetWndPos(new vector2().set(math.random(-15, 15), math.random(-5, 5)))
             entry.showTime = time_global();
-            let msg = `${math.floor(damage)}`
-            if (isCrit) msg += " X"
-            if (isKillHit) msg += ""
-            entry.text.SetText(msg);
+            entry.text.SetTextColor(isCrit ? GetARGB(255, 255, 165, 5) : GetARGB(255, 240, 20, 20))
+            entry.text.SetFont(isCrit ? GetFontGraffiti19Russian() : GetFontLetterica16Russian())
+            entry.text.SetText(msg + (isCrit ? " X" : ""));
             entry.text.Show(true);
             
             return;
@@ -94,9 +96,10 @@ export class MonsterWorldUI {
         for(let i = 0; i < this.xpRewardNumbers.length; i++){
             let entry = this.xpRewardNumbers[i];
             if (entry.text.IsShown()) continue;
+            let msg = `+ ${math.floor(reward)} XP`
             entry.text.SetWndPos(new vector2().set(math.random(-30, 30), math.random(-3, 3)))
             entry.showTime = time_global();
-            let msg = `+ ${math.floor(reward)} XP`
+            entry.text.SetFont(GetFontGraffiti22Russian())
             entry.text.SetText(msg);
             entry.text.Show(true);
             
@@ -205,7 +208,7 @@ export class MonsterWorldUI {
         for(let i = 0; i < this.damageNumbers.length; i++){
             let entry = this.damageNumbers[i];
             let text = entry.text;
-            if (now - entry.showTime > 750){
+            if (now - entry.showTime > 500){
                 text.Show(false);
             }
             else {
@@ -221,7 +224,7 @@ export class MonsterWorldUI {
         for(let i = 0; i < this.xpRewardNumbers.length; i++){
             let entry = this.xpRewardNumbers[i];
             let text = entry.text;
-            if (now - entry.showTime > 2000){
+            if (now - entry.showTime > 1500){
                 text.Show(false);
             }
             else {
@@ -242,7 +245,7 @@ export class MonsterWorldUI {
 
         let currentXP = player.CurrentXP;
         let reqXP = player.RequeiredXP;
-        this.playerLevelBarXP.SetText(`${currentXP} / ${reqXP}`)
+        this.playerLevelBarXP.SetText(`${math.floor(currentXP)} / ${math.floor(reqXP)}`)
         this.playerLevelBarProgress.SetProgressPos(clamp(currentXP / reqXP, 0, 1) * 100)
     }
 

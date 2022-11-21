@@ -326,6 +326,15 @@ public class Section
 
     public IEnumerable<string> AllParentSectionNames => AllParentSections.Select(s => s.Name);
 
+    public Section SetProperty(string key, object value)
+    {
+        if (HasProperty(key, false))
+            GetProperty(key, false).Value = value;
+        else
+            Properties.Add(new Property(key, value));
+        return this;
+    }
+    
     public Section SetProperties(object? properties, bool isNew = true)
     {
         if (properties == null)

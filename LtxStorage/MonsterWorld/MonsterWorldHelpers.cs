@@ -2,7 +2,7 @@
 
 public enum WeaponType
 {
-    Pistol,
+    Pistol = 0,
     Shotgun,
     SMG,
     AssaultRifle,

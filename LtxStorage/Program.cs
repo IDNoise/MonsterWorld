@@ -3,8 +3,8 @@
 var gameDataDirPath = "../../../../StalkerScriptReference/AnomalyGameData";
 var outputDir = "../../../../MonsterWorldMod/GameData";
 
-//new LtxStorage.MonsterWorld.WeaponsGenerator(gameDataDirPath, outputDir).Generate();
-new LtxStorage.MonsterWorld.EnemyGenerator(gameDataDirPath, outputDir).Generate();
+new LtxStorage.MonsterWorld.WeaponsGenerator(gameDataDirPath, outputDir).Generate();
+//new LtxStorage.MonsterWorld.EnemyGenerator(gameDataDirPath, outputDir).Generate();
 
 
 

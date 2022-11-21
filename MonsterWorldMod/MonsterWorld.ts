@@ -1,4 +1,4 @@
-import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save } from '../StalkerAPI/extensions/basic';
+import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save, CreateWorldPositionAtGO, CreateVector, CreateWorldPositionAtPosWithGO } from '../StalkerAPI/extensions/basic';
 import { Log } from '../StalkerModBase';
 import * as cfg from './MonsterWorldConfig';
 import { MonsterWorldMod } from './MonsterWorldMod';
@@ -8,12 +8,14 @@ import { MWWeapon } from './MWWeapon';
 import { MonsterConfig, LevelType, MonsterType, MonsterRank } from './MonsterWorldConfig';
 import { MonsterWorldSpawns } from './MonsterWorldSpawns';
 import { MonsterWorldUI } from './MonsterWorldUI';
+import { CriticalBones } from './MonsterWorldBones';
 
 export class MonsterWorld {
-    
     private player?: MWPlayer;
     private monsters: LuaTable<Id, MWMonster>
     private weapons: LuaTable<Id, MWWeapon>
+
+    private highlightedItems: LuaSet<Id> = new LuaSet();
 
     public SpawnManager: MonsterWorldSpawns;
     public UIManager: MonsterWorldUI;
@@ -26,6 +28,10 @@ export class MonsterWorld {
         this.UIManager = new MonsterWorldUI(this);
 
         utils_item.get_upgrades_tree = (wpn, _t) => {};
+        game_setup.try_spawn_world_item = (ignore: any) => {};
+        treasure_manager.init_settings = () => {};
+        treasure_manager.try_spawn_treasure = (_ignore: any) => {};
+        treasure_manager.create_random_stash = (...args: any[]) => {};
     }
 
     get Player(): MWPlayer{
@@ -51,6 +57,11 @@ export class MonsterWorld {
             this.weapons.set(itemId, new MWWeapon(this, itemId));
         }
         return this.weapons.get(itemId);
+    }
+
+    public OnTakeItem(item: game_object) {
+        this.GetWeapon(item.id())
+        this.ShowHightlighOnObject(item, false)
     }
 
     public OnPlayerSpawned():void{
@@ -86,7 +97,7 @@ export class MonsterWorld {
         Log(`Player [${ this.Player.HP} / ${this.Player.MaxHP}] was hit by ${monster.Name} for ${monster.Damage} damage`);
     }
 
-    public OnMonsterHit(monsterGO: game_object, shit: hit) {
+    public OnMonsterHit(monsterGO: game_object, shit: hit, boneId: BoneId) {
         let monster = this.GetMonster(monsterGO.id());
         if (monster == undefined || monster.IsDead) 
             return;
@@ -96,12 +107,17 @@ export class MonsterWorld {
             return;
 
         let damage = weapon.DamagePerHit;
+
+        let isCrit = CriticalBones[monster.Type]?.includes(boneId) || false;
+        if (isCrit){
+            damage *= 2.5; //TODO move to player stats
+        }
+
         let realDamage = math.min(monster.HP, damage)
         monster.HP -= realDamage;
-        this.UIManager.ShowDamage(realDamage, false, monster.IsDead)
+        this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
         
-        //actor_menu.set_msg(2, `Enemy ${monster.Name} was hit for ${damage}`, 3, GetARGB(255, 240, 20, 20))
-        Log(`${monster.Name} [${monster.HP} / ${monster.MaxHP}] was hit by player for ${damage} damage`);
+        Log(`${monster.Name} [${monster.HP} / ${monster.MaxHP}] was hit by player for ${damage} damage. Is crit: ${isCrit}. Bone: ${boneId}`);
     }
 
     public OnMonsterKilled(monsterGO: game_object) {
@@ -116,19 +132,31 @@ export class MonsterWorld {
             this.GenerateDrop(monster)
         }
     }
+    // [test_container]:itm_backpack
+    // use1_functor                                       = bind_container.access_inventory
+    // use1_text                                          = st_open
+    // script_binding                                     = bind_container.bind
+    // remove_after_use                                   = false
 
     GenerateDrop(monster: MWMonster) {
+        //alife_create_item("box_wood_01", CreateWorldPositionAtPosWithGO(CreateVector(5, 5, 0), monster.GO))
+        //let boxSGO = alife_create_item("box_paper", CreateWorldPositionAtPosWithGO(CreateVector(0, 1, 0), monster.GO))
+
+        // CreateTimeEvent(`${boxSGO.name()}`, `${boxSGO.name()}`, 1, (boxId: Id) => {
+        //     let go = level.object_by_id(boxId);
+        //     if (go == null)
+        //         return false;
+        //     go.start_particles("weapons\\light_signal", "link")
+        //     return true;
+        // }, boxSGO.id);
 
         let typedSections = ini_sys.r_list("mw_drops_by_weapon_type", "sections");
         let selectedTypeSection = RandomFromArray(typedSections);
-
         let weaponCount = ini_sys.line_count(selectedTypeSection);
         let [_, weaponBaseSection] = ini_sys.r_line_ex(selectedTypeSection, math.random(0, weaponCount - 1))
         let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
         let selectedVariant = RandomFromArray(weaponVariants)
-
-        let sgo = alife_create_item(selectedVariant, db.actor);
-        Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
+        
         let dropLevel = monster.Level;
         if (IsPctRolled(cfg.HigherLevelDropChancePct)){
             dropLevel++;
@@ -154,30 +182,43 @@ export class MonsterWorld {
             if (IsPctRolled(cfg.EnemyBossDropQualityIncreaseChance))
                 qualityLevel++;
         }
-
+        
+        let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
-        //this.GetWeapon(sgo.id)
+        Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
+
+        CreateTimeEvent(`${sgo.name()}_add_highlight`, `${sgo.name()}`, 0.1, (boxId: Id) => {
+            let go = level.object_by_id(boxId);
+            if (go == null){
+                return false;
+            }
+
+            this.ShowHightlighOnObject(go, true)
+            return true;
+        }, sgo.id);
+
+        CreateTimeEvent(`${sgo.name()}_auto_remove_highligh`, `${sgo.name()}`, 120, (boxId: Id) => {
+            let go = level.object_by_id(boxId);
+            if (go != null){
+                this.ShowHightlighOnObject(go, false)
+            }
+
+            return true;
+        }, sgo.id);
+    }
+
+    ShowHightlighOnObject(go: game_object, doShow: boolean){
+        if (doShow){
+            this.highlightedItems.add(go.id())
+            go.start_particles("weapons\\light_signal", "wpn_body")
+        }
+        else {
+            if (this.highlightedItems.has(go.id())){
+                go.stop_particles("weapons\\light_signal", "wpn_body")
+                this.highlightedItems.delete(go.id())
+            }
+        }
     }
 }
 
-
-// //Log(`Setup configs for smart: ${smart.name()}`)
-
-// if (math.random(1, 100) > 60){
-//     smart.respawn_params = {
-//         "spawn_section_1": {
-//             num: NumberToCondList(3), 
-//             squads: ["simulation_dog"]
-//         },
-//     }
-// }
-// else {
-//     smart.respawn_params = {
-//         "spawn_section_1": {
-//             num: NumberToCondList(3), 
-//             squads: ["simulation_pseudodog", "simulation_mix_dogs"]
-//         }
-//     } 
-// }
-
-// smart.already_spawned = {"spawn_section_1": {num: 0}, "spawn_section_2": {num: 0}}
+//actor_menu.set_msg(2, `Enemy ${monster.Name} was hit for ${damage}`, 3, GetARGB(255, 240, 20, 20))

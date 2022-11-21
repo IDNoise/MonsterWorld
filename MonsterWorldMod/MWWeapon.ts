@@ -23,102 +23,7 @@ export class MWWeapon extends BaseMWObject {
             return;
         }
 
-        const ammoMagSize = ini_sys.r_float_ex(this.Section, "ammo_mag_size", 1);
-        const rpm = ini_sys.r_float_ex(this.Section, "rpm", 1);
-        const fireRate = 60 / rpm;
-        let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
-
-        let dps = baseDPS;
-        if (ini_sys.r_string_ex(this.Section, "tri_state_reload", "off") == "on"){
-            dps += baseDPS * 0.5;
-        }
-
-        let upgradesByType: [BonusParams.Type, string[]][] = [];
-        upgradesByType.push([BonusParams.Type.Damage, []]);
-
-        let upgradeTypes = BonusParams.AllParams;
-        for(let i = 0; i < upgradeTypes.length; i++){
-            let uType = upgradeTypes[i];
-            if (uType == BonusParams.Type.Damage) continue;
-            if (ini_sys.r_string_ex(this.Section, uType + "_upgrades", "") != "" ) {
-                let upgrades = ini_sys.r_list(this.Section, uType + "_upgrades", [])
-                if (upgrades.length != 0)
-                    upgradesByType.push([uType, upgrades]);
-            }
-        }
-
-        let selectedUpgradeTypes: [BonusParams.Type, string[]][] = [];
-        let upgradeTypesToAdd = 2 + math.random(0, (this.Quality - 1));
-        const upgradeTypesToSelect = math.min(upgradesByType.length, upgradeTypesToAdd);
-        for(let i = 0; i < upgradeTypesToSelect; i++){
-            const upgrades = TakeRandomFromArray(upgradesByType);
-            selectedUpgradeTypes.push(upgrades)
-        }
-
-        let damageBonus = 0;
-        let allSelectedUpgrades: string[] = []
-        for(let i = 0; i < selectedUpgradeTypes.length; i++){
-            let upgradesPerTypeToSelect = 1 + (this.Level / 10) + (this.Quality - 1) / 2;
-            let [t, upgrades] = selectedUpgradeTypes[i];
-            if (t == BonusParams.Type.Damage){
-                let bonus = 0;
-                for(let j = 0; j < upgradesPerTypeToSelect; j++){
-                    bonus +=  math.random(1, 5);
-                }
-                damageBonus = bonus;
-            }
-            else if (t == BonusParams.Type.FireMode){
-                const upgrade = TakeRandomFromArray(upgrades);
-                allSelectedUpgrades.push(upgrade);
-                this.Bonuses.set(BonusParams.Type.FireMode, 1);
-            }
-            else {
-                //higher quality selectes from better upgrades
-                if (this.Quality < 3 && upgrades.length >= this.Quality + 3)
-                    upgrades = upgrades.slice(0, math.min(2 + this.Quality, upgrades.length) - 1)
-                else if (this.Quality >= 3 && upgrades.length >= this.Quality + 3)
-                    upgrades = upgrades.slice(3)
-                const toSelect = math.min(upgradesPerTypeToSelect, math.max(1, upgrades.length));
-                let bonusValue = 0;
-
-                for(let j = 0; j < toSelect; j++){
-                    const upgrade = TakeRandomFromArray(upgrades);
-                    allSelectedUpgrades.push(upgrade)
-                    bonusValue += ini_sys.r_float_ex(upgrade.replace("mwu", "mwb"), BonusParams.SectionFields[t], 0)
-                }
-
-                if (bonusValue != 0){
-                    if (BonusParams.PctBonuses.includes(t)){
-                        const defaultValue = ini_sys.r_float_ex(this.Section, BonusParams.SectionFields[t], 1);
-                        Log(`Bonus ${t}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`)
-                        bonusValue = bonusValue / defaultValue * 100;
-                    }
-
-                    this.Bonuses.set(t, math.abs(bonusValue));
-                }
-            }
-        }
-
-        damageBonus += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
-        if (damageBonus >= cfg.WeaponDPSDeltaPct){
-            damageBonus += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
-        }
-        this.Bonuses.set(BonusParams.Type.Damage, damageBonus);
-        dps *= (1 + damageBonus / 100)
-
-        this.DamagePerHit = dps * fireRate;
-
-        //Log(`Base DPS: ${baseDPS} DPS: ${dps}. Damage per hit: ${this.DamagePerHit}. Fire rate: ${fireRate}`)
- 
-        for(let i = 0; i < allSelectedUpgrades.length; i++){
-            let upgrade = allSelectedUpgrades[i].replace("mwu", "mwe");
-            this.GO.install_upgrade(upgrade);
-            //Log(`After install ${upgrade}`) 
-        }
-
-        Log(`Bonus description: ${this.GetBonusDescription()}`)
-
-        this.GO.set_ammo_elapsed(this.GO.cast_Weapon().GetAmmoMagSize());
+        this.GenerateWeaponStats();
     }
 
     get Quality(): number { return this.Load("Quality"); }
@@ -140,6 +45,105 @@ export class MWWeapon extends BaseMWObject {
         }
 
         return result;
+    }
+
+    private GenerateWeaponStats() {
+        const ammoMagSize = ini_sys.r_float_ex(this.Section, "ammo_mag_size", 1);
+        const rpm = ini_sys.r_float_ex(this.Section, "rpm", 1);
+        const fireRate = 60 / rpm;
+        let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
+
+        let dps = baseDPS;
+        if (ini_sys.r_string_ex(this.Section, "tri_state_reload", "off") == "on") {
+            dps += baseDPS * 0.5;
+        }
+
+        let upgradesByType: [BonusParams.Type, string[]][] = [];
+        upgradesByType.push([BonusParams.Type.Damage, []]);
+
+        let upgradeTypes = BonusParams.AllParams;
+        for (let i = 0; i < upgradeTypes.length; i++) {
+            let uType = upgradeTypes[i];
+            if (uType == BonusParams.Type.Damage)
+                continue;
+            if (ini_sys.r_string_ex(this.Section, uType + "_upgrades", "") != "") {
+                let upgrades = ini_sys.r_list(this.Section, uType + "_upgrades", []);
+                if (upgrades.length != 0)
+                    upgradesByType.push([uType, upgrades]);
+            }
+        }
+
+        let selectedUpgradeTypes: [BonusParams.Type, string[]][] = [];
+        let upgradeTypesToAdd = 2 + math.random(0, (this.Quality - 1));
+        const upgradeTypesToSelect = math.min(upgradesByType.length, upgradeTypesToAdd);
+        for (let i = 0; i < upgradeTypesToSelect; i++) {
+            const upgrades = TakeRandomFromArray(upgradesByType);
+            selectedUpgradeTypes.push(upgrades);
+        }
+
+        let damageBonus = 0;
+        let allSelectedUpgrades: string[] = [];
+        for (let i = 0; i < selectedUpgradeTypes.length; i++) {
+            let upgradesPerTypeToSelect = 1 + (this.Level / 10) + (this.Quality - 1) / 2;
+            let [t, upgrades] = selectedUpgradeTypes[i];
+            if (t == BonusParams.Type.Damage) {
+                let bonus = 0;
+                for (let j = 0; j < upgradesPerTypeToSelect; j++) {
+                    bonus += math.random(1, 5);
+                }
+                damageBonus = bonus;
+            }
+            else if (t == BonusParams.Type.FireMode) {
+                const upgrade = TakeRandomFromArray(upgrades);
+                allSelectedUpgrades.push(upgrade);
+                this.Bonuses.set(BonusParams.Type.FireMode, 1);
+            }
+            else {
+                //higher quality selectes from better upgrades
+                if (this.Quality < 3 && upgrades.length >= this.Quality + 3)
+                    upgrades = upgrades.slice(0, math.min(2 + this.Quality, upgrades.length) - 1);
+                else if (this.Quality >= 3 && upgrades.length >= this.Quality + 3)
+                    upgrades = upgrades.slice(3);
+                const toSelect = math.min(upgradesPerTypeToSelect, math.max(1, upgrades.length));
+                let bonusValue = 0;
+
+                for (let j = 0; j < toSelect; j++) {
+                    const upgrade = TakeRandomFromArray(upgrades);
+                    allSelectedUpgrades.push(upgrade);
+                    bonusValue += ini_sys.r_float_ex(upgrade.replace("mwu", "mwb"), BonusParams.SectionFields[t], 0);
+                }
+
+                if (bonusValue != 0) {
+                    if (BonusParams.PctBonuses.includes(t)) {
+                        const defaultValue = ini_sys.r_float_ex(this.Section, BonusParams.SectionFields[t], 1);
+                        Log(`Bonus ${t}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
+                        bonusValue = bonusValue / defaultValue * 100;
+                    }
+
+                    this.Bonuses.set(t, math.abs(bonusValue));
+                }
+            }
+        }
+
+        damageBonus += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
+        if (damageBonus >= cfg.WeaponDPSDeltaPct) {
+            damageBonus += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
+        }
+        this.Bonuses.set(BonusParams.Type.Damage, damageBonus);
+        dps *= (1 + damageBonus / 100);
+
+        this.DamagePerHit = dps * fireRate;
+
+        //Log(`Base DPS: ${baseDPS} DPS: ${dps}. Damage per hit: ${this.DamagePerHit}. Fire rate: ${fireRate}`)
+        for (let i = 0; i < allSelectedUpgrades.length; i++) {
+            let upgrade = allSelectedUpgrades[i].replace("mwu", "mwe");
+            this.GO.install_upgrade(upgrade);
+            //Log(`After install ${upgrade}`) 
+        }
+
+        Log(`Bonus description: ${this.GetBonusDescription()}`);
+
+        this.GO.set_ammo_elapsed(this.GO.cast_Weapon().GetAmmoMagSize());
     }
 }
 

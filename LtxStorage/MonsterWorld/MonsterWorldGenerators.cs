@@ -18,6 +18,7 @@ public class WeaponsGenerator : BaseGenerator
     protected override void InternalGenerate()
     {
         PrepareWeaponsData();
+        GenerateAmmo();
         GenerateBaseWeaponParams();
         GenerateWeapons();
     }
@@ -65,6 +66,47 @@ public class WeaponsGenerator : BaseGenerator
                 baseWithVariants.Add(section, new List<Section>());
         }
     }
+
+    public readonly record struct AmmoConfig(string SectionName, string ParentSectionName, string Name, int BoxSize);
+    
+    Dictionary<WeaponType, AmmoConfig> ammoConfigs = new Dictionary<WeaponType, AmmoConfig>()
+    {
+        { WeaponType.Pistol, new AmmoConfig("ammo_mw_pistol", "ammo_9x18_ap", "Pistol ammo", 30)  },
+        { WeaponType.SMG, new AmmoConfig("ammo_mw_smg", "ammo_7.62x25_ps", "SMG ammo", 60) },
+        { WeaponType.Shotgun, new AmmoConfig("ammo_mw_shotgun", "ammo_12x76_dart", "Shotgun ammo", 20) },
+        { WeaponType.AssaultRifle, new AmmoConfig("ammo_mw_assault_rifle", "ammo_5.56x45_ss190", "Assault Rifle ammo", 60) },
+        { WeaponType.MachineGun, new AmmoConfig("ammo_mw_machine_gun", "ammo_7.62x54_7h1", "Machine Gun ammo", 90) },
+        { WeaponType.SniperRifle, new AmmoConfig("ammo_mw_sniper_rifle", "ammo_50_bmg", "Sniper Rifle ammo", 15) },
+    };
+    
+    void GenerateAmmo()
+    {
+        foreach (var (wType, ammoConfig) in ammoConfigs)
+        {
+            var section = Storage.MakeSection(ammoConfig.SectionName, mwWeaponsFile, new List<string>() { ammoConfig.ParentSectionName }, properties: new
+            {
+                impair = 1,
+                k_bullet_speed = 1,
+                k_cam_dispersion = 1,
+                k_dist = 1,
+                k_disp = 1,
+                k_hit = 1,
+                k_impulse = 1,
+                tracer_color_ID = (int)wType < 3 ? 1 : 2,
+                tracer = "on",
+                wm_size = 0.1,
+                box_size = ammoConfig.BoxSize,
+                inv_weight = 0.00001,
+                description = "",
+                inv_name = ammoConfig.Name,
+                inv_name_short = ammoConfig.Name,
+                buck_shot = 1,
+                tier = 1,
+                cost = 1,
+            });
+            section.SetProperty("4to1_tracer", true);
+        }
+    }
     
     void GenerateBaseWeaponParams()
     {
@@ -88,13 +130,13 @@ public class WeaponsGenerator : BaseGenerator
             //other
             description              = "",
             inv_weight               = 0.01f,
-            hit_impulse              = 300,
+            hit_impulse              = 500000,
             sprint_allowed           = true,
             startup_ammo             = 300,
             
             //upgrades
-            upgrades                 = "",//allUpgradesString, //TODO move it to weapon itself with filter on what upgrade types it supports (for base - generate custom section)
-            installed_upgrades       = "",//allUpgradesString,
+            upgrades                 = "",
+            installed_upgrades       = "",
             upgrade_scheme           = "upgrade_scheme_ak74"
         });
     }
@@ -122,7 +164,7 @@ public class WeaponsGenerator : BaseGenerator
             
             Console.WriteLine($"Upgrades for {baseWeapon.Name} = {upgradesByType.Values.Sum(l => l.Count)}");
             
-            var upgrades = new
+            var baseProperties = new
             {
                 upgrades = string.Join(",", upgradesByType.Values.SelectMany(u => u).Select(s => s.Name)),
                 rpm_upgrades = string.Join(",", upgradesByType[UpgradeType.Rpm].Select(s => s.Name)),
@@ -132,7 +174,8 @@ public class WeaponsGenerator : BaseGenerator
                 fire_mode_upgrades = string.Join(",", upgradesByType[UpgradeType.FireMode].Select(s => s.Name)),
                 bullet_speed_upgrades = string.Join(",", upgradesByType[UpgradeType.BulletSpeed].Select(s => s.Name)),
                 mag_size_upgrades = string.Join(",", upgradesByType[UpgradeType.MagSize].Select(s => s.Name)),
-                rpm = (int)Math.Min(900, baseWeapon.GetInt("rpm"))
+                rpm = (int)Math.Min(900, baseWeapon.GetInt("rpm")),
+                ammo_class = ammoConfigs[type].SectionName
             };
 
             foreach (var variantWeapon in variants)
@@ -140,7 +183,7 @@ public class WeaponsGenerator : BaseGenerator
                 weaponName = $"{variantWeapon.Name}_mw";
                 variantSectionNames.Add(weaponName);
                 parentSectionNames = new List<string>() { variantWeapon.Name, baseParamsSection.Name };
-                Storage.MakeSection(weaponName, mwWeaponsFile, parentSectionNames, upgrades);
+                Storage.MakeSection(weaponName, mwWeaponsFile, parentSectionNames, baseProperties);
             }
             
             weaponName = $"{baseWeapon.Name}_mw";
@@ -149,7 +192,7 @@ public class WeaponsGenerator : BaseGenerator
             {
                 variants = string.Join(",", variantSectionNames.Prepend(weaponName))
             });
-            newWeaponSection.SetProperties(upgrades);
+            newWeaponSection.SetProperties(baseProperties);
             
             if (!weaponsByType.TryGetValue(type, out var typeSections))
             {
