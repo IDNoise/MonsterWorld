@@ -233,11 +233,17 @@ export class MonsterWorldUI {
     }
 
     private UpdatePlayerLevelBar(){
-        this.playerLevelBarLevel.SetText(`Level ${this.world.Player.Level}`)
-        let currentXP = this.world.Player.CurrentXP;
-        let maxXP = 1000;
-        this.playerLevelBarXP.SetText(`${currentXP} / ${maxXP}`)
-        this.playerLevelBarProgress.SetProgressPos(clamp(currentXP / maxXP, 0, 1) * 100)
+        let player = this.world.Player;
+        let levelInfo =`Level ${player.Level}`;
+        if (player.StatPoints > 0){
+            levelInfo += ` (SP: ${player.StatPoints})`
+        }
+        this.playerLevelBarLevel.SetText(levelInfo)
+
+        let currentXP = player.CurrentXP;
+        let reqXP = player.RequeiredXP;
+        this.playerLevelBarXP.SetText(`${currentXP} / ${reqXP}`)
+        this.playerLevelBarProgress.SetProgressPos(clamp(currentXP / reqXP, 0, 1) * 100)
     }
 
     PrepareUIItemStatsTable(oldPrepareStatsTable: () => utils_ui.StatsTable): utils_ui.StatsTable {

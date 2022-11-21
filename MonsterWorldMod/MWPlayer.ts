@@ -16,6 +16,21 @@ export class MWPlayer extends BaseMWObject {
         this.HP = baseHP;
     }
 
-    get CurrentXP(): number { return this.Load("CurrentXP"); }
-    set CurrentXP(exp: number) { this.Save("CurrentXP", exp); }
+    get RequeiredXP(): number {
+        return cfg.PlayerXPForFirstLevel * math.pow(cfg.EnemyXpRewardExpPerLevel, this.Level - 1) * (1 + cfg.PlayerXPPct * (this.Level - 1) / 100)
+    }
+
+    get CurrentXP(): number { return this.Load("CurrentXP", 0); }
+    set CurrentXP(exp: number) { 
+        let required = this.RequeiredXP;
+        if (exp >= required){
+            this.Level++;
+            this.StatPoints += cfg.PlayerPointsPerLevelUp;
+            exp -= required;
+        }
+        this.Save("CurrentXP", exp); 
+    }
+
+    get StatPoints(): number { return this.Load("StatPoints", 0); }
+    set StatPoints(points: number) { this.Save("StatPoints", points); }
 }

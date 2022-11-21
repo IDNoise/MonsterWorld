@@ -244,6 +244,8 @@ export let PlayerXPForFirstLevel = 1000;
 export let PlayerXPExp = 1.25;
 export let PlayerXPPct = 1.25;
 
+export let PlayerPointsPerLevelUp = 1;
+
 //Monster params
 export let EnemyHPBase = 100;
 export let EnemyHPExpPerLevel = 1.1;

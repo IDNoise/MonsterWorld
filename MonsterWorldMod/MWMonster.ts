@@ -55,7 +55,7 @@ export class MWMonster extends BaseMWObject{
     }
 
     get Name(): string {
-        let nameInfo = ` ${this.Type} L.${this.Level}`
+        let nameInfo = `${this.Type} L.${this.Level}`
         if (this.Rank == MonsterRank.Boss) nameInfo = "[Boss] " + nameInfo
         else if (this.Rank == MonsterRank.Elite) nameInfo = "[Elite] " + nameInfo
         return nameInfo;
