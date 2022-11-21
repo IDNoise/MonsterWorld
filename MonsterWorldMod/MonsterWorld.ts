@@ -35,7 +35,7 @@ export class MonsterWorld {
     }
 
     GetMonster(monsterId: Id): MWMonster | undefined {
-        if (!this.monsters.has(monsterId)){
+        if (!this.monsters.has(monsterId) && level.object_by_id(monsterId)?.is_monster()){
             this.monsters.set(monsterId, new MWMonster(this, monsterId));
         }
         return this.monsters.get(monsterId);
@@ -88,7 +88,7 @@ export class MonsterWorld {
 
     public OnMonsterHit(monsterGO: game_object, shit: hit) {
         let monster = this.GetMonster(monsterGO.id());
-        if (monster == undefined) 
+        if (monster == undefined || monster.IsDead) 
             return;
 
         let weapon = this.GetWeapon(shit.weapon_id);
@@ -96,7 +96,9 @@ export class MonsterWorld {
             return;
 
         let damage = weapon.DamagePerHit;
-        monster.HP -= damage;
+        var realDamage = math.min(monster.HP, damage)
+        monster.HP -= realDamage;
+        this.UIManager.ShowDamage(realDamage, false, monster.IsDead)
         
         //actor_menu.set_msg(2, `Enemy ${monster.Name} was hit for ${damage}`, 3, GetARGB(255, 240, 20, 20))
         Log(`${monster.Name} [${monster.HP} / ${monster.MaxHP}] was hit by player for ${damage} damage`);

@@ -77,7 +77,7 @@ declare function copy_table(source: LTable, target: LTable): void;
 // declare function buy_condition(ini_file*, string)
 // declare function buy_condition(number, number)
 // declare function create_ini_file(string)
-// declare function get_hud()
+declare function get_hud(): CUIGameCustom
 // declare function error_log(string)
 // declare function command_line()
 // declare function getFS()

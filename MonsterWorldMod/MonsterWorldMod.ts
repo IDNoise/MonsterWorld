@@ -55,13 +55,18 @@ export class MonsterWorldMod extends StalkerModBase {
         this.world?.DestroyObject(serverObject.id);
     }
 
-    protected OnActorFirstUpdate(): void {
+    protected override OnActorFirstUpdate(): void {
         super.OnActorFirstUpdate();
         EnableMutantLootingWithoutKnife();
         this.world.OnPlayerSpawned();
     }
 
-    protected OnActorBeforeHit(shit: hit, boneId: BoneId): boolean {
+    protected override OnActorUpdate(): void {
+        super.OnActorUpdate();
+        this.world.Update();
+    }
+
+    protected override OnActorBeforeHit(shit: hit, boneId: BoneId): boolean {
         super.OnActorBeforeHit(shit, boneId);   
         
         if (!this.CanHit(db.actor.id(), shit.draftsman.id())) 
@@ -73,7 +78,7 @@ export class MonsterWorldMod extends StalkerModBase {
         return true; 
     }
 
-    protected OnSimulationFillStartPosition(): void {
+    protected override OnSimulationFillStartPosition(): void {
         super.OnSimulationFillStartPosition();
         this.world.SpawnManager.FillStartPositions();
     }

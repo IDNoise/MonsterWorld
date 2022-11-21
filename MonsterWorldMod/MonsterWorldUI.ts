@@ -8,7 +8,22 @@ import { MWWeapon } from './MWWeapon';
 import { MonsterConfig, LevelType, MonsterType, MonsterRank } from './MonsterWorldConfig';
 import { MonsterWorld } from './MonsterWorld';
 
+type DamageNumberEntry = {
+    showTime: number;
+    text: CUITextWnd;
+}
+
 export class MonsterWorldUI {
+    private damageNumbersContainer: CUIStatic;
+    private damageNumbers: DamageNumberEntry[] = [];
+    
+    private enemyHP: CUIStatic;
+    private enemyHPBarName: CUITextWnd;
+    private enemyHPBarValue: CUITextWnd;
+    private enemyHPBarProgress: CUIProgressBar;
+
+    private lastEnemyHpShowTime: number = 0;
+
     constructor(public world: MonsterWorld) {
         const oldPrepareStatsTable = utils_ui.prepare_stats_table;
         utils_ui.prepare_stats_table = () => this.PrepareUIItemStatsTable(oldPrepareStatsTable);
@@ -38,6 +53,74 @@ export class MonsterWorldUI {
     }
 
     public Update() {
+        if (!this.InitHud())
+            return;
+
+        this.UpdateTarget();
+        this.UpdateDamageNumbers();
+    }
+
+    public ShowDamage(damage: number, isCrit: boolean = false, isKillHit: boolean = false){
+        for(let i = 0; i < this.damageNumbers.length; i++){
+            let entry = this.damageNumbers[i];
+            if (entry.text.IsShown()) continue;
+            entry.text.SetWndPos(new vector2().set(math.random(-30, 30), math.random(-3, 3)))
+            entry.showTime = time_global();
+            let msg = `${math.floor(damage)}`
+            if (isCrit) msg += " CRIT"
+            if (isKillHit) msg += " KILL"
+            entry.text.SetText(msg);
+            entry.text.Show(true);
+            
+            return;
+        }
+    }
+    
+    private InitHud(): boolean {
+        if (this.damageNumbersContainer != null && this.enemyHP != null) 
+            return true;
+
+        let hud = get_hud();
+        if (hud == undefined) 
+            return false;
+
+        let cs = hud.GetCustomStatic("mp_ah_buy")
+        if (cs == undefined)
+            hud.AddCustomStatic("mp_ah_buy", true)
+        cs = hud.GetCustomStatic("mp_ah_buy")
+        if (cs != undefined){
+            let xml = new CScriptXmlInit()
+            xml.ParseFile("ui_monster_world.xml")
+            cs.wnd().SetWndPos(new vector2().set(0, 0))
+
+            Log(`Initializing damage_numbers`)
+            this.damageNumbersContainer = xml.InitStatic("damage_numbers", cs.wnd())
+            for(let i = 0; i < 30; i++){
+                let textEntry = xml.InitTextWnd("damage_numbers:damage_number", this.damageNumbersContainer);
+                textEntry.Show(false);
+                this.damageNumbers.push({ 
+                    text: textEntry,
+                    showTime: 0
+                });
+            }
+            
+            Log(`Initializing enemy_health`)
+            this.enemyHP = xml.InitStatic("enemy_health", cs.wnd());
+            xml.InitStatic("enemy_health:value_progress_background", this.enemyHP)
+            this.enemyHPBarProgress = xml.InitProgressBar("enemy_health:value_progress", this.enemyHP)
+            this.enemyHPBarName = xml.InitTextWnd("enemy_health:name", this.enemyHP)
+            this.enemyHPBarValue = xml.InitTextWnd("enemy_health:value", this.enemyHP)
+            
+            this.damageNumbersContainer.Show(true)
+            this.enemyHP.Show(false);
+            cs.wnd().Show(true);
+            return true;
+        }
+
+        return false;
+    }
+
+    private UpdateTarget(){
         let targetObj = level.get_target_obj();
         if (!targetObj){
             this.HideEnemyHealthUI();
@@ -46,7 +129,7 @@ export class MonsterWorldUI {
 
         let targetDist = level.get_target_dist();
         let monster = this.world.GetMonster(targetObj.id())
-        if (targetDist < 300 && monster){
+        if (targetDist < 300 && monster && monster.HP > 0){
             this.ShowEnemyHealthUI(monster);
         }
         else {
@@ -55,12 +138,35 @@ export class MonsterWorldUI {
     }
 
     private HideEnemyHealthUI() {
-        
+        if (time_global() - this.lastEnemyHpShowTime > 500)
+            this.enemyHP?.Show(false);
+    }
+    
+    private ShowEnemyHealthUI(monster: MWMonster) {
+        if (!this.enemyHP) return;
+
+        this.lastEnemyHpShowTime= time_global();
+        this.enemyHP.Show(true);
+        this.enemyHPBarProgress.SetProgressPos(monster.HP / monster.MaxHP * 100);
+        this.enemyHPBarName.SetText(monster.Name);
+        this.enemyHPBarValue.SetText(`${math.floor(monster.HP)} / ${math.floor(monster.MaxHP)}`);
     }
 
-    private ShowEnemyHealthUI(monster: MWMonster) {
-        let nameInfo = monster.Name;
-        let hpInfo = `${monster.HP} / ${monster.MaxHP}`
+    private UpdateDamageNumbers(){
+        let now = time_global();
+        for(let i = 0; i < this.damageNumbers.length; i++){
+            let entry = this.damageNumbers[i];
+            let text = entry.text;
+            if (now - entry.showTime > 750){
+                text.Show(false);
+            }
+            else {
+                let pos = text.GetWndPos()
+                pos.y -= 2;
+                text.SetWndPos(pos);
+                //text.SetWndPos(new vector2().set(pos.x, pos.y - 2))
+            }
+        }
     }
 
     PrepareUIItemStatsTable(oldPrepareStatsTable: () => utils_ui.StatsTable): utils_ui.StatsTable {

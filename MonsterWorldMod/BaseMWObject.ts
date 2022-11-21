@@ -4,7 +4,7 @@ import { MonsterWorld } from './MonsterWorld';
 
 export abstract class BaseMWObject {
     constructor(public mw: MonsterWorld, public id: Id) {
-        Log(`Creating [${this.id}] ${this.Name}. Was initialized: ${this.Initialized}`);
+        Log(`Creating [${this.id}] ${this.SectionId}. Was initialized: ${this.Initialized}`);
         if (!this.Initialized){
             this.Initialize();
             this.Initialized = true;
@@ -17,19 +17,21 @@ export abstract class BaseMWObject {
     get ServerGO(): cse_alife_object { return alife().object(this.id); }
     get GO(): game_object { return level.object_by_id(this.id); }
 
-    get Name(): string { return `${this.ServerGO.section_name()}:${this.ServerGO.id}`; }
+    get SectionId(): string { return `${this.ServerGO.section_name()}:${this.ServerGO.id}`; }
 
     get HP(): number { return this.Load("HP"); }
     set HP(newHp: number) {
+        newHp = math.floor(newHp);
         this.Save("HP", newHp);
         if(this.GO != undefined)
             this.GO.set_health_ex(newHp / this.MaxHP);
     }
 
     get MaxHP(): number { return this.Load("MaxHP"); }
-    set MaxHP(hp: number) { 
-        this.Save("MaxHP", hp); 
-        this.HP = hp;
+    set MaxHP(newMaxHp: number) { 
+        newMaxHp = math.floor(newMaxHp);
+        this.Save("MaxHP", newMaxHp); 
+        this.HP = newMaxHp;
     }
 
     get Level(): number { return this.Load("Level"); }
