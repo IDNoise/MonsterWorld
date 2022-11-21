@@ -96,7 +96,7 @@ export class MonsterWorld {
             return;
 
         let damage = weapon.DamagePerHit;
-        var realDamage = math.min(monster.HP, damage)
+        let realDamage = math.min(monster.HP, damage)
         monster.HP -= realDamage;
         this.UIManager.ShowDamage(realDamage, false, monster.IsDead)
         

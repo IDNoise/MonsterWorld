@@ -20,9 +20,9 @@ declare function round(value: number): number;
 declare function round_idp(value: number, idp?: number): number;
 declare function round_100(value: number): number;
 declare function odd(value: number): boolean;
-declare function clamp(value: number, min: number, max: number): boolean;
-declare function normalize(value: number, min: number, max: number): boolean;
-declare function normalize_100(value: number, min: number, max: number): boolean;
+declare function clamp(value: number, min: number, max: number): number;
+declare function normalize(value: number, min: number, max: number): number;
+declare function normalize_100(value: number, min: number, max: number): number;
 declare function random_choice(...args: any[]): any;
 
 declare function save_var<T>(obj: game_object, varname: string, val: T): void;
@@ -101,8 +101,8 @@ declare function bit_not(a: number): number;
 // declare function user_name()
 declare function bit_xor(a: number, b: number): number;
 
-type Color = any;//TODO
-declare function GetARGB(a: number, r: number, g: number, b: number): Color;
+type ARGBColor = any;//TODO
+declare function GetARGB(a: number, r: number, g: number, b: number): ARGBColor;
 type Font = any;//TODO
 declare function GetFontSmall(): Font;
 declare function GetFontMedium(): Font;

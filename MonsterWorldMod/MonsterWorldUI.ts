@@ -29,6 +29,11 @@ export class MonsterWorldUI {
     private enemyHPBarValue: CUITextWnd;
     private enemyHPBarProgress: CUIProgressBar;
 
+    private playerLevelBar: CUIStatic;
+    private playerLevelBarLevel: CUITextWnd;
+    private playerLevelBarXP: CUITextWnd;
+    private playerLevelBarProgress: CUIProgressBar;
+
     private lastEnemyHpShowTime: number = 0;
 
     constructor(public world: MonsterWorld) {
@@ -66,13 +71,14 @@ export class MonsterWorldUI {
         this.UpdateTarget();
         this.UpdateDamageNumbers();
         this.UpdateXpRewardNumbers();
+        this.UpdatePlayerLevelBar();
     }
 
     public ShowDamage(damage: number, isCrit: boolean = false, isKillHit: boolean = false){
         for(let i = 0; i < this.damageNumbers.length; i++){
             let entry = this.damageNumbers[i];
             if (entry.text.IsShown()) continue;
-            entry.text.SetWndPos(new vector2().set(math.random(-30, 30), math.random(-3, 3)))
+            entry.text.SetWndPos(new vector2().set(math.random(-15, 15), math.random(-5, 5)))
             entry.showTime = time_global();
             let msg = `${math.floor(damage)}`
             if (isCrit) msg += " X"
@@ -147,6 +153,14 @@ export class MonsterWorldUI {
             this.enemyHPBarProgress = xml.InitProgressBar("enemy_health:value_progress", this.enemyHP)
             this.enemyHPBarName = xml.InitTextWnd("enemy_health:name", this.enemyHP)
             this.enemyHPBarValue = xml.InitTextWnd("enemy_health:value", this.enemyHP)
+
+            Log(`Initializing level_bar`)
+            this.playerLevelBar = xml.InitStatic("level_bar", cs.wnd());
+            this.playerLevelBar.Show(true);
+            xml.InitStatic("level_bar:progress_background", this.playerLevelBar)
+            this.playerLevelBarProgress = xml.InitProgressBar("level_bar:progress", this.playerLevelBar) 
+            this.playerLevelBarLevel = xml.InitTextWnd("level_bar:level", this.playerLevelBar)
+            this.playerLevelBarXP = xml.InitTextWnd("level_bar:xp", this.playerLevelBar)
             
             return true;
         }
@@ -216,6 +230,14 @@ export class MonsterWorldUI {
                 text.SetWndPos(pos);
             }
         }
+    }
+
+    private UpdatePlayerLevelBar(){
+        this.playerLevelBarLevel.SetText(`Level ${this.world.Player.Level}`)
+        let currentXP = this.world.Player.CurrentXP;
+        let maxXP = 1000;
+        this.playerLevelBarXP.SetText(`${currentXP} / ${maxXP}`)
+        this.playerLevelBarProgress.SetProgressPos(clamp(currentXP / maxXP, 0, 1) * 100)
     }
 
     PrepareUIItemStatsTable(oldPrepareStatsTable: () => utils_ui.StatsTable): utils_ui.StatsTable {

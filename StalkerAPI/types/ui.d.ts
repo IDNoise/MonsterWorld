@@ -71,23 +71,23 @@ declare class CUIWindow {
 /** @customConstructor CUIProgressBar */
 declare class CUIProgressBar extends CUIWindow {
     constructor();
-	
+
     // function GetRange_max()
     // function GetRange_min()
     SetProgressPos(pct: number): void;
     GetProgressPos(): number;
-	// function ShowBackground(boolean)
-	// function SetColor(number)
-	// function UseColor(boolean)
-	// function SetMinColor(number)
-	// function SetMiddleColor(number)
-	// function SetMaxColor(number)
+    ShowBackground(doShow: boolean): void;
+    SetColor(color: ARGBColor): void;
+    UseColor(doUse: boolean): void;
+    // function SetMinColor(number)
+    // function SetMiddleColor(number)
+    // function SetMaxColor(number)
 }
 
 /** @customConstructor CUITextWnd */
 declare class CUITextWnd extends CUIWindow {
     constructor();
-	
+
     GetText(): string;
     SetText(text: string): void;
     SetTextST(text: string): void;
