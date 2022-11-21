@@ -20,7 +20,13 @@
 
     <damage_numbers x="487" y="334" width="50" height="20">
         <damage_number x="0" y="0" width="50" height="10" stretch="1">
-            <text r="250" g="30" b="30" font="letterica18" align="c" vert_align="c"/>
+            <text r="250" g="30" b="30" font="letterica16" align="c" vert_align="c"/>
         </damage_number>
     </damage_numbers>
+    
+    <xp_reward_numbers x="530" y="250" width="50" height="20">
+        <xp_reward_number x="0" y="0" width="50" height="15" stretch="1">
+            <text r="40" g="250" b="40" font="graffiti22" align="c" vert_align="c"/>
+        </xp_reward_number>
+    </xp_reward_numbers>
 </window>

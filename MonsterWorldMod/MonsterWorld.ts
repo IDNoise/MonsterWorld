@@ -109,8 +109,7 @@ export class MonsterWorld {
         if (monster == undefined) 
             return;
 
-        let msg = `EXP +${monster.XPReward} for ${monster.Name}`;
-        actor_menu.set_msg(1, msg, 3, GetARGB(255, 20, 240, 20))
+        this.UIManager.ShowXPReward(monster.XPReward)
         this.Player.CurrentXP += monster.XPReward;
 
         if (IsPctRolled(monster.DropChance)){

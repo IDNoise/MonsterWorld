@@ -13,9 +13,16 @@ type DamageNumberEntry = {
     text: CUITextWnd;
 }
 
+type XPNumberEntry = {
+    showTime: number;
+    text: CUITextWnd;
+}
+
 export class MonsterWorldUI {
     private damageNumbersContainer: CUIStatic;
+    private xpRewardNumbersContainer: CUIStatic;
     private damageNumbers: DamageNumberEntry[] = [];
+    private xpRewardNumbers: XPNumberEntry[] = [];
     
     private enemyHP: CUIStatic;
     private enemyHPBarName: CUITextWnd;
@@ -58,6 +65,7 @@ export class MonsterWorldUI {
 
         this.UpdateTarget();
         this.UpdateDamageNumbers();
+        this.UpdateXpRewardNumbers();
     }
 
     public ShowDamage(damage: number, isCrit: boolean = false, isKillHit: boolean = false){
@@ -67,8 +75,22 @@ export class MonsterWorldUI {
             entry.text.SetWndPos(new vector2().set(math.random(-30, 30), math.random(-3, 3)))
             entry.showTime = time_global();
             let msg = `${math.floor(damage)}`
-            if (isCrit) msg += " CRIT"
-            if (isKillHit) msg += " KILL"
+            if (isCrit) msg += " X"
+            if (isKillHit) msg += ""
+            entry.text.SetText(msg);
+            entry.text.Show(true);
+            
+            return;
+        }
+    }
+
+    public ShowXPReward(reward: number){
+        for(let i = 0; i < this.xpRewardNumbers.length; i++){
+            let entry = this.xpRewardNumbers[i];
+            if (entry.text.IsShown()) continue;
+            entry.text.SetWndPos(new vector2().set(math.random(-30, 30), math.random(-3, 3)))
+            entry.showTime = time_global();
+            let msg = `+ ${math.floor(reward)} XP`
             entry.text.SetText(msg);
             entry.text.Show(true);
             
@@ -77,7 +99,7 @@ export class MonsterWorldUI {
     }
     
     private InitHud(): boolean {
-        if (this.damageNumbersContainer != null && this.enemyHP != null) 
+        if (this.damageNumbersContainer != null && this.enemyHP != null && this.xpRewardNumbersContainer != null) 
             return true;
 
         let hud = get_hud();
@@ -92,9 +114,11 @@ export class MonsterWorldUI {
             let xml = new CScriptXmlInit()
             xml.ParseFile("ui_monster_world.xml")
             cs.wnd().SetWndPos(new vector2().set(0, 0))
+            cs.wnd().Show(true);
 
             Log(`Initializing damage_numbers`)
             this.damageNumbersContainer = xml.InitStatic("damage_numbers", cs.wnd())
+            this.damageNumbersContainer.Show(true)
             for(let i = 0; i < 30; i++){
                 let textEntry = xml.InitTextWnd("damage_numbers:damage_number", this.damageNumbersContainer);
                 textEntry.Show(false);
@@ -103,17 +127,27 @@ export class MonsterWorldUI {
                     showTime: 0
                 });
             }
+
+            Log(`Initializing xp_reward_numbers`)
+            this.xpRewardNumbersContainer = xml.InitStatic("xp_reward_numbers", cs.wnd())
+            this.xpRewardNumbersContainer.Show(true)
+            for(let i = 0; i < 30; i++){
+                let textEntry = xml.InitTextWnd("xp_reward_numbers:xp_reward_number", this.xpRewardNumbersContainer);
+                textEntry.Show(false);
+                this.xpRewardNumbers.push({ 
+                    text: textEntry,
+                    showTime: 0
+                });
+            }
             
             Log(`Initializing enemy_health`)
             this.enemyHP = xml.InitStatic("enemy_health", cs.wnd());
+            this.enemyHP.Show(false);
             xml.InitStatic("enemy_health:value_progress_background", this.enemyHP)
             this.enemyHPBarProgress = xml.InitProgressBar("enemy_health:value_progress", this.enemyHP)
             this.enemyHPBarName = xml.InitTextWnd("enemy_health:name", this.enemyHP)
             this.enemyHPBarValue = xml.InitTextWnd("enemy_health:value", this.enemyHP)
             
-            this.damageNumbersContainer.Show(true)
-            this.enemyHP.Show(false);
-            cs.wnd().Show(true);
             return true;
         }
 
@@ -133,12 +167,12 @@ export class MonsterWorldUI {
             this.ShowEnemyHealthUI(monster);
         }
         else {
-            this.HideEnemyHealthUI();
+            this.HideEnemyHealthUI(monster?.IsDead || false);
         }
     }
 
-    private HideEnemyHealthUI() {
-        if (time_global() - this.lastEnemyHpShowTime > 500)
+    private HideEnemyHealthUI(force: boolean = false) {
+        if (force || time_global() - this.lastEnemyHpShowTime > 500)
             this.enemyHP?.Show(false);
     }
     
@@ -164,7 +198,22 @@ export class MonsterWorldUI {
                 let pos = text.GetWndPos()
                 pos.y -= 2;
                 text.SetWndPos(pos);
-                //text.SetWndPos(new vector2().set(pos.x, pos.y - 2))
+            }
+        }
+    }
+
+    private UpdateXpRewardNumbers(){
+        let now = time_global();
+        for(let i = 0; i < this.xpRewardNumbers.length; i++){
+            let entry = this.xpRewardNumbers[i];
+            let text = entry.text;
+            if (now - entry.showTime > 2000){
+                text.Show(false);
+            }
+            else {
+                let pos = text.GetWndPos()
+                pos.y -= 1;
+                text.SetWndPos(pos);
             }
         }
     }
