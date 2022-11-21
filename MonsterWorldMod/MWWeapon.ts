@@ -20,12 +20,18 @@ export class MWWeapon extends BaseMWObject {
             return;
         }
 
+        const ammoMagSize = ini_sys.r_float_ex(this.GO.section(), "ammo_mag_size", 1);
+        const rpm = ini_sys.r_float_ex(this.GO.section(), "rpm", 1);
+        const fireRate = 60 / rpm;
         let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
-        if (ini_sys.r_string_ex(this.GO.section(), "tri_state_reload", "off") == "on"){
-            baseDPS *= 2;
-        }
-        
+
         let dps = baseDPS;
+        if (ini_sys.r_string_ex(this.GO.section(), "tri_state_reload", "off") == "on"){
+            dps += baseDPS * 0.5;
+        }
+        if (ammoMagSize < 8){
+            dps += baseDPS * 0.15;
+        }
 
         let upgradesByType: [BonusParams.Type, string[]][] = [];
         upgradesByType.push([BonusParams.Type.Damage, []]);
@@ -58,7 +64,7 @@ export class MWWeapon extends BaseMWObject {
         let allSelectedUpgrades: string[] = []
         for(let i = 0; i < selectedUpgradeTypes.length; i++){
             let upgradesPerTypeToSelect = 1 + (this.Level / 10) + (this.Quality - 1) / 2;
-            const [t, upgrades] = selectedUpgradeTypes[i];
+            let [t, upgrades] = selectedUpgradeTypes[i];
             //Log(`Adding ugprades ${upgradesPerTypeToSelect} from ${t} (${upgrades.length})`)
             if (t == BonusParams.Type.Damage){
                 let bonus = 0;
@@ -75,9 +81,9 @@ export class MWWeapon extends BaseMWObject {
             else {
                 //higher quality selectes from better upgrades
                 if (this.Quality < 3 && upgrades.length >= this.Quality + 3)
-                    upgrades.slice(0, math.min(2 + this.Quality, upgrades.length) - 1)
+                    upgrades = upgrades.slice(0, math.min(2 + this.Quality, upgrades.length) - 1)
                 else if (this.Quality >= 3 && upgrades.length >= this.Quality + 3)
-                    upgrades.slice(3)
+                    upgrades = upgrades.slice(3)
                 const toSelect = math.min(upgradesPerTypeToSelect, math.max(1, upgrades.length));
                 let bonusValue = 0;
 
@@ -105,15 +111,11 @@ export class MWWeapon extends BaseMWObject {
         //Log(`After selecting ugprades ${allSelectedUpgrades.length}`)
 
         damageBonus += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
-        if (damageBonus >= 20){
-            damageBonus += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
-        }
+        damageBonus += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
         this.Bonuses.set(BonusParams.Type.Damage, damageBonus);
         dps *= (1 + damageBonus / 100)
 
-
-        const rps = ini_sys.r_float_ex(this.GO.section(), "rpm", 1) / 60;
-        this.DamagePerHit = dps / rps;
+        this.DamagePerHit = dps * fireRate;
 
         //Log(`Base DPS: ${baseDPS} DPS: ${dps}. Damage per hit: ${this.DamagePerHit}. Fire rate: ${fireRate}`)
  

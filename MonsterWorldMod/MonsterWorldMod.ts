@@ -31,6 +31,11 @@ export class MonsterWorldMod extends StalkerModBase {
         const oldGetItemDesc = ui_item.get_obj_desc;
         ui_item.get_obj_desc = (obj) => this.world.UIGetItemDescription(obj, oldGetItemDesc(obj));
 
+        const oldSimSquadAddSquadMember = sim_squad_scripted.sim_squad_scripted.add_squad_member;
+        const newSimSquadAddSquadMember = (obj: any, section: string, pos: vector, lvid: number, gvid: number) => this.world.OnSimSquadAddMember(obj, section, pos, lvid, gvid, oldSimSquadAddSquadMember);
+        sim_squad_scripted.sim_squad_scripted.add_squad_member = newSimSquadAddSquadMember;
+        
+
         this.world = new MonsterWorld(this);
         this.RegisterCallbacks();
     }

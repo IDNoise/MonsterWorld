@@ -1,9 +1,10 @@
 import { Load, Save } from '../StalkerAPI/extensions/basic';
+import { Log } from '../StalkerModBase';
 import { MonsterWorld } from './MonsterWorld';
 
 export abstract class BaseMWObject {
     constructor(public mw: MonsterWorld, public id: Id) {
-        log(`Creating [${this.id}] ${this.Name}. Was initialized: ${this.Initialized}`);
+        Log(`Creating [${this.id}] ${this.Name}. Was initialized: ${this.Initialized}`);
         if (!this.Initialized){
             this.Initialize();
             this.Initialized = true;
@@ -26,7 +27,10 @@ export abstract class BaseMWObject {
     }
 
     get MaxHP(): number { return this.Load("MaxHP"); }
-    set MaxHP(hp: number) { this.Save("MaxHP", hp); }
+    set MaxHP(hp: number) { 
+        this.Save("MaxHP", hp); 
+        this.HP = hp;
+    }
 
     get Level(): number { return this.Load("Level"); }
     set Level(level: number) { this.Save("Level", level); }

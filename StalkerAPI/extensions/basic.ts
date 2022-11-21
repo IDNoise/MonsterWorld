@@ -60,3 +60,8 @@ export function TakeRandomFromArray<T>(array: T[]): T {
     array.splice(index, 1);
     return element;
 }
+
+export function NumberToCondList(value: number) : Condlist{
+    return xr_logic.parse_condlist(null, null, null, `${value}`)
+
+}

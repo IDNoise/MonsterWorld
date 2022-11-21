@@ -1,7 +1,13 @@
 ﻿using LtxStorage;
 
 var gameDataDirPath = "../../../../StalkerScriptReference/AnomalyGameData";
-new MonsterWorldWeaponsGenerator(gameDataDirPath, "../../../../MonsterWorldMod/GameData/").Generate();
+var outputDir = "../../../../MonsterWorldMod/GameData";
+
+//new LtxStorage.MonsterWorld.WeaponsGenerator(gameDataDirPath, outputDir).Generate();
+new LtxStorage.MonsterWorld.EnemyGenerator(gameDataDirPath, outputDir).Generate();
+
+
+
 
 //var storage = new LtxStorage.Storage(gameDataDirPath);
 //var index = 1;

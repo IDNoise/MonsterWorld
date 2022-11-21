@@ -1,3 +1,130 @@
+export enum LevelType { //if ((types & EnemyLevelType.Open) === EnemyLevelType.Open) {
+    None = 0,
+    Open = 1 << 0,
+    Underground = 1 << 1,
+    Lab = 1 << 2,
+    NonLab = LevelType.Open | LevelType.Underground,
+    All = Open | Underground | Lab,
+}
+
+export type LevelConfig = {
+    level: number;
+    type?: LevelType;
+}
+
+let level: number = 1;
+export const LocationConfigs: {[name: string]: LevelConfig} = {
+    ["l01_escape"]				: {
+        level: level++,
+    },
+    ["l02_garbage"]				: {
+        level: level++,
+    },
+    ["k00_marsh"]				: {
+        level: level++,
+    },
+    ["l03_agroprom"]			: {
+        level: level++,
+    },
+    ["l04_darkvalley"]			: {
+        level: level++,
+    },
+    ["k01_darkscape"]			: {
+        level: level++,
+    },
+    ["l05_bar"]					: {
+        level: level++,
+    },
+    ["l06_rostok"]				: {
+        level: level++,
+    },
+    ["l08_yantar"]				: {
+        level: level++,
+    },
+    ["l07_military"]			: {
+        level: level++,
+    },
+    ["k02_trucks_cemetery"]		: {
+        level: level++
+    },
+    ["l09_deadcity"]			: {
+        level: level++  
+    },
+    ["l10_limansk"]				: {
+        level: level++,
+    },
+    ["l10_radar"]				: {
+        level: level++,
+    },
+    ["l10_red_forest"]			: {
+        level: level++,
+    },
+    ["pripyat"]					: {
+        level: level++,
+    },
+    ["l11_pripyat"]				: {
+        level: level++,
+    },
+    ["l12_stancia"]				: {
+        level: level++,
+    },
+    ["l12_stancia_2"]			: {
+        level: level++,
+    },
+    ["l13_generators"]			: {
+        level: level++,
+    },
+    ["y04_pole"]				: { ///wtf is this?
+        level: level++,
+    },
+    ["jupiter"]					: {
+        level: level++,
+    },
+    ["zaton"]					: {
+        level: level++,
+    },
+
+    ["l03u_agr_underground"]	: {
+        type: LevelType.Underground,
+        level: level++,
+    },
+    ["l10u_bunker"]				: {
+        type: LevelType.Underground,
+        level: level++,
+    },
+    ["l11_hospital"]			: {
+        type: LevelType.Underground,
+        level: level++,
+    },
+    ["jupiter_underground"]		: {
+        type: LevelType.Underground,
+        level: level++,
+    },
+    ["l12u_control_monolith"]	: {
+        type: LevelType.Underground,
+        level: level++,
+    },
+    ["l12u_sarcofag"]			: {
+        type: LevelType.Underground,
+        level: level++,
+    },
+    ["l04u_labx18"]				: {
+        type: LevelType.Lab,
+        level: level++,
+    },
+    ["l08u_brainlab"]			: {
+        type: LevelType.Lab,
+        level: level++,
+    },
+    ["l13u_warlab"]				: {
+        type: LevelType.Lab,
+        level: level++,
+    },
+    ["labx8"]					: {
+        type: LevelType.Lab,
+        level: level++,
+    },
+}
 
 export enum MonsterType {
     Dog = 0,
@@ -5,142 +132,82 @@ export enum MonsterType {
     Cat,
     Boar,
     Snork,
-}
+};
 
-export class MonsterConfig {
-    level_start?: number = 1;
-    hp_mult?: number = 1;
-    damage_mult?: number = 1;
-    squad_size_min?: number = 1;
-    squad_size_max?: number = 15;
-}
+export enum MonsterRank {
+    Common,
+    Elite,
+    Boss
+};
 
-export class LevelConfig {
-    level?: number = 1;
-    enemy_types?: MonsterType[];
-}
+export type MonsterSpawnConfig = {
+    level: number,
+    rank: MonsterRank,
+    hpMult: number,
+    xpMult: number,
+    damageMult: number
+};
 
-export const LocationConfigs: {[name: string]: LevelConfig} = {
-    ["l01_escape"]				: {
-        level: 1,
-    },
-    ["l02_garbage"]				: {
-        level: 2
-    },
-    ["k00_marsh"]				: {
-        level: 3
-    },
+export type MonsterConfig = {
+    level_start?: number;
+    level_type?: LevelType;
+    max_squads_per_smart?: number;
 
-    // 
-    ["jupiter"]					: {
+    squad_size_min?: number;
+    squad_size_max?: number;
 
-    },
-    ["jupiter_underground"]		: {
+    hp_mult?: number;
+    damage_mult?: number;
+    xp_mult?: number;
+    common_section?: Section;
+    elite_section?: Section;
+    boss_section?: Section;
+};
 
-    },
-    ["k01_darkscape"]			: {
+export const MonsterConfigs: LuaTable<MonsterType, MonsterConfig> = new LuaTable();
+MonsterConfigs.set(MonsterType.Dog, {
+    hp_mult: 0.5,
+    xp_mult: 0.5,
+    squad_size_min: 6,
+    squad_size_max: 12,
+    level_type: LevelType.Open,
+    common_section: "dog_build",
+});
 
-    },
-    ["k02_trucks_cemetery"]		: {
+MonsterConfigs.set(MonsterType.Boar, {
+    hp_mult: 1.25,
+    squad_size_min: 4,
+    squad_size_max: 10,
+    level_type: LevelType.Open,
+    common_section: "boar_01a_hard",
+});
 
-    },
-    ["l03_agroprom"]			: {
+MonsterConfigs.set(MonsterType.Cat, {
+    level_start: 2,
+    hp_mult: 0.75,
+    xp_mult: 0.75,
+    squad_size_min: 4,
+    squad_size_max: 8,
+    level_type: LevelType.Open,
+});
 
-    },
-    ["l03u_agr_underground"]	: {
+MonsterConfigs.set(MonsterType.PseudoDog, {
+    level_start: 3,
+    hp_mult: 1.25,
+    damage_mult: 1.25,
+    xp_mult: 1.25,
+    squad_size_min: 3,
+    squad_size_max: 6
+});
 
-    },
-    ["l04_darkvalley"]			: {
-
-    },
-    ["l04u_labx18"]				: {
-
-    },
-    ["l05_bar"]					: {
-
-    },
-    ["l06_rostok"]				: {
-
-    },
-    ["l07_military"]			: {
-
-    },
-    ["l08_yantar"]				: {
-
-    },
-    ["l08u_brainlab"]			: {
-
-    },
-    ["l09_deadcity"]			: {
-        
-    },
-    ["l10_limansk"]				: {
-
-    },
-    ["l10_radar"]				: {
-
-    },
-    ["l10_red_forest"]			: {
-
-    },
-    ["l10u_bunker"]				: {
-
-    },
-    ["l11_hospital"]			: {
-
-    },
-    ["l11_pripyat"]				: {
-
-    },
-    ["l12_stancia"]				: {
-
-    },
-    ["l12_stancia_2"]			: {
-
-    },
-    ["l12u_control_monolith"]	: {
-
-    },
-    ["l12u_sarcofag"]			: {
-
-    },
-    ["l13_generators"]			: {
-
-    },
-    ["l13u_warlab"]				: {
-
-    },
-    ["labx8"]					: {
-
-    },
-    ["pripyat"]					: {
-
-    },
-    ["zaton"]					: {
-
-    },
-    ["y04_pole"]				: {
-
-    },
-}
-
-export const MonsterConfigs: {[type in MonsterType]: MonsterConfig} = {
-    [MonsterType.Dog]: {
-
-    },
-    [MonsterType.PseudoDog]: {
-
-    },
-    [MonsterType.Cat]: {
-
-    },
-    [MonsterType.Boar]: {
-
-    },
-    [MonsterType.Snork]: {
-        
-    },
-}
+MonsterConfigs.set(MonsterType.Snork, {
+    level_start: 5,
+    hp_mult: 1.5,
+    xp_mult: 1.25,
+    squad_size_min: 4,
+    squad_size_max: 8,
+    level_type: LevelType.All,
+});
 
 //Player params
 export let PlayerHPBase = 100;
@@ -163,6 +230,7 @@ export let EnemyXpRewardExpPerLevel = 10;
 export let EnemyXpRewardPctPerLevel = 10;
 
 export let EnemyHigherLevelChance = 5;
+export let EnemyEliteChance = 5;
 export let EnemyBossChance = 5;
 
 export let EnemyBossHPMult = 10;
@@ -170,7 +238,7 @@ export let EnemyBossXPRewardMult = 10;
 export let EnemyBossDamageMult = 2.5;
 
 //Weapons
-export let WeaponDPSBase = EnemyHPBase;
+export let WeaponDPSBase = EnemyHPBase / 0.33;
 export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel;
 export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
@@ -179,6 +247,15 @@ export let WeaponDPSPctPerQuality = 25;
 export let EnemyDropChance = 100;
 export let MinQuality = 1;
 export let MaxQuality = 5;
+
+export let HigherLevelDropChancePct = 5;
+
+export let QualityDropChance: [chance: number, level: number][] = [
+    [25, 2],
+    [12, 3],
+    [6, 4],
+    [3, 5],
+];
 
 export let Qualities: {[key: number]: string} = {
     1: "Common",
@@ -199,3 +276,5 @@ export let QualityColors: {[key: number]: string} = {
 export let EndColorTag: string = "%c[default]"
 
 export let LevelColor: string = "%c[255,104,210,26]"; //greenish
+
+

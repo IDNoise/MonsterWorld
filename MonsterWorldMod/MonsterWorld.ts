@@ -1,14 +1,20 @@
-import { IsPctRolled } from '../StalkerAPI/extensions/basic';
+import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save } from '../StalkerAPI/extensions/basic';
 import { Log } from '../StalkerModBase';
 import * as cfg from './MonsterWorldConfig';
 import { MonsterWorldMod } from './MonsterWorldMod';
 import { MWMonster } from './MWMonster';
 import { MWPlayer } from './MWPlayer';
 import { MWWeapon } from './MWWeapon';
+import { MonsterConfig, LevelType, MonsterType, MonsterRank } from './MonsterWorldConfig';
 
 type WeaponDropInfo = {
     level: number;
     quality: number;
+}
+
+type MonsterSpawnInfo = {
+    level: number;
+    boss: boolean;
 }
 
 export class MonsterWorld {
@@ -18,6 +24,7 @@ export class MonsterWorld {
     private weapons: LuaTable<Id, MWWeapon>
 
     private weaponDrops: LuaTable<Id, WeaponDropInfo>
+    //private monsterSpawns: LuaTable<Id, MonsterSpawnInfo>
 
     constructor(public mod: MonsterWorldMod){
         this.safeSmarts = new LuaSet();
@@ -131,45 +138,109 @@ export class MonsterWorld {
     }
 
     OnTryRespawn(smart: smart_terrain.se_smart_terrain): boolean {
+
         if (!smart.is_on_actor_level)
             return false;
 
+        //Log(`Trying to spawn for: ${smart.name()}`)
+        if (!Load(smart.id, "MW_Initialized", false)){
+            smart.respawn_idle = 60 * 30;
+            smart.max_population = 5;
+
+            //Log(`Level name: ${level.name()}`)
+            let locationCfg = cfg.LocationConfigs[level.name()];
+            if (!locationCfg)
+                return false;
+
+            let selectedMonsters: MonsterType[] = [];
+            for(const [monsterType, monsterCfg] of cfg.MonsterConfigs){
+                if ((monsterCfg.level_start || 1) < (locationCfg.level || 1))
+                    continue;
+                if (((monsterCfg.level_type || (LevelType.NonLab)) & (locationCfg.level || LevelType.Open)) == 0)
+                    continue;
+                selectedMonsters.push(monsterType);
+            }
+
+            let selectedMonsterType = RandomFromArray(selectedMonsters);
+            Save(smart.id, "MW_MonsterType", selectedMonsterType);
+            smart.respawn_params = {
+                "spawn_section_1": {
+                    num: NumberToCondList(cfg.MonsterConfigs.get(selectedMonsterType).max_squads_per_smart || 2),
+                    squads: ["simulation_monster_world"]
+                },
+            }
+            smart.already_spawned = {"spawn_section_1": {num: 0}}
+
+            //Log(`Initialized: ${smart.name()}`)
+            Save(smart.id, "MW_Initialized", true);
+        }
+
+        
         if (this.safeSmarts.has(smart.id)) {
             //this.Log(`Smart is safe: ${smart.id} ${smart.name()}`)
             return false;
         }       
 
-        if (smart.respawn_idle == 5)
-            return true;
-
-        //super.OnSmartTerrainTryRespawn(smart);
-        //Log(`Setup configs for smart: ${smart.name()}`)
-        smart.respawn_idle = 5;
-        smart.max_population = 5;
-
-        if (math.random(1, 100) > 60){
-            smart.respawn_params = {
-                "spawn_section_1": {
-                    num: xr_logic.parse_condlist(null, null, null, "3"), 
-                    squads: ["simulation_snork"]
-                },
-            }
-        }
-        else {
-            smart.respawn_params = {
-                "spawn_section_1": {
-                    num: xr_logic.parse_condlist(null, null, null, "3"), 
-                    squads: ["simulation_pseudodog", "simulation_mix_dogs"]
-                }
-            } 
-        }
-
-        smart.already_spawned = {"spawn_section_1": {num: 0}, "spawn_section_2": {num: 0}}
+        //Log(`Spawning for: ${smart.name()}`)
 
         return true;
     }
 
+    public OnSimSquadAddMember(obj: any, section: string, pos: vector, lvid: number, gvid: number, defaultFunction: (...args: any[]) => Id | undefined): Id | undefined {
+        //Log(`OnSimSquadAddMember: ${section} ${type(obj)}`)
+        if (section != "dog_normal_red")
+            return;
+
+        if(!obj.smart_id){
+            Log(`"NO SMART!"`)
+            return;
+        }
+
+        let monsterCfg = cfg.MonsterConfigs.get(Load<MonsterType>(obj.smart_id, "MW_MonsterType", undefined));
+        if (monsterCfg == undefined){
+            Log(`"NO monsterCfg!"`)
+        }
+
+        let squadSize = math.random(monsterCfg.squad_size_min, monsterCfg.squad_size_max);
+        for(let i = 0; i < squadSize;){
+            let locCfg = cfg.LocationConfigs[level.name()];
+            let enemyLvl = math.max(locCfg.level || 1, this.Player.Level - 3);
+
+            if (IsPctRolled(cfg.EnemyHigherLevelChance))
+                enemyLvl++;
+
+            let rank = MonsterRank.Common;
+
+            if (IsPctRolled(cfg.EnemyEliteChance)) rank = MonsterRank.Elite;
+            else if (IsPctRolled(cfg.EnemyBossChance)) rank = MonsterRank.Boss;
+
+            let section = monsterCfg.common_section;
+            if (rank == MonsterRank.Elite) section = monsterCfg.elite_section || section;
+            else if (rank == MonsterRank.Boss) section = monsterCfg.boss_section || section;
+
+            Log(`Pre spawn ${obj.smart_id} ${section}`)
+            let monsterId = defaultFunction(obj, section, pos, lvid, gvid);
+            if (monsterId == undefined){
+                Log(`NO monster!`)
+                continue;
+            }
+            Log(`Post spawn ${obj.smart_id} ${monsterId}`)
+
+            Save(monsterId, "MW_SpawnParams", {
+                level: enemyLvl,
+                rank: rank,
+                hpMult: monsterCfg.hp_mult || 1,
+                xpMult: monsterCfg.xp_mult || 1,
+                damageMult: monsterCfg.damage_mult || 1
+            });
+            i++;
+        }
+    }
+
     public OnPlayerHit(attackerGO: game_object) {
+        if (!attackerGO.is_monster() || !attackerGO.is_stalker())
+            return;
+
         let monster = this.GetMonster(attackerGO.id());
         if (monster == undefined) 
             return;
@@ -181,6 +252,10 @@ export class MonsterWorld {
     public OnMonsterHit(monsterGO: game_object, shit: hit) {
         let monster = this.GetMonster(monsterGO.id());
         if (monster == undefined) 
+            return;
+
+        let obj = level.object_by_id(shit.weapon_id);
+        if (!obj.is_weapon()) 
             return;
 
         let weapon = this.GetWeapon(shit.weapon_id);
@@ -196,26 +271,48 @@ export class MonsterWorld {
         if (monster == undefined) 
             return;
 
-        actor_menu.set_msg(1, `EXP +${monster.XPReward} for ${monster.Name}`, 3, GetARGB(255, 20, 240, 20))
+        actor_menu.set_msg(1, `EXP +${monster.XPReward} for ${monster.GO.name()}`, 3, GetARGB(255, 20, 240, 20))
         this.Player.CurrentXP += monster.XPReward;
 
         if (IsPctRolled(cfg.EnemyDropChance)){
-            let sgo = alife_create_item("wpn_aps_mw", db.actor);
-            Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
-            let dropLevel = monster.Level;
-            if (monster.IsBoss) 
-                dropLevel++;
-            let qualityLevel = 1;
-            if (IsPctRolled(25)) { qualityLevel = 2; }
-            else if (IsPctRolled(12)) { qualityLevel = 3; }
-            else if (IsPctRolled(6)) { qualityLevel = 4; }
-            else if (IsPctRolled(3)) { qualityLevel = 5; }
-
-            if (monster.IsBoss)
-                qualityLevel++;
-
-            this.weaponDrops.set(sgo.id, {level: dropLevel, quality: qualityLevel})
+            this.GenerateDrop(monster)
         }
+    }
+
+    GenerateDrop(monster: MWMonster) {
+
+        let typedSections = ini_sys.r_list("mw_drops_by_weapon_type", "sections");
+        let selectedTypeSection = RandomFromArray(typedSections);
+
+        let weaponCount = ini_sys.line_count(selectedTypeSection);
+        let [_, weaponBaseSection] = ini_sys.r_line_ex(selectedTypeSection, math.random(0, weaponCount - 1))
+        let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
+        let selectedVariant = RandomFromArray(weaponVariants)
+
+        let sgo = alife_create_item(selectedVariant, db.actor);
+        Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
+        let dropLevel = monster.Level;
+        if (IsPctRolled(cfg.HigherLevelDropChancePct)){
+            dropLevel++;
+        }
+            
+        let qualityLevel = 1;
+        for(let i = 0; i < cfg.QualityDropChance.length; i++){
+            if (IsPctRolled(cfg.QualityDropChance[i][0])){
+                qualityLevel = cfg.QualityDropChance[i][1]
+            }
+        }
+    
+        if (monster.Rank == MonsterRank.Elite){
+            dropLevel++;
+            qualityLevel++;
+        }
+        else if (monster.Rank == MonsterRank.Boss){
+            dropLevel += 2;
+            qualityLevel += 2;
+        }
+    
+        this.weaponDrops.set(sgo.id, {level: dropLevel, quality: qualityLevel})
     }
 
     PrepareUIItemStatsTable(oldPrepareStatsTable: () => utils_ui.StatsTable): utils_ui.StatsTable {
@@ -279,3 +376,25 @@ export class MonsterWorld {
     UIGetWeaponRPM(obj: game_object): number { return 60 / obj.cast_Weapon().RPM(); }
     UIGetWeaponAmmoMagSize(obj: game_object): number { return obj.cast_Weapon().GetAmmoMagSize(); }
 }
+
+
+// //Log(`Setup configs for smart: ${smart.name()}`)
+
+// if (math.random(1, 100) > 60){
+//     smart.respawn_params = {
+//         "spawn_section_1": {
+//             num: NumberToCondList(3), 
+//             squads: ["simulation_dog"]
+//         },
+//     }
+// }
+// else {
+//     smart.respawn_params = {
+//         "spawn_section_1": {
+//             num: NumberToCondList(3), 
+//             squads: ["simulation_pseudodog", "simulation_mix_dogs"]
+//         }
+//     } 
+// }
+
+// smart.already_spawned = {"spawn_section_1": {num: 0}, "spawn_section_2": {num: 0}}

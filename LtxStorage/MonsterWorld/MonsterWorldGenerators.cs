@@ -1,76 +1,38 @@
-﻿namespace LtxStorage;
+﻿namespace LtxStorage.MonsterWorld;
 
-public enum WeaponType
+public class WeaponsGenerator : BaseGenerator
 {
-    Pistol,
-    Shotgun,
-    SMG,
-    AssaultRifle,
-    MachineGun,
-    SniperRifle,
-    NotSupported
-}
-
-public static class MonsterWorldHelpers
-{
-    public static WeaponType GetWeaponType(Section section)
-    {
-        var kind = section.GetString("kind");
-        if (kind == "w_rifle")
-        {
-            if (section.GetInt("ammo_mag_size") >= 75)
-                return WeaponType.MachineGun;
-            return WeaponType.AssaultRifle;
-        }
-        if (kind == "w_shotgun")
-            return WeaponType.Shotgun;
-        if (kind == "w_pistol")
-            return WeaponType.Pistol;
-        if (kind == "w_smg")
-            return WeaponType.SMG;
-        if (kind == "w_sniper")
-            return WeaponType.SniperRifle;
-
-        return WeaponType.NotSupported;
-    }
-}
-
-public class MonsterWorldWeaponsGenerator
-{
-    private Storage storage;
-    private string outputDir;
-    
-    public MonsterWorldWeaponsGenerator(string gameDataPath, string outputDir)
-    {
-        storage = new Storage(gameDataPath);
-        this.outputDir = outputDir;
-    }
-
-    private File mwWeaponsFile;
-    private File mwUpgradesFile;
-    private Dictionary<Section, List<Section>> baseWithVariants = new();
+    private readonly File mwWeaponsFile;
+    private readonly File mwUpgradesFile;
+    private readonly Dictionary<Section, List<Section>> baseWithVariants = new();
     private Section baseParamsSection;
     private Section baseWeaponUpgradeEffectSection;
     private Section baseWeaponUpgradeBonusSection;
-
-    public void Generate()
+    
+    public WeaponsGenerator(string gameDataPath, string outputDir) : base(gameDataPath, outputDir)
     {
-        mwWeaponsFile = storage.GetOrCreateFile("items/weapons/w_xxx_monster_world");
-        mwUpgradesFile = storage.GetOrCreateFile("items/weapons/w_xxx_monster_world_upgrades");
+        mwWeaponsFile = Storage.GetOrCreateFile("items/weapons/w_xxx_monster_world");
+        mwUpgradesFile = Storage.GetOrCreateFile("items/weapons/w_xxx_monster_world_upgrades");
+    }
+
+    protected override void InternalGenerate()
+    {
         PrepareWeaponsData();
         GenerateBaseWeaponParams();
         GenerateWeapons();
-        storage.SaveChanges(outputDir);
     }
 
     void PrepareWeaponsData()
     {
         var allBaseWeapons = new Dictionary<string, Section>();
         var allVariantWeapons = new Dictionary<string, Section>();
-        foreach (var w in storage.AllFiles.Where(f => f.Name.StartsWith("w_")).SelectMany(f => f.Sections)
+        foreach (var w in Storage.AllFiles.Where(f => f.Name.StartsWith("w_")).SelectMany(f => f.Sections)
                      .Where(s => s.Name.StartsWith("wpn_") && s.AllParentSectionNames.Contains("default_weapon_params")))
         {
             if (!w.HasProperty("kind")) 
+                continue;
+
+            if (w.GetInt("ammo_mag_size") < 5)
                 continue;
 
             if (w.HasParent("default_weapon_params", false) || (w.HasProperty("kind", false) && w.HasProperty("weapon_class", false)))
@@ -111,7 +73,7 @@ public class MonsterWorldWeaponsGenerator
         //     .Select(s => s.Name);
         // var allUpgradesString = string.Join(",", allUpgrades);
         
-        baseParamsSection = storage.MakeSection("mw_bwp", mwWeaponsFile, properties: new
+        baseParamsSection = Storage.MakeSection("mw_bwp", mwWeaponsFile, properties: new
         {
             //misfire and codition
             misfire_probability      = 0,
@@ -125,7 +87,8 @@ public class MonsterWorldWeaponsGenerator
             
             //other
             description              = "",
-            inv_weight               = 1,
+            inv_weight               = 0.01f,
+            hit_impulse              = 300,
             sprint_allowed           = true,
             startup_ammo             = 300,
             
@@ -169,6 +132,7 @@ public class MonsterWorldWeaponsGenerator
                 fire_mode_upgrades = string.Join(",", upgradesByType[UpgradeType.FireMode].Select(s => s.Name)),
                 bullet_speed_upgrades = string.Join(",", upgradesByType[UpgradeType.BulletSpeed].Select(s => s.Name)),
                 mag_size_upgrades = string.Join(",", upgradesByType[UpgradeType.MagSize].Select(s => s.Name)),
+                rpm = (int)Math.Min(900, baseWeapon.GetInt("rpm"))
             };
 
             foreach (var variantWeapon in variants)
@@ -176,14 +140,14 @@ public class MonsterWorldWeaponsGenerator
                 weaponName = $"{variantWeapon.Name}_mw";
                 variantSectionNames.Add(weaponName);
                 parentSectionNames = new List<string>() { variantWeapon.Name, baseParamsSection.Name };
-                storage.MakeSection(weaponName, mwWeaponsFile, parentSectionNames, upgrades);
+                Storage.MakeSection(weaponName, mwWeaponsFile, parentSectionNames, upgrades);
             }
             
             weaponName = $"{baseWeapon.Name}_mw";
             parentSectionNames = new List<string>() { baseWeapon.Name, baseParamsSection.Name };
-            var newWeaponSection = storage.MakeSection(weaponName, mwWeaponsFile, parentSectionNames, new
+            var newWeaponSection = Storage.MakeSection(weaponName, mwWeaponsFile, parentSectionNames, new
             {
-                variants = string.Join(", ", variantSectionNames.Prepend(weaponName))
+                variants = string.Join(",", variantSectionNames.Prepend(weaponName))
             });
             newWeaponSection.SetProperties(upgrades);
             
@@ -197,8 +161,12 @@ public class MonsterWorldWeaponsGenerator
 
         foreach (var (type, sections) in weaponsByType)
         {
-            storage.MakeSection(type.ToString().ToLower(), mwWeaponsFile, properties: sections.Select(s => s.Name));
+            Storage.MakeSection(type.ToString().ToLower(), mwWeaponsFile, properties: sections.Select(s => s.Name));
         }
+
+        Storage.MakeSection("mw_drops_by_weapon_type", mwWeaponsFile, properties: new {
+            sections = string.Join(",", weaponsByType.Keys.Select(k => k.ToString().ToLower()))
+        });
     }
 
     private Dictionary<UpgradeType, List<Section>> GenerateUpgradesForWeapon(Section weapon)
@@ -212,9 +180,10 @@ public class MonsterWorldWeaponsGenerator
         result.Add(UpgradeType.FireMode, new List<Section>());
         result.Add(UpgradeType.MagSize, new List<Section>());
         
+        var rpm = weapon.GetInt("rpm");
+        if (rpm <= 750)
         {
-            var rpm = weapon.GetInt("rpm");
-            var pctMax = 40;
+            var pctMax = 30;
             var pctStep = 5;
             while ((int)(rpm * pctStep / 100f) < 5)
             {
@@ -230,8 +199,8 @@ public class MonsterWorldWeaponsGenerator
                 result[UpgradeType.Rpm].Add(rpmUpgrades[upgradeRpm]);
             }
         }
+        var magSize = weapon.GetInt("ammo_mag_size");
         {
-            var magSize = weapon.GetInt("ammo_mag_size");
             var pctMax = 100;
             var pctStep = 10;
             while ((int)(magSize * pctStep / 100f) < 1)
@@ -250,8 +219,8 @@ public class MonsterWorldWeaponsGenerator
             }
         }
 
-        {
-            var bulletSpeed = weapon.GetInt("bullet_speed");
+        var bulletSpeed = weapon.GetInt("bullet_speed");
+        if (bulletSpeed < 800){
             var pctMax = 30;
             var pctStep = 5;
             for (var pct = pctStep; pct <= pctMax; pct += pctStep)
@@ -268,8 +237,9 @@ public class MonsterWorldWeaponsGenerator
             }
         }
         
+        var camDispersion = weapon.GetFloat("cam_dispersion"); // Recoil
+        if (camDispersion > 0.3f)
         {
-            var camDispersion = weapon.GetFloat("cam_dispersion"); // Recoil
             var pctMax = 30;
             var pctStep = 5;
             for (var pct = pctStep; pct <= pctMax; pct += pctStep)
@@ -308,8 +278,9 @@ public class MonsterWorldWeaponsGenerator
             }
         }
         
+        var fireDispersionBase = weapon.GetFloat("fire_dispersion_base"); // Dispersion
+        if (fireDispersionBase > 0.2)
         {
-            var fireDispersionBase = weapon.GetFloat("fire_dispersion_base"); // Dispersion
             var pctMax = 30;
             var pctStep = 5;
             for (var pct = pctStep; pct <= pctMax; pct += pctStep)
@@ -324,29 +295,31 @@ public class MonsterWorldWeaponsGenerator
                 result[UpgradeType.Dispersion].Add(dispersionUpgrades[upgradeFireDispersionBase]);
             }
         }
-
         
-        if (fireModeUpgrades.Count == 0)
+        if (rpm >= 100 && magSize >= 10)
         {
-            fireModeUpgrades.Add(FireModeUpgradeType.OneAuto, GenerateUpgrade(new { fire_modes = "1, -1" }));
-            fireModeUpgrades.Add(FireModeUpgradeType.OneThreeAuto, GenerateUpgrade(new { fire_modes = "1, 3, -1" }));
-            fireModeUpgrades.Add(FireModeUpgradeType.ThreeAuto, GenerateUpgrade(new { fire_modes = "3, -1" }));
-        }
-
-        var fireModesString = weapon.GetString("fire_modes");
-        if (fireModesString == null)
-        {
-            result[UpgradeType.FireMode].Add(fireModeUpgrades[FireModeUpgradeType.OneThreeAuto]);
-        }
-        else
-        {
-            var fireModes = fireModesString.Replace(" ", "").Split(",", StringSplitOptions.RemoveEmptyEntries);
-            if (fireModes.Length < 3 && !fireModes.Contains("-1"))
+            if (fireModeUpgrades.Count == 0)
             {
-                if (fireModes.Contains("3"))
-                    result[UpgradeType.FireMode].Add(fireModeUpgrades[FireModeUpgradeType.ThreeAuto]);
-                else
-                    result[UpgradeType.FireMode].Add(fireModeUpgrades[FireModeUpgradeType.OneAuto]);
+                fireModeUpgrades.Add(FireModeUpgradeType.OneAuto, GenerateUpgrade(new { fire_modes = "1, -1" }));
+                fireModeUpgrades.Add(FireModeUpgradeType.OneThreeAuto, GenerateUpgrade(new { fire_modes = "1, 3, -1" }));
+                fireModeUpgrades.Add(FireModeUpgradeType.ThreeAuto, GenerateUpgrade(new { fire_modes = "3, -1" }));
+            }
+            
+            var fireModesString = weapon.GetString("fire_modes");
+            if (fireModesString == null)
+            {
+                result[UpgradeType.FireMode].Add(fireModeUpgrades[FireModeUpgradeType.OneThreeAuto]);
+            }
+            else
+            {
+                var fireModes = fireModesString.Replace(" ", "").Split(",", StringSplitOptions.RemoveEmptyEntries);
+                if (fireModes.Length < 3 && !fireModes.Contains("-1"))
+                {
+                    if (fireModes.Contains("3"))
+                        result[UpgradeType.FireMode].Add(fireModeUpgrades[FireModeUpgradeType.ThreeAuto]);
+                    else
+                        result[UpgradeType.FireMode].Add(fireModeUpgrades[FireModeUpgradeType.OneAuto]);
+                }
             }
         }
 
@@ -355,7 +328,7 @@ public class MonsterWorldWeaponsGenerator
 
     private void GenerateUpgradeBase()
     {
-        baseWeaponUpgradeEffectSection = storage.MakeSection("mwwue", mwUpgradesFile, properties: new
+        baseWeaponUpgradeEffectSection = Storage.MakeSection("mwwue", mwUpgradesFile, properties: new
         {
             scheme_index = "0, 0",
             known = 1,
@@ -376,7 +349,7 @@ public class MonsterWorldWeaponsGenerator
             icon = "",
         });
         
-        baseWeaponUpgradeBonusSection = storage.MakeSection("mw_wubb", mwUpgradesFile, properties: new
+        baseWeaponUpgradeBonusSection = Storage.MakeSection("mw_wubb", mwUpgradesFile, properties: new
         {
             cost = 1,
             value = "+1"
@@ -391,15 +364,15 @@ public class MonsterWorldWeaponsGenerator
         
         var name = $"mwu{upgradeIndex}";
 
-        var bonusSection = storage.MakeSection($"mwb{upgradeIndex}", mwUpgradesFile, new List<string>() {baseWeaponUpgradeBonusSection.Name}, properties);
-        var elementSection = storage.MakeSection($"mwe{upgradeIndex}", mwUpgradesFile, new List<string>() { baseWeaponUpgradeEffectSection.Name }, properties: new
+        var bonusSection = Storage.MakeSection($"mwb{upgradeIndex}", mwUpgradesFile, new List<string>() {baseWeaponUpgradeBonusSection.Name}, properties);
+        var elementSection = Storage.MakeSection($"mwe{upgradeIndex}", mwUpgradesFile, new List<string>() { baseWeaponUpgradeEffectSection.Name }, properties: new
         {
             section = bonusSection.Name
         });
 
         upgradeIndex++;
         
-        return storage.MakeSection(name, mwUpgradesFile, properties: new { elements = elementSection.Name });
+        return Storage.MakeSection(name, mwUpgradesFile, properties: new { elements = elementSection.Name });
     }
     
     enum FireModeUpgradeType

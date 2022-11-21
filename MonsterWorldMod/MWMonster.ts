@@ -2,6 +2,7 @@ import { IsPctRolled } from '../StalkerAPI/extensions/basic';
 import { BaseMWObject } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
+import { MonsterSpawnConfig, MonsterRank } from './MonsterWorldConfig';
 
 export class MWMonster extends BaseMWObject{
     constructor(public mw: MonsterWorld, public id: Id) {
@@ -9,27 +10,24 @@ export class MWMonster extends BaseMWObject{
     }
 
     override Initialize(): void {
-        let locCfg = cfg.LocationConfigs[level.name()];
-        let enemyLvl = math.max(locCfg.level || 1, this.mw.Player.Level - 3);
+        let spawnConfig = this.Load<MonsterSpawnConfig>("SpawnParams")
 
-        if (IsPctRolled(cfg.EnemyHigherLevelChance))
-            enemyLvl++;
+        this.Level = spawnConfig.level;
+        this.Rank = spawnConfig.rank;
 
-        let enemyHP = this.GetMaxHP(enemyLvl);
-        let xpReward = this.GetXPReward(enemyLvl);
-        let enemyDamage = this.GetDamage(enemyLvl);
+        let enemyHP = this.GetMaxHP(this.Level) * spawnConfig.hpMult;
+        let xpReward = this.GetXPReward(this.Level) * spawnConfig.xpMult;
+        let enemyDamage = this.GetDamage(this.Level) * spawnConfig.damageMult;
 
-        if (IsPctRolled(cfg.EnemyBossChance)){
+        if (spawnConfig.rank == MonsterRank.Boss){
             enemyHP *= cfg.EnemyBossHPMult;
             xpReward *= cfg.EnemyBossXPRewardMult;
             enemyDamage *= cfg.EnemyBossDamageMult;
-            this.IsBoss = true;
         }
         
         this.MaxHP = enemyHP;
         this.HP = enemyHP;
         this.Damage = enemyDamage;
-        this.Level = enemyLvl;
         this.XPReward = xpReward;
     }
 
@@ -56,6 +54,6 @@ export class MWMonster extends BaseMWObject{
     get Damage(): number { return this.Load("DMG"); }
     set Damage(damage: number) { this.Save("DMG", damage); }
 
-    get IsBoss(): boolean { return this.Load("Boss"); }
-    set IsBoss(isBoss: boolean) { this.Save("Boss", isBoss); }
+    get Rank(): MonsterRank { return this.Load("Rank"); }
+    set Rank(rank: MonsterRank) { this.Save("Rank", rank); }
 }
