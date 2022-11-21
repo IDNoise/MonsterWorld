@@ -67,8 +67,8 @@ declare namespace level {
 //   function start_weather_fx_from_time(string, number)
 //   function hide_indicators_safe()
 //   function debug_actor()
-//   function get_target_obj() -- Alundaio: returns target game_object at cursor
-//   function get_target_dist() -- Alundaio: returns distance of target at cursor 
+    function get_target_obj(): game_object; // -- Alundaio: returns target game_object at cursor
+    function get_target_dist(): number;// -- Alundaio: returns distance of target at cursor 
 //   function get_target_element() -- Alundaio: return number (bone id)
 //   function send(net_packet&,boolean bReliable = 0, boolean bSequential = 1, boolean bHighPriority = 0, boolean bSendImmediately = 0) -- Alundaio: update level packet
 //   function actor_moving_state() -- REZY: returns movement state of actor

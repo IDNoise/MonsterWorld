@@ -54,6 +54,19 @@ export class MWMonster extends BaseMWObject{
         return cfg.EnemyDamageBase * math.pow(cfg.EnemyDamageExpPerLevel, level - 1);
     }
 
+    get Name(): string {
+        let nameInfo = ` ${this.Type} L.${this.Level}`
+        if (this.Rank == MonsterRank.Boss) nameInfo = "[Boss] " + nameInfo
+        else if (this.Rank == MonsterRank.Elite) nameInfo = "[Elite] " + nameInfo
+        return nameInfo;
+    }
+
+    get DropChance(): number {
+        if (this.Rank == MonsterRank.Boss) return cfg.EnemyBossDropChance;
+        if (this.Rank == MonsterRank.Elite) return cfg.EnemyEliteDropChance;
+        return cfg.EnemyDropChance
+    }
+
     get XPReward(): number { return this.Load("XPReward"); }
     set XPReward(expReward: number) { this.Save("XPReward", expReward); }
 

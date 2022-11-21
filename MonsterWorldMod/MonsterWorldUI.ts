@@ -9,7 +9,6 @@ import { MonsterConfig, LevelType, MonsterType, MonsterRank } from './MonsterWor
 import { MonsterWorld } from './MonsterWorld';
 
 export class MonsterWorldUI {
-
     constructor(public world: MonsterWorld) {
         const oldPrepareStatsTable = utils_ui.prepare_stats_table;
         utils_ui.prepare_stats_table = () => this.PrepareUIItemStatsTable(oldPrepareStatsTable);
@@ -30,11 +29,38 @@ export class MonsterWorldUI {
         ui_item.get_obj_desc = (obj) => this.UIGetItemDescription(obj, oldGetItemDesc(obj));
     }
 
-    Save(data: { [key: string]: any; }) {
+    public Save(data: { [key: string]: any; }) {
         
     }
-    Load(data: { [key: string]: any; }) {
+
+    public Load(data: { [key: string]: any; }) {
         
+    }
+
+    public Update() {
+        let targetObj = level.get_target_obj();
+        if (!targetObj){
+            this.HideEnemyHealthUI();
+            return;
+        }
+
+        let targetDist = level.get_target_dist();
+        let monster = this.world.GetMonster(targetObj.id())
+        if (targetDist < 300 && monster){
+            this.ShowEnemyHealthUI(monster);
+        }
+        else {
+            this.HideEnemyHealthUI();
+        }
+    }
+
+    private HideEnemyHealthUI() {
+        
+    }
+
+    private ShowEnemyHealthUI(monster: MWMonster) {
+        let nameInfo = monster.Name;
+        let hpInfo = `${monster.HP} / ${monster.MaxHP}`
     }
 
     PrepareUIItemStatsTable(oldPrepareStatsTable: () => utils_ui.StatsTable): utils_ui.StatsTable {
@@ -98,3 +124,5 @@ export class MonsterWorldUI {
     UIGetWeaponRPM(obj: game_object): number { return 60 / obj.cast_Weapon().RPM(); }
     UIGetWeaponAmmoMagSize(obj: game_object): number { return obj.cast_Weapon().GetAmmoMagSize(); }
 }
+
+

@@ -10,6 +10,7 @@ import { MonsterWorldSpawns } from './MonsterWorldSpawns';
 import { MonsterWorldUI } from './MonsterWorldUI';
 
 export class MonsterWorld {
+    
     private player?: MWPlayer;
     private monsters: LuaTable<Id, MWMonster>
     private weapons: LuaTable<Id, MWWeapon>
@@ -69,6 +70,10 @@ export class MonsterWorld {
         this.UIManager.Load(data)
     }
 
+    public Update() {
+        this.UIManager.Update();
+    }
+
     public OnPlayerHit(attackerGO: game_object) {
         if (!attackerGO.is_monster() || !attackerGO.is_stalker())
             return;
@@ -102,21 +107,11 @@ export class MonsterWorld {
         if (monster == undefined) 
             return;
 
-        let msg = `EXP +${monster.XPReward} for ${monster.Type}`;
-        let dropChancePct = cfg.EnemyDropChance;
-
-        if (monster.Rank == MonsterRank.Boss) {
-            msg += ` [Boss]`;
-            dropChancePct = cfg.EnemyBossDropChance;
-        }
-        else if (monster.Rank == MonsterRank.Elite){
-             msg += ` [Elite]`;
-             dropChancePct = cfg.EnemyEliteDropChance;
-        }
+        let msg = `EXP +${monster.XPReward} for ${monster.Name}`;
         actor_menu.set_msg(1, msg, 3, GetARGB(255, 20, 240, 20))
         this.Player.CurrentXP += monster.XPReward;
 
-        if (IsPctRolled(dropChancePct)){
+        if (IsPctRolled(monster.DropChance)){
             this.GenerateDrop(monster)
         }
     }
