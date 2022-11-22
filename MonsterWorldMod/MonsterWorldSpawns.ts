@@ -70,7 +70,7 @@ export class MonsterWorldSpawns {
 
         //Log(`Trying to spawn for: ${smart.name()}`)
         let respawnInterval = 600;
-        let maxPopulation = 10;
+        let maxPopulation = 4;
         if (!Load(smart.id, "MW_Initialized", false) || smart.respawn_idle != respawnInterval || smart.max_population != maxPopulation){
             if (Load(smart.id, "MW_Initialized", false)){
                 //Log(`Initialized: ${smart.name()} was initialized but reset`)
@@ -99,13 +99,13 @@ export class MonsterWorldSpawns {
             //Log(`Selected monster: ${selectedMonsterType} (from ${selectedMonsters.length}) for ${smart.id}`)
             smart.respawn_params = {
                 "spawn_section_1": {
-                    num: NumberToCondList(cfg.MonsterConfigs.get(selectedMonsterType).max_squads_per_smart || 4),
+                    num: NumberToCondList(cfg.MonsterConfigs.get(selectedMonsterType).max_squads_per_smart || 2),
                     squads: ["simulation_monster_world"]
                 },
             }
             smart.already_spawned = {"spawn_section_1": {num: 0}}
             smart.faction = "monster";
-            smart.respawn_radius = 125;
+            smart.respawn_radius = 150;
 
             //Log(`Initialized: ${smart.name()}`)
             Save(smart.id, "MW_Initialized", true);
