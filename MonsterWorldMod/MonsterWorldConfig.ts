@@ -160,7 +160,7 @@ export enum MonsterType {
 export enum MonsterRank {
     Common,
     Elite,
-    Boss
+    Boss,
 };
 
 export type MonsterSpawnParams = {
@@ -335,6 +335,12 @@ export let QualityColors: {[key: number]: string} = {
     3: "%c[255,30,220,30]",  //green
     4: "%c[255,220,30,30]",  //red
     5: "%c[255,240,165,5]",   //orange
+};
+
+export let MonsterRankColors: {[key in MonsterRank]: ARGBColor} = {
+    0: GetARGB(255,120,250,30),
+    1: GetARGB(255,20,20,240), 
+    2: GetARGB(255,240,20,20),
 };
 
 export let EndColorTag: string = "%c[default]"

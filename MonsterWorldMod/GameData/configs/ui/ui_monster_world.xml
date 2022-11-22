@@ -3,7 +3,7 @@
 <window>
     <enemy_health x="392" y="80" width="260" height="25">
         <name x="0" y="0" width="260" height="10" stretch="1">
-            <text r="250" g="30" b="250" font="letterica18" align="c" vert_align="c"/>
+            <text font="graffiti22" align="c" vert_align="c"/>
         </name>
         <value x="0" y="18" width="260" height="10" stretch="1">
             <text r="250" g="250" b="250" font="letterica18" align="c" vert_align="c"/>

@@ -54,9 +54,9 @@ export class MWWeapon extends BaseMWObject {
         let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
 
         let dps = baseDPS;
-        if (ini_sys.r_string_ex(this.Section, "tri_state_reload", "off") == "on") {
-            dps += baseDPS * 0.5;
-        }
+        // if (ini_sys.r_string_ex(this.Section, "tri_state_reload", "off") == "on") {
+        //     dps += baseDPS * 0.5;
+        // }
 
         let upgradesByType: [BonusParams.Type, string[]][] = [];
         upgradesByType.push([BonusParams.Type.Damage, []]);

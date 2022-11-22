@@ -200,6 +200,7 @@ export class MonsterWorldUI {
         this.enemyHP.Show(true);
         this.enemyHPBarProgress.SetProgressPos(monster.HP / monster.MaxHP * 100);
         this.enemyHPBarName.SetText(monster.Name);
+        this.enemyHPBarName.SetTextColor(cfg.MonsterRankColors[monster.Rank]);
         this.enemyHPBarValue.SetText(`${math.floor(monster.HP)} / ${math.floor(monster.MaxHP)}`);
     }
 

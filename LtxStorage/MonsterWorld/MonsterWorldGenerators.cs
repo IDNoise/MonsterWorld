@@ -122,6 +122,7 @@ public class WeaponsGenerator : BaseGenerator
             sprint_allowed           = true,
             startup_ammo             = 500,
             ph_mass                  = 100000,
+            tri_state_reload         = "off",
             
             //upgrades
             upgrades                 = "",
