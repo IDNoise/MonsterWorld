@@ -13,6 +13,6 @@ Features:
 - Loot drop (weapons) from enemies with simple highlight based on quality 
 - Custom UI: level progress, enemy health bar, floating numbers for damage/xp, show weapon stats/bonuses in description
 - Auto delete dropped item from inventory, infinite ammo (still requires realoding)
-- Start with randomly generated pm. ( Suggestion - do it on Kordon, it's lvl 1 location :) )
+- Start with randomly generated pm. ( Suggestion - do it on Cordon, it's lvl 1 location :) )
 
 Not sure if i'll continue with it. Putting it here in case someone will find typescript declarations for stalker api useful (only partly done)
