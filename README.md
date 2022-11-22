@@ -16,3 +16,5 @@ Features:
 - Start with randomly generated pm. ( Suggestion - do it on Cordon, it's lvl 1 location :) )
 
 Not sure if i'll continue with it. Putting it here in case someone will find typescript declarations for stalker api useful (only partly done)
+
+[Gameplay](https://youtu.be/SyTLRF14pzM)

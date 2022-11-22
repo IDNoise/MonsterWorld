@@ -53,6 +53,11 @@ export class MonsterWorldUI {
         const oldUICellItemUpdate = utils_ui.UICellItem.Update;
         const newUICellItemUpdate = (s: any, obj: game_object): boolean => {
             let res = oldUICellItemUpdate(s, obj);
+
+            s.bar?.Show(false) //Condition bar
+            s.upgr?.Show(false)  //Upgrade marker
+            s.mwLevel?.Show(false)  //Level text
+
             obj = obj || (s.ID && level.object_by_id(s.ID))
             if (!res || !obj) 
                 return res;
@@ -61,22 +66,14 @@ export class MonsterWorldUI {
             if (!weapon)
                 return res;
 
-            if (s.bar){ //Condition bar
-                s.bar.Show(false)
-            }
-
-            if (s.upgr){ //Upgrade marker
-                s.upgr.Show(false)
-            }
-
             if (!s.mwLevel){ //Add custom level text
                 let xml = new CScriptXmlInit()
                 xml.ParseFile("ui_monster_world.xml")
                 s.mwLevel = xml.InitStatic(`item_additions:level_text`, s.cell)
                 s.mwLevel.TextControl().SetFont(GetFontGraffiti19Russian())
-                s.mwLevel.SetWndPos(new vector2().set(3, s.cell.GetHeight() - 14))
             }
 
+            s.mwLevel.SetWndPos(new vector2().set(3, s.cell.GetHeight() - 14))
             s.mwLevel.TextControl().SetText(`L. ${weapon.Level}`)
             s.mwLevel.TextControl().SetTextColor(cfg.QualityColors[weapon.Quality])
             s.mwLevel.Show(true)

@@ -4201,6 +4201,18 @@ function MonsterWorldUI.prototype.____constructor(self, world)
     local oldUICellItemUpdate = utils_ui.UICellItem.Update
     local function newUICellItemUpdate(s, obj)
         local res = oldUICellItemUpdate(s, obj)
+        local ____s_bar_Show_result_0 = s.bar
+        if ____s_bar_Show_result_0 ~= nil then
+            ____s_bar_Show_result_0 = ____s_bar_Show_result_0:Show(false)
+        end
+        local ____s_upgr_Show_result_2 = s.upgr
+        if ____s_upgr_Show_result_2 ~= nil then
+            ____s_upgr_Show_result_2 = ____s_upgr_Show_result_2:Show(false)
+        end
+        local ____s_mwLevel_Show_result_4 = s.mwLevel
+        if ____s_mwLevel_Show_result_4 ~= nil then
+            ____s_mwLevel_Show_result_4 = ____s_mwLevel_Show_result_4:Show(false)
+        end
         obj = obj or s.ID and level.object_by_id(s.ID)
         if not res or not obj then
             return res
@@ -4209,22 +4221,16 @@ function MonsterWorldUI.prototype.____constructor(self, world)
         if not weapon then
             return res
         end
-        if s.bar then
-            s.bar:Show(false)
-        end
-        if s.upgr then
-            s.upgr:Show(false)
-        end
         if not s.mwLevel then
             local xml = CScriptXmlInit()
             xml:ParseFile("ui_monster_world.xml")
             s.mwLevel = xml:InitStatic("item_additions:level_text", s.cell)
             s.mwLevel:TextControl():SetFont(GetFontGraffiti19Russian())
-            s.mwLevel:SetWndPos(vector2():set(
-                3,
-                s.cell:GetHeight() - 14
-            ))
         end
+        s.mwLevel:SetWndPos(vector2():set(
+            3,
+            s.cell:GetHeight() - 14
+        ))
         s.mwLevel:TextControl():SetText("L. " .. tostring(weapon.Level))
         s.mwLevel:TextControl():SetTextColor(cfg.QualityColors[weapon.Quality])
         s.mwLevel:Show(true)
@@ -4271,7 +4277,7 @@ function MonsterWorldUI.prototype.ShowDamage(self, damage, isCrit, isKillHit)
             do
                 local entry = self.damageNumbers[i + 1]
                 if entry.text:IsShown() then
-                    goto __continue22
+                    goto __continue20
                 end
                 local msg = tostring(math.floor(damage))
                 entry.text:SetWndPos(vector2():set(
@@ -4279,29 +4285,29 @@ function MonsterWorldUI.prototype.ShowDamage(self, damage, isCrit, isKillHit)
                     math.random(-5, 5)
                 ))
                 entry.showTime = time_global()
-                local ____self_1 = entry.text
-                local ____self_1_SetTextColor_2 = ____self_1.SetTextColor
-                local ____isCrit_0
+                local ____self_7 = entry.text
+                local ____self_7_SetTextColor_8 = ____self_7.SetTextColor
+                local ____isCrit_6
                 if isCrit then
-                    ____isCrit_0 = GetARGB(255, 255, 165, 5)
+                    ____isCrit_6 = GetARGB(255, 255, 165, 5)
                 else
-                    ____isCrit_0 = GetARGB(255, 240, 20, 20)
+                    ____isCrit_6 = GetARGB(255, 240, 20, 20)
                 end
-                ____self_1_SetTextColor_2(____self_1, ____isCrit_0)
-                local ____self_4 = entry.text
-                local ____self_4_SetFont_5 = ____self_4.SetFont
-                local ____isCrit_3
+                ____self_7_SetTextColor_8(____self_7, ____isCrit_6)
+                local ____self_10 = entry.text
+                local ____self_10_SetFont_11 = ____self_10.SetFont
+                local ____isCrit_9
                 if isCrit then
-                    ____isCrit_3 = GetFontGraffiti19Russian()
+                    ____isCrit_9 = GetFontGraffiti19Russian()
                 else
-                    ____isCrit_3 = GetFontLetterica16Russian()
+                    ____isCrit_9 = GetFontLetterica16Russian()
                 end
-                ____self_4_SetFont_5(____self_4, ____isCrit_3)
+                ____self_10_SetFont_11(____self_10, ____isCrit_9)
                 entry.text:SetText(msg .. (isCrit and " X" or ""))
                 entry.text:Show(true)
                 return
             end
-            ::__continue22::
+            ::__continue20::
             i = i + 1
         end
     end
@@ -4313,7 +4319,7 @@ function MonsterWorldUI.prototype.ShowXPReward(self, reward)
             do
                 local entry = self.xpRewardNumbers[i + 1]
                 if entry.text:IsShown() then
-                    goto __continue25
+                    goto __continue23
                 end
                 local msg = ("+ " .. tostring(math.floor(reward))) .. " XP"
                 entry.text:SetWndPos(vector2():set(
@@ -4326,7 +4332,7 @@ function MonsterWorldUI.prototype.ShowXPReward(self, reward)
                 entry.text:Show(true)
                 return
             end
-            ::__continue25::
+            ::__continue23::
             i = i + 1
         end
     end
@@ -4360,8 +4366,8 @@ function MonsterWorldUI.prototype.InitHud(self)
             while i < 30 do
                 local textEntry = xml:InitTextWnd("damage_numbers:damage_number", self.damageNumbersContainer)
                 textEntry:Show(false)
-                local ____self_damageNumbers_6 = self.damageNumbers
-                ____self_damageNumbers_6[#____self_damageNumbers_6 + 1] = {text = textEntry, showTime = 0}
+                local ____self_damageNumbers_12 = self.damageNumbers
+                ____self_damageNumbers_12[#____self_damageNumbers_12 + 1] = {text = textEntry, showTime = 0}
                 i = i + 1
             end
         end
@@ -4376,8 +4382,8 @@ function MonsterWorldUI.prototype.InitHud(self)
             while i < 30 do
                 local textEntry = xml:InitTextWnd("xp_reward_numbers:xp_reward_number", self.xpRewardNumbersContainer)
                 textEntry:Show(false)
-                local ____self_xpRewardNumbers_7 = self.xpRewardNumbers
-                ____self_xpRewardNumbers_7[#____self_xpRewardNumbers_7 + 1] = {text = textEntry, showTime = 0}
+                local ____self_xpRewardNumbers_13 = self.xpRewardNumbers
+                ____self_xpRewardNumbers_13[#____self_xpRewardNumbers_13 + 1] = {text = textEntry, showTime = 0}
                 i = i + 1
             end
         end
@@ -4416,12 +4422,12 @@ function MonsterWorldUI.prototype.UpdateTarget(self)
     if targetDist < 300 and monster and monster.HP > 0 then
         self:ShowEnemyHealthUI(monster)
     else
-        local ____self_HideEnemyHealthUI_10 = self.HideEnemyHealthUI
-        local ____monster_IsDead_8 = monster
-        if ____monster_IsDead_8 ~= nil then
-            ____monster_IsDead_8 = ____monster_IsDead_8.IsDead
+        local ____self_HideEnemyHealthUI_16 = self.HideEnemyHealthUI
+        local ____monster_IsDead_14 = monster
+        if ____monster_IsDead_14 ~= nil then
+            ____monster_IsDead_14 = ____monster_IsDead_14.IsDead
         end
-        ____self_HideEnemyHealthUI_10(self, ____monster_IsDead_8 or false)
+        ____self_HideEnemyHealthUI_16(self, ____monster_IsDead_14 or false)
     end
 end
 function MonsterWorldUI.prototype.HideEnemyHealthUI(self, force)
@@ -4429,9 +4435,9 @@ function MonsterWorldUI.prototype.HideEnemyHealthUI(self, force)
         force = false
     end
     if force or time_global() - self.lastEnemyHpShowTime > 500 then
-        local ____table_enemyHP_Show_result_11 = self.enemyHP
-        if ____table_enemyHP_Show_result_11 ~= nil then
-            ____table_enemyHP_Show_result_11 = ____table_enemyHP_Show_result_11:Show(false)
+        local ____table_enemyHP_Show_result_17 = self.enemyHP
+        if ____table_enemyHP_Show_result_17 ~= nil then
+            ____table_enemyHP_Show_result_17 = ____table_enemyHP_Show_result_17:Show(false)
         end
     end
 end
