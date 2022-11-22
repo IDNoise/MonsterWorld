@@ -97,28 +97,56 @@ export class MonsterWorld {
         Log(`Player [${ this.Player.HP} / ${this.Player.MaxHP}] was hit by ${monster.Name} for ${monster.Damage} damage`);
     }
 
-    public OnMonsterHit(monsterGO: game_object, shit: hit, boneId: BoneId) {
-        let monster = this.GetMonster(monsterGO.id());
-        if (monster == undefined || monster.IsDead) 
-            return;
-
-        let weapon = this.GetWeapon(shit.weapon_id);
-        if (!weapon) 
-            return;
-
-        let damage = weapon.DamagePerHit;
-
-        let isCrit = CriticalBones[monster.Type]?.includes(boneId) || false;
-        if (isCrit){
-            damage *= 2.5; //TODO move to player stats
+    public OnMonstersHit(monsterHitsThisFrame: Map<Id, HitInfo>) {
+        let hitsByWeapon = new Map<MWWeapon, [MWMonster, boolean][]>();
+        for(const [_, hitInfo] of monsterHitsThisFrame){
+            let hits = hitsByWeapon.get(hitInfo.weapon) || [];
+            hits.push([hitInfo.monster, hitInfo.isCrit])
+            hitsByWeapon.set(hitInfo.weapon, hits)
         }
 
-        let realDamage = math.min(monster.HP, damage)
-        monster.HP -= realDamage;
-        this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
-        
-        Log(`${monster.Name} [${monster.HP} / ${monster.MaxHP}] was hit by player for ${damage} damage. Is crit: ${isCrit}. Bone: ${boneId}`);
+        for(const [weapon, hits] of hitsByWeapon){
+            let weaponDamage = weapon.DamagePerHit / hits.length;
+
+            for(let i = 0; i < hits.length; i++){
+                const [monster, isCrit] = hits[i];
+                let monsterDamage = weaponDamage;
+                if (isCrit){
+                    monsterDamage *= 2.5; //TODO move to player stats
+                }
+
+                let realDamage = math.min(monster.HP, monsterDamage)
+                monster.HP -= realDamage;
+                this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
+            }
+        }
     }
+
+    // public OnMonsterHit(monsterGO: game_object, shit: hit, boneId: BoneId) {
+    //     let monster = this.GetMonster(monsterGO.id());
+    //     if (monster == undefined || monster.IsDead) 
+    //         return;
+
+    //     let weapon = this.GetWeapon(shit.weapon_id);
+    //     if (!weapon) 
+    //         return;
+
+    //     let damage = weapon.DamagePerHit;
+
+    //     let isCrit = CriticalBones[monster.Type]?.includes(boneId) || false;
+    //     if (isCrit){
+    //         damage *= 2.5; //TODO move to player stats
+    //     }
+
+    //     let realDamage = math.min(monster.HP, damage)
+    //     monster.HP -= realDamage;
+    //     this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
+        
+    //     Log(`${monster.Name} [${monster.HP} / ${monster.MaxHP}] was hit by player for ${damage} damage. Is crit: ${isCrit}. Bone: ${boneId}`);
+
+    //     if (monster.IsDead)
+    //         shit.impulse = 1000000;
+    // }
 
     public OnMonsterKilled(monsterGO: game_object) {
         let monster = this.GetMonster(monsterGO.id());
@@ -219,6 +247,12 @@ export class MonsterWorld {
             }
         }
     }
+}
+
+export type HitInfo = {
+    monster: MWMonster,
+    weapon: MWWeapon,
+    isCrit: boolean,
 }
 
 //actor_menu.set_msg(2, `Enemy ${monster.Name} was hit for ${damage}`, 3, GetARGB(255, 240, 20, 20))

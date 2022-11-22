@@ -1,33 +1,40 @@
 import { EnableMutantLootingWithoutKnife } from '../StalkerAPI/extensions/basic';
-import { StalkerModBase } from '../StalkerModBase';
-import { MonsterWorld } from './MonsterWorld';
+import { Log, StalkerModBase } from '../StalkerModBase';
+import { HitInfo, MonsterWorld } from './MonsterWorld';
+import { CriticalBones } from './MonsterWorldBones';
+import { MWMonster } from './MWMonster';
 
 export class MonsterWorldMod extends StalkerModBase {
-    private world: MonsterWorld;
+    public World: MonsterWorld;
+
+    private hitsThisFrame: [Id, Id][] = [];
+    private lastHitFrame: number = -1;
     
+    private monsterHitsThisFrame: Map<Id, HitInfo> = new Map();
+
     constructor(){
         super();
 
         StalkerModBase.ModName = "MonsterWorldMod";
         StalkerModBase.IsLogEnabled = true;
 
-        this.world = new MonsterWorld(this);
+        this.World = new MonsterWorld(this);
         this.RegisterCallbacks();
     }
 
     protected override OnSaveState(data: { [key: string]: any; }): void {
         super.OnSaveState(data);
-        this.world.Save(data);
+        this.World.Save(data);
     }
 
     protected OnLoadState(data: { [key: string]: any; }): void {
         super.OnLoadState(data);
-        this.world.Load(data)
+        this.World.Load(data)
     }
 
     protected override OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
         //super.OnMonsterNetSpawn(monster, serverObject);
-        this.world.GetMonster(monster.id());
+        this.World.GetMonster(monster.id());
     }
 
     // protected override OnItemNetSpawn(item: game_object, serverObject: cse_alife_item): void {
@@ -37,7 +44,7 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected override OnItemTake(item: game_object): void {
         //super.OnItemTake(item);
-        this.world.OnTakeItem(item);
+        this.World.OnTakeItem(item);
     }
 
     // protected override OnItemFocusReceive(item: game_object): void {
@@ -47,23 +54,28 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected override OnMonsterNetDestroy(monster: game_object): void {
         //super.OnMonsterNetDestroy(monster)
-        this.world?.DestroyObject(monster.id());
+        this.World?.DestroyObject(monster.id());
     }
 
     protected override OnServerEntityUnregister(serverObject: cse_alife_object, type: ServerObjectType): void {
         //super.OnServerEntityUnregister(serverObject, type)
-        this.world?.DestroyObject(serverObject.id);
+        this.World?.DestroyObject(serverObject.id);
     }
 
     protected override OnActorFirstUpdate(): void {
         super.OnActorFirstUpdate();
         EnableMutantLootingWithoutKnife();
-        this.world.OnPlayerSpawned();
+        this.World.OnPlayerSpawned();
     }
 
     protected override OnActorUpdate(): void {
         super.OnActorUpdate();
-        this.world.Update();
+        this.World.Update();
+
+        if (this.monsterHitsThisFrame.size > 0){
+            this.World.OnMonstersHit(this.monsterHitsThisFrame);
+            this.monsterHitsThisFrame = new Map();
+        }
     }
 
     protected override OnActorBeforeHit(shit: hit, boneId: BoneId): boolean {
@@ -72,7 +84,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (!this.CanHit(db.actor.id(), shit.draftsman.id())) 
             return false;
 
-        this.world.OnPlayerHit(shit.draftsman);  
+        this.World.OnPlayerHit(shit.draftsman);  
 
         shit.power = 0.0000001;
         return true; 
@@ -80,33 +92,36 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected override OnSimulationFillStartPosition(): void {
         super.OnSimulationFillStartPosition();
-        this.world.SpawnManager.FillStartPositions();
+        this.World.SpawnManager.FillStartPositions();
     }
 
     protected override OnSmartTerrainTryRespawn(smart: SmartTerrain): boolean {
-        return this.world.SpawnManager.OnTryRespawn(smart);
+        return this.World.SpawnManager.OnTryRespawn(smart);
     }
 
-    hitsThisFrame: [Id, Id][] = [];
-    lastHitFrame: number = -1;
-    protected override OnMonsterBeforeHit(monster: game_object, shit: hit, boneId: BoneId): boolean {
-        super.OnMonsterBeforeHit(monster, shit, boneId);
+    protected override OnMonsterBeforeHit(monsgerGO: game_object, shit: hit, boneId: BoneId): boolean {
+        super.OnMonsterBeforeHit(monsgerGO, shit, boneId);
 
-        if (monster.health <= 0)
+        if (monsgerGO.health <= 0 || shit.draftsman.id() != 0 || (shit.type != HitType.fire_wound && shit.type != HitType.wound))
             return false;
 
-        if (shit.draftsman.id() != 0) 
+        let monster = this.World.GetMonster(monsgerGO.id())
+        if (monster == undefined) 
             return false;
 
-        if (shit.type != HitType.fire_wound && shit.type != HitType.wound) 
+        let weapon = this.World.GetWeapon(shit.weapon_id)
+        if (weapon == undefined)
             return false;
 
-        if (!this.CanHit(monster.id(), shit.draftsman.id())) 
-            return false;
+        let isCrit = CriticalBones[monster.Type].includes(boneId)
+        let hitInfo = {monster: monster, weapon: weapon, isCrit: isCrit};
+        let currentHitInfo = this.monsterHitsThisFrame.get(monster.id);
+        if (currentHitInfo != undefined){
+            hitInfo.isCrit ||= currentHitInfo.isCrit;
+        }
+        this.monsterHitsThisFrame.set(monster.id, hitInfo);
 
-        this.world.OnMonsterHit(monster, shit, boneId);
-
-        shit.power = 0.0000001;
+        shit.power = 0;
         return true;
     }
 
@@ -114,7 +129,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (killer.id() != 0)
             return;
 
-        this.world.OnMonsterKilled(monster)
+        this.World.OnMonsterKilled(monster)
     }
 
     CanHit(target: Id, attacker: Id): boolean {
