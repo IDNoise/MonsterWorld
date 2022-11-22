@@ -84,6 +84,19 @@ declare class CUIProgressBar extends CUIWindow {
     // function SetMaxColor(number)
 }
 
+
+declare const enum EHTextAligment{
+    alLeft = 0,
+    alRight,
+    alCenter
+}
+
+declare const enum EVTextAlignment{
+    valTop = 0,
+	valCenter,
+	valBotton
+}
+
 /** @customConstructor CUITextWnd */
 declare class CUITextWnd extends CUIWindow {
     constructor();
@@ -91,17 +104,18 @@ declare class CUITextWnd extends CUIWindow {
     GetText(): string;
     SetText(text: string): void;
     SetTextST(text: string): void;
-    // function SetTextAlignment(enum CGameFont::EAligment)
+    SetTextAlignment(value: EHTextAligment): void;
+    SetVTextAlignment(value: EVTextAlignment): void
     // function SetTextComplexMode(boolean)
     // function GetTextColor()
     SetTextColor(color: ARGBColor): void;
     GetFont(): CGameFont;
     SetFont(font: CGameFont): void;
     // function SetTextOffset(number, number)
-    // function AdjustHeightToText()
-    // function AdjustWidthToText()
+    AdjustHeightToText(): void;
+    AdjustWidthToText(): void;
     // function SetEllipsis(boolean)
-    // function SetVTextAlignment(enum EVTextAlignment)
+    
 }
 
 /** @customConstructor CScriptXmlInit */

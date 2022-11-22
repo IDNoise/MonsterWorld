@@ -36,6 +36,13 @@ declare namespace utils_ui{
     function get_stats_func_value(obj: game_object, sec: Section, file: string, func: string, ...args: any[]): any;
     function get_stats_value(obj: game_object, sec: Section, gr: StatConfig, stat: string): number;
     function get_stats_string_value(obj: game_object, sec: Section, gr: StatConfig, stat: string, to_text?: boolean): string;
+
+    namespace UICellItem{
+        function Update(s: any, obj: game_object): boolean;
+    }
+    namespace UIInfoItem{
+        function Update(s: any, obj: game_object, sec: Section, flags: any): void;
+    }
 }
 
 

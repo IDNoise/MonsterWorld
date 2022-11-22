@@ -1,12 +1,7 @@
-import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save } from '../StalkerAPI/extensions/basic';
 import { Log } from '../StalkerModBase';
-import * as cfg from './MonsterWorldConfig';
-import { MonsterWorldMod } from './MonsterWorldMod';
-import { MWMonster } from './MWMonster';
-import { MWPlayer } from './MWPlayer';
-import { MWWeapon } from './MWWeapon';
-import { MonsterConfig, LevelType, MonsterType, MonsterRank } from './MonsterWorldConfig';
 import { MonsterWorld } from './MonsterWorld';
+import * as cfg from './MonsterWorldConfig';
+import { MWMonster } from './MWMonster';
 
 type DamageNumberEntry = {
     showTime: number;
@@ -54,6 +49,57 @@ export class MonsterWorldUI {
 
         const oldGetItemDesc = ui_item.get_obj_desc;
         ui_item.get_obj_desc = (obj) => this.UIGetItemDescription(obj, oldGetItemDesc(obj));
+
+        const oldUICellItemUpdate = utils_ui.UICellItem.Update;
+        const newUICellItemUpdate = (s: any, obj: game_object): boolean => {
+            let res = oldUICellItemUpdate(s, obj);
+            obj = obj || (s.ID && level.object_by_id(s.ID))
+            if (!res || !obj) 
+                return res;
+
+            let weapon = this.world.GetWeapon(obj.id());
+            if (!weapon)
+                return res;
+
+            if (s.bar){ //Condition bar
+                s.bar.Show(false)
+            }
+
+            if (s.upgr){ //Upgrade marker
+                s.upgr.Show(false)
+            }
+
+            if (!s.mwLevel){ //Add custom level text
+                let xml = new CScriptXmlInit()
+                xml.ParseFile("ui_monster_world.xml")
+                s.mwLevel = xml.InitStatic(`item_additions:level_text`, s.cell)
+                s.mwLevel.TextControl().SetFont(GetFontGraffiti19Russian())
+                s.mwLevel.SetWndPos(new vector2().set(3, s.cell.GetHeight() - 14))
+            }
+
+            s.mwLevel.TextControl().SetText(`L. ${weapon.Level}`)
+            s.mwLevel.TextControl().SetTextColor(cfg.QualityColors[weapon.Quality])
+            s.mwLevel.Show(true)
+
+            return res;
+        }
+        utils_ui.UICellItem.Update = newUICellItemUpdate
+
+
+        const oldUIInfoItemUpdate = utils_ui.UIInfoItem.Update;
+        const newUIInfoItemUpdate = (s: any, obj: game_object, sec: Section, flags: any): void => {
+            oldUIInfoItemUpdate(s, obj, sec, flags)
+            if (!obj) 
+                return;
+
+            let weapon = this.world.GetWeapon(obj.id());
+            if (!weapon)
+                return;
+            
+            s.name.SetTextColor(cfg.QualityColors[weapon.Quality])
+        }
+        utils_ui.UIInfoItem.Update = newUIInfoItemUpdate
+        
     }
 
     public Save(data: { [key: string]: any; }) {
@@ -295,7 +341,7 @@ export class MonsterWorldUI {
         const weapon = this.world.GetWeapon(obj.id());
 
         //return `${cfg.QualityColors[weapon.Quality]}${cfg.Qualities[weapon.Quality]}${cfg.EndColorTag} ${current} ${cfg.LevelColor}L.${weapon.Level}${cfg.EndColorTag}`
-        return `${cfg.Qualities[weapon.Quality]}  ${current}  L.${weapon.Level}`
+        return `${cfg.Qualities[weapon.Quality]} ${current} L.${weapon.Level}`
     }
 
     UIGetItemDescription(obj: game_object, current: string): string{
@@ -313,3 +359,9 @@ export class MonsterWorldUI {
 }
 
 
+// s.bar.SetColor(cfg.QualityColors[weapon.Quality])
+// s.bar.ShowBackground(true)
+//s.Add_CustomText(`L.: ${weapon.Level}`, null, null, cfg.QualityColors[weapon.Quality], GetFontSmall())
+//s.ico.SetTextureColor(cfg.QualityColors[weapon.Quality])
+// s.hl.SetTextureColor(cfg.QualityColors[weapon.Quality])
+// s.hl.Show(true)

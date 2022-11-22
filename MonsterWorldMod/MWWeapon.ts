@@ -143,6 +143,7 @@ export class MWWeapon extends BaseMWObject {
         //Log(`Bonus description: ${this.GetBonusDescription()}`);
 
         this.GO.set_ammo_elapsed(this.GO.cast_Weapon().GetAmmoMagSize());
+        this.GO.set_condition(100)
     }
 }
 

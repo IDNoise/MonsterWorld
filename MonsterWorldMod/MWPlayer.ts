@@ -35,6 +35,7 @@ export class MWPlayer extends BaseMWObject {
     private LevelUp(): void{
         this.Level++;
         this.StatPoints += cfg.PlayerPointsPerLevelUp;
+        this.MaxHP += cfg.PlayerHPPerLevel;
         //TODO lvl up notification
     }
 

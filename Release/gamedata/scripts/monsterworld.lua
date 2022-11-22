@@ -3137,8 +3137,9 @@ ____exports.MonsterConfigs[____exports.MonsterType.Lurker] = {
     type = ____exports.MonsterType.Lurker,
     level_start = 5,
     level_type = ____exports.LevelType.Open,
-    hp_mult = 1.5,
-    xp_mult = 1.25,
+    hp_mult = 1.25,
+    damage_mult = 1.5,
+    xp_mult = 1.35,
     squad_size_min = 3,
     squad_size_max = 8,
     common_section = "lurker_1_weak",
@@ -3149,8 +3150,9 @@ ____exports.MonsterConfigs[____exports.MonsterType.Bloodsucker] = {
     type = ____exports.MonsterType.Bloodsucker,
     level_start = 5,
     level_type = bit.bor(____exports.LevelType.Underground, ____exports.LevelType.Lab),
-    hp_mult = 1.5,
-    xp_mult = 1.25,
+    hp_mult = 2.5,
+    damage_mult = 1.5,
+    xp_mult = 2,
     squad_size_min = 2,
     squad_size_max = 4,
     common_section = "bloodsucker_green_weak",
@@ -3161,11 +3163,11 @@ ____exports.MonsterConfigs[____exports.MonsterType.Fracture] = {
     type = ____exports.MonsterType.Fracture,
     level_start = 7,
     level_type = ____exports.LevelType.NonLab,
-    hp_mult = 1.5,
-    xp_mult = 1.25,
+    hp_mult = 1.75,
+    xp_mult = 1.35,
     squad_size_min = 3,
     squad_size_max = 7,
-    common_section = "fracture_1",
+    common_section = "fracture_weak",
     elite_section = "fracture_2",
     boss_section = "fracture_3"
 }
@@ -3173,7 +3175,7 @@ ____exports.MonsterConfigs[____exports.MonsterType.Burer] = {
     type = ____exports.MonsterType.Burer,
     level_start = 7,
     level_type = bit.bor(____exports.LevelType.Lab, ____exports.LevelType.Underground),
-    hp_mult = 2,
+    hp_mult = 2.5,
     xp_mult = 1.5,
     squad_size_min = 2,
     squad_size_max = 5,
@@ -3186,7 +3188,7 @@ ____exports.MonsterConfigs[____exports.MonsterType.Controller] = {
     level_start = 7,
     level_type = ____exports.LevelType.Lab,
     hp_mult = 6,
-    xp_mult = 2,
+    xp_mult = 3,
     squad_size_min = 1,
     squad_size_max = 3,
     common_section = "m_controller_normal666",
@@ -3197,8 +3199,9 @@ ____exports.MonsterConfigs[____exports.MonsterType.Psysucker] = {
     type = ____exports.MonsterType.Psysucker,
     level_start = 15,
     level_type = bit.bor(____exports.LevelType.Lab, ____exports.LevelType.Underground),
-    hp_mult = 1.25,
-    xp_mult = 1.1,
+    hp_mult = 2,
+    damage_mult = 1.25,
+    xp_mult = 1.5,
     squad_size_min = 3,
     squad_size_max = 7,
     common_section = "psysucker_white",
@@ -3210,7 +3213,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Giant] = {
     level_start = 15,
     level_type = ____exports.LevelType.Open,
     hp_mult = 8,
-    xp_mult = 2.5,
+    damage_mult = 2,
+    xp_mult = 3,
     squad_size_min = 1,
     squad_size_max = 3,
     common_section = "gigant_weak",
@@ -3221,8 +3225,9 @@ ____exports.MonsterConfigs[____exports.MonsterType.Chimera] = {
     type = ____exports.MonsterType.Chimera,
     level_start = 15,
     level_type = ____exports.LevelType.Open,
-    hp_mult = 3,
-    xp_mult = 1.5,
+    hp_mult = 4,
+    damage_mult = 3,
+    xp_mult = 3,
     squad_size_min = 2,
     squad_size_max = 5,
     common_section = "chimera_weak",
@@ -3230,6 +3235,7 @@ ____exports.MonsterConfigs[____exports.MonsterType.Chimera] = {
     boss_section = "chimera_strong4"
 }
 ____exports.PlayerHPBase = 100
+____exports.PlayerHPPerLevel = 10
 ____exports.PlayerXPForFirstLevel = 250
 ____exports.PlayerXPExp = 1.3
 ____exports.PlayerXPPct = 100
@@ -3240,7 +3246,7 @@ ____exports.EnemyHPPctPerLevel = 25
 ____exports.EnemyHpDeltaPct = 10
 ____exports.EnemyDamageBase = ____exports.PlayerHPBase / 25
 ____exports.EnemyDamageExpPerLevel = 1
-____exports.EnemyDamagePctPerLevel = 0
+____exports.EnemyDamagePctPerLevel = 10
 ____exports.EnemyXpRewardBase = 10
 ____exports.EnemyXpRewardExpPerLevel = 1.25
 ____exports.EnemyXpRewardPctPerLevel = 25
@@ -3283,11 +3289,11 @@ ____exports.ParticlesByQuality = {
     [5] = "weapons\\rpg_trail_01"
 }
 ____exports.QualityColors = {
-    [1] = "%c[255,180,180,180]",
-    [2] = "%c[255,30,30,220]",
-    [3] = "%c[255,30,220,30]",
-    [4] = "%c[255,220,30,30]",
-    [5] = "%c[255,240,165,5]"
+    [1] = GetARGB(255, 230, 230, 230),
+    [2] = GetARGB(255, 20, 20, 230),
+    [3] = GetARGB(255, 20, 230, 20),
+    [4] = GetARGB(255, 230, 20, 20),
+    [5] = GetARGB(255, 240, 165, 5)
 }
 ____exports.MonsterRankColors = {
     [0] = GetARGB(255, 120, 250, 30),
@@ -3708,6 +3714,7 @@ end
 function MWPlayer.prototype.LevelUp(self)
     self.Level = self.Level + 1
     self.StatPoints = self.StatPoints + cfg.PlayerPointsPerLevelUp
+    self.MaxHP = self.MaxHP + cfg.PlayerHPPerLevel
 end
 return ____exports
  end,
@@ -3914,6 +3921,7 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
         end
     end
     self.GO:set_ammo_elapsed(self.GO:cast_Weapon():GetAmmoMagSize())
+    self.GO:set_condition(100)
 end
 ____exports.BonusParams = {}
 BonusParams = ____exports.BonusParams
@@ -4190,6 +4198,52 @@ function MonsterWorldUI.prototype.____constructor(self, world)
         obj,
         oldGetItemDesc(obj)
     ) end
+    local oldUICellItemUpdate = utils_ui.UICellItem.Update
+    local function newUICellItemUpdate(s, obj)
+        local res = oldUICellItemUpdate(s, obj)
+        obj = obj or s.ID and level.object_by_id(s.ID)
+        if not res or not obj then
+            return res
+        end
+        local weapon = self.world:GetWeapon(obj:id())
+        if not weapon then
+            return res
+        end
+        if s.bar then
+            s.bar:Show(false)
+        end
+        if s.upgr then
+            s.upgr:Show(false)
+        end
+        if not s.mwLevel then
+            local xml = CScriptXmlInit()
+            xml:ParseFile("ui_monster_world.xml")
+            s.mwLevel = xml:InitStatic("item_additions:level_text", s.cell)
+            s.mwLevel:TextControl():SetFont(GetFontGraffiti19Russian())
+            s.mwLevel:SetWndPos(vector2():set(
+                3,
+                s.cell:GetHeight() - 14
+            ))
+        end
+        s.mwLevel:TextControl():SetText("L. " .. tostring(weapon.Level))
+        s.mwLevel:TextControl():SetTextColor(cfg.QualityColors[weapon.Quality])
+        s.mwLevel:Show(true)
+        return res
+    end
+    utils_ui.UICellItem.Update = newUICellItemUpdate
+    local oldUIInfoItemUpdate = utils_ui.UIInfoItem.Update
+    local function newUIInfoItemUpdate(s, obj, sec, flags)
+        oldUIInfoItemUpdate(s, obj, sec, flags)
+        if not obj then
+            return
+        end
+        local weapon = self.world:GetWeapon(obj:id())
+        if not weapon then
+            return
+        end
+        s.name:SetTextColor(cfg.QualityColors[weapon.Quality])
+    end
+    utils_ui.UIInfoItem.Update = newUIInfoItemUpdate
 end
 function MonsterWorldUI.prototype.Save(self, data)
 end
@@ -4217,7 +4271,7 @@ function MonsterWorldUI.prototype.ShowDamage(self, damage, isCrit, isKillHit)
             do
                 local entry = self.damageNumbers[i + 1]
                 if entry.text:IsShown() then
-                    goto __continue13
+                    goto __continue22
                 end
                 local msg = tostring(math.floor(damage))
                 entry.text:SetWndPos(vector2():set(
@@ -4247,7 +4301,7 @@ function MonsterWorldUI.prototype.ShowDamage(self, damage, isCrit, isKillHit)
                 entry.text:Show(true)
                 return
             end
-            ::__continue13::
+            ::__continue22::
             i = i + 1
         end
     end
@@ -4259,7 +4313,7 @@ function MonsterWorldUI.prototype.ShowXPReward(self, reward)
             do
                 local entry = self.xpRewardNumbers[i + 1]
                 if entry.text:IsShown() then
-                    goto __continue16
+                    goto __continue25
                 end
                 local msg = ("+ " .. tostring(math.floor(reward))) .. " XP"
                 entry.text:SetWndPos(vector2():set(
@@ -4272,7 +4326,7 @@ function MonsterWorldUI.prototype.ShowXPReward(self, reward)
                 entry.text:Show(true)
                 return
             end
-            ::__continue16::
+            ::__continue25::
             i = i + 1
         end
     end
@@ -4487,7 +4541,7 @@ function MonsterWorldUI.prototype.UIGetItemName(self, obj, current)
         return current
     end
     local weapon = self.world:GetWeapon(obj:id())
-    return (((cfg.Qualities[weapon.Quality] .. "  ") .. current) .. "  L.") .. tostring(weapon.Level)
+    return (((cfg.Qualities[weapon.Quality] .. " ") .. current) .. " L.") .. tostring(weapon.Level)
 end
 function MonsterWorldUI.prototype.UIGetItemDescription(self, obj, current)
     if not IsWeapon(obj) then

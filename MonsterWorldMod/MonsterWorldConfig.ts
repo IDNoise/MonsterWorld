@@ -287,8 +287,9 @@ MonsterConfigs.set(MonsterType.Lurker, {
     type: MonsterType.Lurker,
     level_start: 5,
     level_type: LevelType.Open,
-    hp_mult: 1.5,
-    xp_mult: 1.25,
+    hp_mult: 1.25,
+    damage_mult: 1.5,
+    xp_mult: 1.35,
     squad_size_min: 3,
     squad_size_max: 8,
     common_section: "lurker_1_weak",
@@ -300,8 +301,9 @@ MonsterConfigs.set(MonsterType.Bloodsucker, {
     type: MonsterType.Bloodsucker,
     level_start: 5,
     level_type: LevelType.Underground | LevelType.Lab,
-    hp_mult: 1.5,
-    xp_mult: 1.25,
+    hp_mult: 2.5,
+    damage_mult: 1.5,
+    xp_mult: 2,
     squad_size_min: 2,
     squad_size_max: 4,
     common_section: "bloodsucker_green_weak",
@@ -313,11 +315,11 @@ MonsterConfigs.set(MonsterType.Fracture, {
     type: MonsterType.Fracture,
     level_start: 7,
     level_type: LevelType.NonLab,
-    hp_mult: 1.5,
-    xp_mult: 1.25,
+    hp_mult: 1.75,
+    xp_mult: 1.35,
     squad_size_min: 3,
     squad_size_max: 7,
-    common_section: "fracture_1",
+    common_section: "fracture_weak",
     elite_section: "fracture_2",
     boss_section: "fracture_3",
 });
@@ -326,7 +328,7 @@ MonsterConfigs.set(MonsterType.Burer, {
     type: MonsterType.Burer,
     level_start: 7,
     level_type: LevelType.Lab | LevelType.Underground,
-    hp_mult: 2,
+    hp_mult: 2.5,
     xp_mult: 1.5,
     squad_size_min: 2,
     squad_size_max: 5,
@@ -340,7 +342,7 @@ MonsterConfigs.set(MonsterType.Controller, {
     level_start: 7,
     level_type: LevelType.Lab,
     hp_mult: 6,
-    xp_mult: 2,
+    xp_mult: 3,
     squad_size_min: 1,
     squad_size_max: 3,
     common_section: "m_controller_normal666",
@@ -352,8 +354,9 @@ MonsterConfigs.set(MonsterType.Psysucker, {
     type: MonsterType.Psysucker,
     level_start: 15,
     level_type: LevelType.Lab | LevelType.Underground,
-    hp_mult: 1.25,
-    xp_mult: 1.1,
+    hp_mult: 2,
+    damage_mult: 1.25,
+    xp_mult: 1.5,
     squad_size_min: 3,
     squad_size_max: 7,
     common_section: "psysucker_white",
@@ -366,7 +369,8 @@ MonsterConfigs.set(MonsterType.Giant, {
     level_start: 15,
     level_type: LevelType.Open,
     hp_mult: 8,
-    xp_mult: 2.5,
+    damage_mult: 2,
+    xp_mult: 3,
     squad_size_min: 1,
     squad_size_max: 3,
     common_section: "gigant_weak",
@@ -378,8 +382,9 @@ MonsterConfigs.set(MonsterType.Chimera, {
     type: MonsterType.Chimera,
     level_start: 15,
     level_type: LevelType.Open,
-    hp_mult: 3,
-    xp_mult: 1.5,
+    hp_mult: 4,
+    damage_mult: 3,
+    xp_mult: 3,
     squad_size_min: 2,
     squad_size_max: 5,
     common_section: "chimera_weak",
@@ -389,6 +394,7 @@ MonsterConfigs.set(MonsterType.Chimera, {
 
 //Player params
 export let PlayerHPBase = 100;
+export let PlayerHPPerLevel = 10;
 
 export let PlayerXPForFirstLevel = 250;
 export let PlayerXPExp = 1.3;
@@ -404,7 +410,7 @@ export let EnemyHpDeltaPct = 10;
 
 export let EnemyDamageBase = PlayerHPBase / 25;
 export let EnemyDamageExpPerLevel = 1; //1.1;
-export let EnemyDamagePctPerLevel = 0; //10;
+export let EnemyDamagePctPerLevel = 10;
 
 export let EnemyXpRewardBase = 10;
 export let EnemyXpRewardExpPerLevel = 1.25;
@@ -464,12 +470,12 @@ export let ParticlesByQuality: {[key: number]: string} = {
     5: "weapons\\rpg_trail_01",
 };
 
-export let QualityColors: {[key: number]: string} = {
-    1: "%c[255,180,180,180]", //greish
-    2: "%c[255,30,30,220]", //blue
-    3: "%c[255,30,220,30]",  //green
-    4: "%c[255,220,30,30]",  //red
-    5: "%c[255,240,165,5]",   //orange
+export let QualityColors: {[key: number]: ARGBColor} = {
+    1: GetARGB(255,230,230,230), //greish
+    2: GetARGB(255,20,20,230), //blue
+    3: GetARGB(255,20,230,20),  //green
+    4: GetARGB(255,230,20,20),  //red
+    5: GetARGB(255,240,165,5),   //orange
 };
 
 export let MonsterRankColors: {[key in MonsterRank]: ARGBColor} = {

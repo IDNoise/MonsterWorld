@@ -46,4 +46,10 @@
             <texture>intro\intro_back</texture>
         </progress_background>
     </level_bar>
+    
+    <item_additions>
+        <level_text x="8" y="2" width="40" height="10" stretch="1">
+            <text complex_mode="1" font="letterica18" align="l" vert_align="b"/>
+        </level_text>
+    </item_additions>
 </window>

@@ -172,23 +172,8 @@ export class MonsterWorld {
             this.GenerateDrop(monster)
         }
     }
-    // [test_container]:itm_backpack
-    // use1_functor                                       = bind_container.access_inventory
-    // use1_text                                          = st_open
-    // script_binding                                     = bind_container.bind
-    // remove_after_use                                   = false
 
     GenerateDrop(monster: MWMonster) {
-        //alife_create_item("box_wood_01", CreateWorldPositionAtPosWithGO(CreateVector(5, 5, 0), monster.GO))
-        //let boxSGO = alife_create_item("box_paper", CreateWorldPositionAtPosWithGO(CreateVector(0, 1, 0), monster.GO))
-
-        // CreateTimeEvent(`${boxSGO.name()}`, `${boxSGO.name()}`, 1, (boxId: Id) => {
-        //     let go = level.object_by_id(boxId);
-        //     if (go == null)
-        //         return false;
-        //     go.start_particles("weapons\\light_signal", "link")
-        //     return true;
-        // }, boxSGO.id);
 
         let typedSections = ini_sys.r_list("mw_drops_by_weapon_type", "sections");
         let selectedTypeSection = RandomFromArray(typedSections);
