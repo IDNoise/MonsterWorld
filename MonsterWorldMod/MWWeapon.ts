@@ -81,7 +81,7 @@ export class MWWeapon extends BaseMWObject {
             selectedUpgradeTypes.push(upgrades);
         }
 
-        let damageBonus = 0;
+        let damageBonusPct = 0;
         let allSelectedUpgrades: string[] = [];
         for (let i = 0; i < selectedUpgradeTypes.length; i++) {
             let upgradesPerTypeToSelect = 1 + (this.Level / 10) + (this.Quality - 1) / 2;
@@ -91,7 +91,7 @@ export class MWWeapon extends BaseMWObject {
                 for (let j = 0; j < upgradesPerTypeToSelect; j++) {
                     bonus += math.random(1, 5);
                 }
-                damageBonus = bonus;
+                damageBonusPct = bonus;
             }
             else if (t == BonusParams.Type.FireMode) {
                 const upgrade = TakeRandomFromArray(upgrades);
@@ -116,7 +116,7 @@ export class MWWeapon extends BaseMWObject {
                 if (bonusValue != 0) {
                     if (BonusParams.PctBonuses.includes(t)) {
                         const defaultValue = ini_sys.r_float_ex(this.Section, BonusParams.SectionFields[t], 1);
-                        Log(`Bonus ${t}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
+                        //Log(`Bonus ${t}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
                         bonusValue = bonusValue / defaultValue * 100;
                     }
 
@@ -125,12 +125,12 @@ export class MWWeapon extends BaseMWObject {
             }
         }
 
-        damageBonus += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
-        if (damageBonus >= cfg.WeaponDPSDeltaPct) {
-            damageBonus += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
+        damageBonusPct += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
+        if (damageBonusPct >= cfg.WeaponDPSDeltaPct) {
+            damageBonusPct += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
         }
-        this.Bonuses.set(BonusParams.Type.Damage, damageBonus);
-        dps *= (1 + damageBonus / 100);
+        this.Bonuses.set(BonusParams.Type.Damage, damageBonusPct);
+        dps *= (1 + damageBonusPct / 100);
 
         this.DamagePerHit = dps * fireRate;
 
@@ -138,10 +138,9 @@ export class MWWeapon extends BaseMWObject {
         for (let i = 0; i < allSelectedUpgrades.length; i++) {
             let upgrade = allSelectedUpgrades[i].replace("mwu", "mwe");
             this.GO.install_upgrade(upgrade);
-            //Log(`After install ${upgrade}`) 
         }
 
-        Log(`Bonus description: ${this.GetBonusDescription()}`);
+        //Log(`Bonus description: ${this.GetBonusDescription()}`);
 
         this.GO.set_ammo_elapsed(this.GO.cast_Weapon().GetAmmoMagSize());
     }

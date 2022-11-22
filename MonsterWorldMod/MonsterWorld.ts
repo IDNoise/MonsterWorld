@@ -102,7 +102,7 @@ export class MonsterWorld {
             return;
 
         this.Player.HP -= monster.Damage;
-        Log(`Player [${ this.Player.HP} / ${this.Player.MaxHP}] was hit by ${monster.Name} for ${monster.Damage} damage`);
+        //Log(`Player [${ this.Player.HP} / ${this.Player.MaxHP}] was hit by ${monster.Name} for ${monster.Damage} damage`);
     }
 
     public OnMonstersHit(monsterHitsThisFrame: Map<Id, HitInfo>) {
@@ -221,7 +221,7 @@ export class MonsterWorld {
         
         let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
-        Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
+        //Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
 
         CreateTimeEvent(`${sgo.name()}_add_highlight`, `${sgo.name()}`, 0.1, (boxId: Id) => {
             let go = level.object_by_id(boxId);

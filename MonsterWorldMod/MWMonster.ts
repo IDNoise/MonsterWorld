@@ -47,7 +47,7 @@ export class MWMonster extends BaseMWObject{
     }
 
     GetXPReward(level: number): number{
-        let pctMult = 1 + cfg.EnemyXpRewardPctPerLevel * (level - 1);
+        let pctMult = 1 + cfg.EnemyXpRewardPctPerLevel / 100 * (level - 1);
         let expMult = math.pow(cfg.EnemyXpRewardExpPerLevel, level - 1);
         let xp = cfg.EnemyXpRewardBase * pctMult * expMult;
         return math.floor(xp)

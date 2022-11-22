@@ -45,33 +45,11 @@ export class MonsterWorldSpawns {
                 let [_res, squad_section, countStr] = setting_ini.r_line(section, line)
 
                 if (squad_section.includes("trader") || squad_section.includes("mechanic") || squad_section.includes("barman")){
-                    this.safeSmarts.add(smart.id);
+                    //this.safeSmarts.add(smart.id);
                     continue;
                 }
 
                 continue;
-
-                // let count = tonumber(countStr) || 1
-
-                // let common = ini_sys.r_bool_ex(squad_section,"common", false)
-                // let faction = ini_sys.r_string_ex(squad_section,"faction")
-
-                // if (common){
-                //     let countMult = is_squad_monster[faction] ? 5 : 1;
-                //     count = round_idp(count * countMult)
-                // }
-                
-                // Log(`     ${line + 1}/${lineCount}: ${squad_section} =${count} (${common})`)
-
-                // if (common) continue;
-                
-
-                
-                //Log(`Added to safe smarts: ${smart.id}. safe smarts#: ${this.safeSmarts.length}`)
-                continue;
-                // for (let i = 0; i < count; i++){
-                //     SIMBOARD.create_squad(smart, squad_section)
-                // }
             }
 
             return false;
@@ -91,9 +69,14 @@ export class MonsterWorldSpawns {
         } 
 
         //Log(`Trying to spawn for: ${smart.name()}`)
-        if (!Load(smart.id, "MW_Initialized", false)){
-            smart.respawn_idle = 30;
-            smart.max_population = 5;
+        let respawnInterval = 600;
+        let maxPopulation = 10;
+        if (!Load(smart.id, "MW_Initialized", false) || smart.respawn_idle != respawnInterval || smart.max_population != maxPopulation){
+            if (Load(smart.id, "MW_Initialized", false)){
+                //Log(`Initialized: ${smart.name()} was initialized but reset`)
+            }
+            smart.respawn_idle = respawnInterval;
+            smart.max_population = maxPopulation;
 
             //Log(`Level name: ${level.name()}`)
             let locationCfg = cfg.LocationConfigs[level.name()];
@@ -102,10 +85,10 @@ export class MonsterWorldSpawns {
 
             let selectedMonsters: MonsterType[] = [];
             for(const [monsterType, monsterCfg] of cfg.MonsterConfigs){
-                Log(`Level check: ${monsterCfg.level_start} > ${locationCfg.level} = ${(monsterCfg.level_start > locationCfg.level)}`)
+                //Log(`Level check: ${monsterCfg.level_start} > ${locationCfg.level} = ${(monsterCfg.level_start > locationCfg.level)}`)
                 if (monsterCfg.level_start > locationCfg.level)
                     continue;
-                Log(`LevelType check: ${monsterCfg.level_type} & ${locationCfg.type} = ${(monsterCfg.level_type & locationCfg.type)}`)
+                //Log(`LevelType check: ${monsterCfg.level_type} & ${locationCfg.type} = ${(monsterCfg.level_type & locationCfg.type)}`)
                 if ((monsterCfg.level_type & locationCfg.type) != locationCfg.type)
                     continue;
                 selectedMonsters.push(monsterType);
@@ -113,15 +96,16 @@ export class MonsterWorldSpawns {
 
             let selectedMonsterType = RandomFromArray(selectedMonsters);
             Save(smart.id, "MW_MonsterType", selectedMonsterType);
-            Log(`Selected monster: ${selectedMonsterType} (from ${selectedMonsters.length}) for ${smart.id}`)
+            //Log(`Selected monster: ${selectedMonsterType} (from ${selectedMonsters.length}) for ${smart.id}`)
             smart.respawn_params = {
                 "spawn_section_1": {
-                    num: NumberToCondList(cfg.MonsterConfigs.get(selectedMonsterType).max_squads_per_smart || 1),
+                    num: NumberToCondList(cfg.MonsterConfigs.get(selectedMonsterType).max_squads_per_smart || 4),
                     squads: ["simulation_monster_world"]
                 },
             }
             smart.already_spawned = {"spawn_section_1": {num: 0}}
             smart.faction = "monster";
+            smart.respawn_radius = 125;
 
             //Log(`Initialized: ${smart.name()}`)
             Save(smart.id, "MW_Initialized", true);
@@ -157,8 +141,8 @@ export class MonsterWorldSpawns {
         let locCfg = cfg.LocationConfigs[level.name()];
         let locLevel = locCfg.level || 1;
 
-        if (locLevel < 5){
-            squadSize *= 0.5 + 0.1 * locLevel
+        if (locLevel < 10){
+            squadSize *= 0.5 + 0.05 * locLevel
         }
 
         for(let i = 0; i < squadSize;){
@@ -183,13 +167,11 @@ export class MonsterWorldSpawns {
             if (rank == MonsterRank.Elite) section = monsterCfg.elite_section;
             else if (rank == MonsterRank.Boss) section = monsterCfg.boss_section;
 
-            Log(`Pre spawn [${i + 1} / ${squadSize}] ${obj.smart_id} ${section} ${monsterCfg.type}`)
             let monsterId = defaultFunction(obj, section, pos, lvid, gvid);
             if (monsterId == undefined){
                 Log(`SPAWN PROBLEM  NO monster!`)
                 continue;
             }
-            Log(`Post spawn ${obj.smart_id} ${monsterId}`)
 
             Save(monsterId, "MW_SpawnParams", {
                 type: monsterType,

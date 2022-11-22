@@ -276,8 +276,8 @@ export let EnemyHPPctPerLevel = 25;
 export let EnemyHpDeltaPct = 10;
 
 export let EnemyDamageBase = PlayerHPBase / 25;
-export let EnemyDamageExpPerLevel = 1.1;
-export let EnemyDamagePctPerLevel = 10;
+export let EnemyDamageExpPerLevel = 1; //1.1;
+export let EnemyDamagePctPerLevel = 0; //10;
 
 export let EnemyXpRewardBase = 10;
 export let EnemyXpRewardExpPerLevel = 1.25;

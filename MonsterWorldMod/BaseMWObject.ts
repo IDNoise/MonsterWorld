@@ -4,7 +4,7 @@ import { MonsterWorld } from './MonsterWorld';
 
 export abstract class BaseMWObject {
     constructor(public mw: MonsterWorld, public id: Id) {
-        Log(`Creating [${this.id}] ${this.SectionId}. Was initialized: ${this.Initialized}`);
+        //Log(`Creating [${this.id}] ${this.SectionId}. Was initialized: ${this.Initialized}`);
         if (!this.Initialized){
             this.Initialize();
             this.Initialized = true;
