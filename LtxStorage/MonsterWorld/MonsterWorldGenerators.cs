@@ -30,7 +30,7 @@ public class WeaponsGenerator : BaseGenerator
         foreach (var w in Storage.AllFiles.Where(f => f.Name.StartsWith("w_")).SelectMany(f => f.Sections)
                      .Where(s => s.Name.StartsWith("wpn_") && s.AllParentSectionNames.Contains("default_weapon_params")))
         {
-            if (!w.HasProperty("kind")) 
+            if (w.GetProperty("tri_state_reload")?.String == "on") 
                 continue;
 
             if (w.GetInt("ammo_mag_size") < 5)
@@ -122,7 +122,7 @@ public class WeaponsGenerator : BaseGenerator
             sprint_allowed           = true,
             startup_ammo             = 500,
             ph_mass                  = 100000,
-            tri_state_reload         = "off",
+            //tri_state_reload         = "off",
             
             //upgrades
             upgrades                 = "",

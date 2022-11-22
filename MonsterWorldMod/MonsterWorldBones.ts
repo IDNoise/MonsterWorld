@@ -9,21 +9,21 @@ export let CriticalBones: {[key in MonsterType]: number[]} = {
     [MonsterType.Boar]: [20],
     [MonsterType.Cat]: [13],
     [MonsterType.PseudoDog]: dogBones,
+    [MonsterType.Bloodsucker]: bloodsuckerBones,
+    [MonsterType.Fracture]: [13],
     [MonsterType.Snork]: [4],
+    [MonsterType.Lurker]: chimeraBones,
+    [MonsterType.Flesh]: [13],
+    [MonsterType.Chimera]: chimeraBones,
+    [MonsterType.Burer]: [39, 40, 41, 42, 44, 45, 47, 48],
+    [MonsterType.Controller]: [31],
+    [MonsterType.Psysucker]: bloodsuckerBones,
+    [MonsterType.Giant]:  [1, 2, 3, 4, 5],
 } 
 
-//CriticalBones.set(MonsterType.Chimera, chimeraBones)
-//CriticalBones.set(MonsterType.Burer, [39, 40, 41, 42, 44, 45, 47, 48])
-//CriticalBones.set(MonsterType.Bloodsucker, bloodsuckerBones)
-//CriticalBones.set(MonsterType.Psysucker, bloodsuckerBones)
-//CriticalBones.set(MonsterType.Controller, [31])
-//CriticalBones.set(MonsterType.Fracture, [13])
-//CriticalBones.set(MonsterType.Giant, [1, 2, 3, 4, 5])
 //CriticalBones.set(MonsterType.Zombie, [12])
-//CriticalBones.set(MonsterType.Flesh, [13])
 //CriticalBones.set(MonsterType.Karlik, [15])
 //CriticalBones.set(MonsterType.PsyDog, dogBones)
-//CriticalBones.set(MonsterType.Lurker, chimeraBones)
 
 
 // local human = {

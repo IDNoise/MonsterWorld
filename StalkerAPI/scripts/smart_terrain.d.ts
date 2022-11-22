@@ -22,6 +22,7 @@ declare namespace smart_terrain {
     respawn_params: RespawnParams;
     already_spawned: AlreadySpawnnParams;
     faction: string;
+    respawn_radius: number;
 
     name(): string;
   }

@@ -61,7 +61,11 @@ export class MonsterWorld {
 
     public OnTakeItem(item: game_object) {
         this.GetWeapon(item.id())
-        this.ShowHightlighOnObject(item, false)
+
+        if (this.highlightedItems.has(item.id())){
+            item.stop_particles(Load<string>(item.id(), "MW_DropHighlight"), Load<string>(item.id(), "MW_DropHighlightBone"))
+            this.highlightedItems.delete(item.id())
+        }
     }
 
     public OnWeaponFired(wpn: game_object, ammo_elapsed: number) {
@@ -221,39 +225,24 @@ export class MonsterWorld {
         
         let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
+        Save(sgo.id, "MW_DropHighlight", cfg.ParticlesByQuality[qualityLevel])
+        Save(sgo.id, "MW_DropHighlightBone", "wpn_body")
+
         //Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
 
-        CreateTimeEvent(`${sgo.name()}_add_highlight`, `${sgo.name()}`, 0.1, (boxId: Id) => {
-            let go = level.object_by_id(boxId);
+        CreateTimeEvent(`${sgo.name()}_add_highlight`, `${sgo.name()}`, 0.1, (objId: Id) => {
+            let go = level.object_by_id(objId);
             if (go == null){
                 return false;
             }
 
-            this.ShowHightlighOnObject(go, true)
+            let particles = Load<string>(objId, "MW_DropHighlight")
+            if (particles != undefined){
+                this.highlightedItems.add(go.id())
+                go.start_particles(particles, Load(objId, "MW_DropHighlightBone"))
+            }
             return true;
         }, sgo.id);
-
-        CreateTimeEvent(`${sgo.name()}_auto_remove_highligh`, `${sgo.name()}`, 120, (boxId: Id) => {
-            let go = level.object_by_id(boxId);
-            if (go != null){
-                this.ShowHightlighOnObject(go, false)
-            }
-
-            return true;
-        }, sgo.id);
-    }
-
-    ShowHightlighOnObject(go: game_object, doShow: boolean){
-        if (doShow){
-            this.highlightedItems.add(go.id())
-            go.start_particles("weapons\\light_signal", "wpn_body")
-        }
-        else {
-            if (this.highlightedItems.has(go.id())){
-                go.stop_particles("weapons\\light_signal", "wpn_body")
-                this.highlightedItems.delete(go.id())
-            }
-        }
     }
 }
 

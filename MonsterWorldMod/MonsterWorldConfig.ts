@@ -155,6 +155,15 @@ export enum MonsterType {
     Cat = "Cat",
     Boar = "Boar",
     Snork = "Snork",
+    Lurker = "Lurker",
+    Bloodsucker = "Bloodsucker",
+    Fracture = "Fracture",
+    Flesh = "Flesh",
+    Chimera = "Chimera",
+    Burer = "Burer",
+    Controller = "Controller",
+    Psysucker = "Psysucker",
+    Giant = "Giant",
 };
 
 export enum MonsterRank {
@@ -195,17 +204,18 @@ export type MonsterConfig = {
 };
 
 export const MonsterConfigs: LuaTable<MonsterType, MonsterConfig> = new LuaTable();
-MonsterConfigs.set(MonsterType.Dog, {
-    type: MonsterType.Dog,
-    level_type: LevelType.Open,
+
+MonsterConfigs.set(MonsterType.Flesh, {
+    type: MonsterType.Flesh,
     level_start: 1,
-    hp_mult: 0.5,
-    xp_mult: 0.5,
-    squad_size_min: 6,
-    squad_size_max: 12,
-    common_section: "dog_weak_white",
-    elite_section: "dog_strong_red",
-    boss_section: "dog_strong_black",
+    level_type: LevelType.Open,
+    hp_mult: 1.4,
+    xp_mult: 1.2,
+    squad_size_min: 5,
+    squad_size_max: 10,
+    common_section: "flesh_01a_weak",
+    elite_section: "flesh_02a_normal",
+    boss_section: "flesh_bolot",
 });
 
 MonsterConfigs.set(MonsterType.Boar, {
@@ -214,15 +224,28 @@ MonsterConfigs.set(MonsterType.Boar, {
     level_start: 1,
     hp_mult: 1.25,
     squad_size_min: 4,
-    squad_size_max: 10,
+    squad_size_max: 8,
     common_section: "boar_01a_weak",
     elite_section: "boar_02a_strong",
     boss_section: "boar_02a_hard",
 });
 
+MonsterConfigs.set(MonsterType.Dog, {
+    type: MonsterType.Dog,
+    level_type: LevelType.Open,
+    level_start: 2,
+    hp_mult: 0.5,
+    xp_mult: 0.4,
+    squad_size_min: 6,
+    squad_size_max: 12,
+    common_section: "dog_weak_white",
+    elite_section: "dog_strong_red",
+    boss_section: "dog_strong_black",
+});
+
 MonsterConfigs.set(MonsterType.Cat, {
     type: MonsterType.Cat,
-    level_start: 2,
+    level_start: 3,
     level_type: LevelType.Open,
     hp_mult: 0.75,
     xp_mult: 0.75,
@@ -235,7 +258,7 @@ MonsterConfigs.set(MonsterType.Cat, {
 
 MonsterConfigs.set(MonsterType.PseudoDog, {
     type: MonsterType.PseudoDog,
-    level_start: 3,
+    level_start: 4,
     level_type: LevelType.All,
     hp_mult: 1.25,
     damage_mult: 1.25,
@@ -258,6 +281,110 @@ MonsterConfigs.set(MonsterType.Snork, {
     common_section: "snork_weak3",
     elite_section: "snork_strong2",
     boss_section: "snork_strong_no_mask",
+});
+
+MonsterConfigs.set(MonsterType.Lurker, {
+    type: MonsterType.Lurker,
+    level_start: 5,
+    level_type: LevelType.Open,
+    hp_mult: 1.5,
+    xp_mult: 1.25,
+    squad_size_min: 3,
+    squad_size_max: 8,
+    common_section: "lurker_1_weak",
+    elite_section: "lurker_2_normal",
+    boss_section: "lurker_3_strong",
+});
+
+MonsterConfigs.set(MonsterType.Bloodsucker, {
+    type: MonsterType.Bloodsucker,
+    level_start: 5,
+    level_type: LevelType.Underground | LevelType.Lab,
+    hp_mult: 1.5,
+    xp_mult: 1.25,
+    squad_size_min: 2,
+    squad_size_max: 4,
+    common_section: "bloodsucker_green_weak",
+    elite_section: "bloodsucker_red_normal",
+    boss_section: "bloodsucker_strong_big",
+});
+
+MonsterConfigs.set(MonsterType.Fracture, {
+    type: MonsterType.Fracture,
+    level_start: 7,
+    level_type: LevelType.NonLab,
+    hp_mult: 1.5,
+    xp_mult: 1.25,
+    squad_size_min: 3,
+    squad_size_max: 7,
+    common_section: "fracture_1",
+    elite_section: "fracture_2",
+    boss_section: "fracture_3",
+});
+
+MonsterConfigs.set(MonsterType.Burer, {
+    type: MonsterType.Burer,
+    level_start: 7,
+    level_type: LevelType.Lab | LevelType.Underground,
+    hp_mult: 2,
+    xp_mult: 1.5,
+    squad_size_min: 2,
+    squad_size_max: 5,
+    common_section: "burer_weak2",
+    elite_section: "burer_normal",
+    boss_section: "burer_blue_blue",
+});
+
+MonsterConfigs.set(MonsterType.Controller, {
+    type: MonsterType.Controller,
+    level_start: 7,
+    level_type: LevelType.Lab,
+    hp_mult: 6,
+    xp_mult: 2,
+    squad_size_min: 1,
+    squad_size_max: 3,
+    common_section: "m_controller_normal666",
+    elite_section: "m_controller_normal777",
+    boss_section: "m_controller_normal1111",
+});
+
+MonsterConfigs.set(MonsterType.Psysucker, {
+    type: MonsterType.Psysucker,
+    level_start: 15,
+    level_type: LevelType.Lab | LevelType.Underground,
+    hp_mult: 1.25,
+    xp_mult: 1.1,
+    squad_size_min: 3,
+    squad_size_max: 7,
+    common_section: "psysucker_white",
+    elite_section: "psysucker_brown",
+    boss_section: "psysucker_black",
+});
+
+MonsterConfigs.set(MonsterType.Giant, {
+    type: MonsterType.Giant,
+    level_start: 15,
+    level_type: LevelType.Open,
+    hp_mult: 8,
+    xp_mult: 2.5,
+    squad_size_min: 1,
+    squad_size_max: 3,
+    common_section: "gigant_weak",
+    elite_section: "gigant_normal",
+    boss_section: "gigant_strong",
+});
+
+MonsterConfigs.set(MonsterType.Chimera, {
+    type: MonsterType.Chimera,
+    level_start: 15,
+    level_type: LevelType.Open,
+    hp_mult: 3,
+    xp_mult: 1.5,
+    squad_size_min: 2,
+    squad_size_max: 5,
+    common_section: "chimera_weak",
+    elite_section: "chimera_strong",
+    boss_section: "chimera_strong4",
 });
 
 //Player params
@@ -306,7 +433,7 @@ export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
 
 //Drops
-export let EnemyDropChance = 100;//20;
+export let EnemyDropChance = 200;
 export let EnemyBossDropChance = 100;
 export let EnemyEliteDropChance = 50;
 export let MinQuality = 1;
@@ -327,6 +454,14 @@ export let Qualities: {[key: number]: string} = {
     3: "Rare",
     4: "Epic",
     5: "Legendary",
+};
+//Funny mess - anomaly2\\body_tear_00
+export let ParticlesByQuality: {[key: number]: string} = {
+    1: "industrial_particles\\exhaust_workshop_1_small", 
+    2: "anomaly2\\electra_damage_02_smoke",
+    3: "artefact\\af_acidic_idle",
+    4: "artefact\\af_thermal_idle",
+    5: "weapons\\rpg_trail_01",
 };
 
 export let QualityColors: {[key: number]: string} = {
