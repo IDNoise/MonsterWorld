@@ -97,7 +97,8 @@ export class MonsterWorldMod extends StalkerModBase {
 
         this.World.OnPlayerHit(shit.draftsman);  
 
-        shit.power = 0.0000001;
+        shit.power = 0;
+        shit.impulse = 0;
         return true; 
     }
 
