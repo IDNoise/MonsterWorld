@@ -272,7 +272,7 @@ export let PlayerPointsPerLevelUp = 1;
 //Monster params
 export let EnemyHPBase = 50;
 export let EnemyHPExpPerLevel = 1.1;
-export let EnemyHPPctPerLevel = 30;
+export let EnemyHPPctPerLevel = 25;
 export let EnemyHpDeltaPct = 10;
 
 export let EnemyDamageBase = PlayerHPBase / 25;
@@ -300,7 +300,7 @@ export let EnemyEliteDropLevelIncreaseChance = 20;
 export let EnemyEliteDropQualityIncreaseChance = 20;
 
 //Weapons
-export let WeaponDPSBase = EnemyHPBase / 0.5;
+export let WeaponDPSBase = EnemyHPBase / 0.2;
 export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel;
 export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;

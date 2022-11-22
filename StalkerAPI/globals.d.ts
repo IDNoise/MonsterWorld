@@ -191,8 +191,8 @@ declare function alife_create_item(section: string, place: game_object | WorldPo
 declare function alife_create(section: string, place: vector | smart_terrain.se_smart_terrain, 
     lvid?: LevelVertexId, gvid?: GameVertexId): cse_alife_object; //TODO - more arguments?
 declare function alife_object(id: Id): cse_alife_object;
-declare function create_ammo(section: string, place: WorldPosition, lvid: LevelVertexId, 
-    gvid: GameVertexId, ownerId: Id, num: number): cse_alife_item_ammo[];
+declare function create_ammo(section: string, place: WorldPosition, lvid: LevelVertexId, gvid: GameVertexId, ownerId: Id, num: number): cse_alife_item_ammo[];
+declare function alife_release(se_obj: cse_alife_object, msg?: string): void;
 
 //script callbacks
 declare interface CallbackReturnFlags {

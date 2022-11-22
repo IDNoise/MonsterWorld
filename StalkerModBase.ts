@@ -114,6 +114,10 @@ export class StalkerModBase {
         //Log(`OnItemTake ${item.name()}`)
     }
 
+    protected OnItemDrop(item: game_object) {
+        Log(`OnItemDrop ${item.name()}`)
+    }
+
     // GUI
     protected OnItemFocusReceive(item: game_object): void{
         //Log(`OnItemFocusReceive ${item.section()}:${item.id()}`);
@@ -134,6 +138,8 @@ export class StalkerModBase {
             flags.ret_value = this.OnActorBeforeHit(shit, boneId)
         });
         RegisterScriptCallback("actor_on_hit_callback",  (amount, localDirection, attacker, boneId) => this.OnActorHit(amount, localDirection, attacker, boneId));
+        RegisterScriptCallback("actor_on_item_take", (item: game_object) => this.OnItemTake(item))
+        RegisterScriptCallback("actor_on_item_drop",  (item) => this.OnItemDrop(item));
         // actor_on_before_death		            = {}, -- Params: (<number>,<table>)
         // actor_on_weapon_fired		            = {}, -- Params: (<game_object>,<game_object>,<number>,<number>,<number>,<number>)
         // actor_on_weapon_jammed		            = {}, -- Params: (<game_object>)
@@ -143,10 +149,8 @@ export class StalkerModBase {
         // actor_on_weapon_reload		            = {}, -- Params: (<game_object>,<number>)
         // actor_on_weapon_zoom_in		            = {}, -- Params: (<game_object>)
         // actor_on_weapon_zoom_out	            = {}, -- Params: (<game_object>)
-        // actor_on_item_take			            = {}, -- Params: (<game_object>)
         // actor_on_item_take_from_box             = {}, -- Params: (<game_object>,<game_object>)
         // actor_on_item_put_in_box 	            = {}, -- Params: (<game_object>,<game_object>)
-        // actor_on_item_drop			            = {}, -- Params: (<game_object>)
         // actor_on_item_use			            = {}, -- Params: (<game_object>,<string>)
         // actor_on_item_before_use			    = {}, -- Params: (<game_object>,<table>)
         // actor_on_item_before_pickup				= {}, -- Params: (<game_object>,<table>)
@@ -317,8 +321,6 @@ export class StalkerModBase {
         // on_before_surge							= {}, -- Params: (<table>)
         // on_before_psi_storm						= {}, -- Params: (<table>)
         // on_get_item_cost						= {}, -- look at bottom of utils_item.script for detailed explanation
-
-        RegisterScriptCallback("actor_on_item_take", (item: game_object) => this.OnItemTake(item))
 
         let oldItemNetSpawn = bind_item.item_binder.net_spawn;
         let newItemNetSpawn = (s: any, serverGO: cse_alife_item) => {
