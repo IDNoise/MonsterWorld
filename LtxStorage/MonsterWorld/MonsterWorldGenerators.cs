@@ -120,8 +120,8 @@ public class WeaponsGenerator : BaseGenerator
             inv_weight               = 0.00001f,
             hit_impulse              = 50,
             sprint_allowed           = true,
-            startup_ammo             = 300,
-            ph_mass                  = 10000,
+            startup_ammo             = 500,
+            ph_mass                  = 100000,
             
             //upgrades
             upgrades                 = "",

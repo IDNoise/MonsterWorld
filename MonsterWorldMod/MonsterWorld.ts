@@ -64,6 +64,14 @@ export class MonsterWorld {
         this.ShowHightlighOnObject(item, false)
     }
 
+    public OnWeaponFired(wpn: game_object, ammo_elapsed: number) {
+        let weapon = this.GetWeapon(wpn.id())
+        if (weapon != undefined && weapon.Section.endsWith("_mw") && weapon.GO.get_ammo_total() < 500){
+            let ammo = ini_sys.r_sec_ex(weapon.Section, "ammo_class")
+            alife_create_item(ammo, this.Player.GO, {ammo: 1});
+        }
+    }
+
     public OnPlayerSpawned():void{
         // db.actor.inventory_for_each((item) => {
         //     if (item.is_weapon())

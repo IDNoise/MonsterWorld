@@ -52,6 +52,12 @@ export class MonsterWorldMod extends StalkerModBase {
         alife_release(alife().object(item.id()))
     }
 
+    protected override OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void {
+        if(obj.id() == 0){
+            this.World.OnWeaponFired(wpn, ammo_elapsed)
+        }
+    }
+
     // protected override OnItemFocusReceive(item: game_object): void {
     //     super.OnItemFocusReceive(item);
     //     //this.world.GetWeapon(item.id());
