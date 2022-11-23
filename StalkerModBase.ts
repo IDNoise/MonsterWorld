@@ -12,6 +12,8 @@ export class StalkerModBase {
     static ModName: string = "StarlkerModBase";
     static IsLogEnabled: boolean = true;
 
+    private lastFrameTime: number = 0;
+
     //Player
     protected OnBeforeLevelChanging() : void {
         Log("OnBeforeLevelChanging")
@@ -26,8 +28,16 @@ export class StalkerModBase {
         //Log("OnActorFirstUpdate")
     }
     protected OnActorUpdate() : void {
+        let time = time_global();
+        let deltaTime = (time - this.lastFrameTime) / 1000;
+        this.OnUpdate(deltaTime);
+        this.lastFrameTime = time;
         //Log("OnActorUpdate")
     }
+    protected OnUpdate(deltaTime: number){
+
+    }
+
     protected OnActorBeforeHit(shit: hit, boneId: BoneId): boolean {
         //Log(`OnActorBeforeHit by ${shit.draftsman && shit.draftsman.section()}:${shit.draftsman && shit.draftsman.id()} with type: ${shit.type} and power: ${shit.power} from weapon_id: ${shit.weapon_id || "None"}`)
         return true;

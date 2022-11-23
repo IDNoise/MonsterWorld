@@ -17,6 +17,7 @@ export class MonsterWorld {
 
     public SpawnManager: MonsterWorldSpawns;
     public UIManager: MonsterWorldUI;
+    public DeltaTime: number;
 
     constructor(public mod: MonsterWorldMod){
         this.monsters = new LuaTable();
@@ -47,23 +48,23 @@ export class MonsterWorld {
         return this.player;
     }
 
-    GetMonster(monsterId: Id): MWMonster | undefined {
+    public GetMonster(monsterId: Id): MWMonster | undefined {
         if (!this.monsters.has(monsterId) && (level.object_by_id(monsterId)?.is_monster() || level.object_by_id(monsterId)?.is_stalker())){
             this.monsters.set(monsterId, new MWMonster(this, monsterId));
         }
         return this.monsters.get(monsterId);
     }
 
-    DestroyObject(id:Id) {
-        this.monsters.delete(id);
-        this.weapons.delete(id);
-    }
-
-    GetWeapon(itemId: Id): MWWeapon {
-        if (!this.weapons.has(itemId) && level.object_by_id(itemId)?.is_weapon()){    
+    public GetWeapon(itemId: Id): MWWeapon {
+        if (!this.weapons.has(itemId) && alife().object(itemId) != null && level.object_by_id(itemId)?.is_weapon()){    
             this.weapons.set(itemId, new MWWeapon(this, itemId));
         }
         return this.weapons.get(itemId);
+    }
+
+    public DestroyObject(id:Id) {
+        this.monsters.delete(id);
+        this.weapons.delete(id);
     }
 
     public OnTakeItem(item: game_object) {
@@ -99,11 +100,16 @@ export class MonsterWorld {
         this.UIManager.Load(data)
     }
 
-    public Update() {
+    public Update(deltaTime: number) {
+        this.DeltaTime = deltaTime;
         this.UIManager.Update();
+        this.Player.RegenHP(deltaTime)
+        for(let [_, monster] of this.monsters){
+            monster.RegenHP(deltaTime)
+        }
     }
 
-    public OnPlayerHit(shit: hit) {
+    public OnPlayerHit(shit: hit, boneId: BoneId) {
         let attackerGO = shit.draftsman;
         if (!attackerGO.is_monster() && !attackerGO.is_stalker())
             return;
@@ -119,9 +125,9 @@ export class MonsterWorld {
                 damage *= weapon.cast_Weapon().RPM() * 1.2; //small increase for ranged attacks
         }
 
-        this.Player.HP -= damage;
+        this.Player.HP -= math.max(1, damage);
 
-        Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage})`)
+        Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage}) in ${boneId}`)
     }
 
     public OnMonstersHit(monsterHitsThisFrame: Map<Id, HitInfo>) {

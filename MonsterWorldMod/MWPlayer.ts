@@ -1,4 +1,4 @@
-import { BaseMWObject } from './BaseMWObject';
+import { BaseMWObject, StatType } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
 
@@ -8,17 +8,17 @@ export class MWPlayer extends BaseMWObject {
     }
 
     override Initialize(): void {
-        let baseHP = cfg.PlayerHPBase;
-
-        this.Level = 1;
+        this.Level = 0;
         this.CurrentXP = 0;
-        this.MaxHP = baseHP;
-        this.HP = baseHP;
+        this.SetStatBase(StatType.MaxHP, cfg.PlayerHPBase)
+        this.SetStatBase(StatType.RunSpeed, 1)
+        this.SetStatBase(StatType.SprintSpeed, 1)
+        this.SetStatBase(StatType.HPRegen, cfg.PlayerHPRegenBase)
     }
 
     get RequeiredXP(): number {
-        let expMult = math.pow(cfg.PlayerXPExp, this.Level - 1);
-        let pctMult = (1 + cfg.PlayerXPPct * (this.Level - 1) / 100)
+        let expMult = math.pow(cfg.PlayerXPExp, this.Level);
+        let pctMult = (1 + cfg.PlayerXPPct * this.Level / 100)
         let xp = cfg.PlayerXPForFirstLevel * expMult * pctMult;
         return math.floor(xp)
     }
@@ -35,10 +35,32 @@ export class MWPlayer extends BaseMWObject {
     private LevelUp(): void{
         this.Level++;
         this.StatPoints += cfg.PlayerPointsPerLevelUp;
-        this.MaxHP += cfg.PlayerHPPerLevel;
-        //TODO lvl up notification
+        this.UpdateLevelBonuses();
+        this.mw.UIManager.ShowLevelUpMessage(this.Level);
+    }
+
+    protected override Reinit(): void {
+        super.Reinit();
+        this.UpdateLevelBonuses();
+    }
+
+    UpdateLevelBonuses(): void{
+        this.AddStatPctBonus(StatType.MaxHP, cfg.PlayerHPPerLevel * this.Level, "level_bonus");
+        this.AddStatPctBonus(StatType.HPRegen, cfg.PlayerHPRegenPctPerLevel * this.Level, "level_bonus");
+        this.AddStatPctBonus(StatType.RunSpeed, cfg.PlayerRunSpeedPctPerLevel * this.Level, "level_bonus");
     }
 
     get StatPoints(): number { return this.Load("StatPoints", 0); }
     set StatPoints(points: number) { this.Save("StatPoints", points); }
+
+    protected override OnStatChanged(stat: StatType, total: number): void {
+        super.OnStatChanged(stat, total);
+        if (stat == StatType.RunSpeed){
+            db.actor.set_actor_run_coef(cfg.PlayerRunSpeedCoeff * total)
+            db.actor.set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * total)
+        }
+        else if (stat == StatType.SprintSpeed){
+            db.actor.set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * total)
+        }
+    }
 }

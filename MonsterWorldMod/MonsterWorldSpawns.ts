@@ -86,7 +86,7 @@ export class MonsterWorldSpawns {
             let selectedMonsters: MonsterType[] = [];
             for(const [monsterType, monsterCfg] of cfg.MonsterConfigs){
                 //Log(`Level check: ${monsterCfg.level_start} > ${locationCfg.level} = ${(monsterCfg.level_start > locationCfg.level)}`)
-                if (monsterCfg.level_start > locationCfg.level)
+                if (monsterCfg.level_start > locationCfg.level || (monsterCfg.level_end || 100) < locationCfg.level)
                     continue;
                 //Log(`LevelType check: ${monsterCfg.level_type} & ${locationCfg.type} = ${(monsterCfg.level_type & locationCfg.type)}`)
                 if ((monsterCfg.level_type & locationCfg.type) != locationCfg.type)

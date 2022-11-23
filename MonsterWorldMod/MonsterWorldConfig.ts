@@ -193,6 +193,7 @@ export type  WeaponSpawnParams = {
 export type MonsterConfig = {
     type: MonsterType,
     level_start: number;
+    level_end?: number;
     level_type: LevelType;
     max_squads_per_smart?: number;
 
@@ -212,6 +213,7 @@ export const MonsterConfigs: LuaTable<MonsterType, MonsterConfig> = new LuaTable
 MonsterConfigs.set(MonsterType.Bandit, {
     type: MonsterType.Bandit,
     level_start: 1,
+    level_end: 8,
     level_type: LevelType.NonLab,
     squad_size_min: 5,
     squad_size_max: 12,
@@ -223,6 +225,7 @@ MonsterConfigs.set(MonsterType.Bandit, {
 MonsterConfigs.set(MonsterType.Flesh, {
     type: MonsterType.Flesh,
     level_start: 1,
+    level_end: 3,
     level_type: LevelType.Open,
     hp_mult: 1.4,
     xp_mult: 1.2,
@@ -236,7 +239,8 @@ MonsterConfigs.set(MonsterType.Flesh, {
 MonsterConfigs.set(MonsterType.Boar, {
     type: MonsterType.Boar,
     level_type: LevelType.Open,
-    level_start: 1,
+    level_start: 2,
+    level_end: 9,
     hp_mult: 1.25,
     squad_size_min: 4,
     squad_size_max: 8,
@@ -248,7 +252,8 @@ MonsterConfigs.set(MonsterType.Boar, {
 MonsterConfigs.set(MonsterType.Dog, {
     type: MonsterType.Dog,
     level_type: LevelType.Open,
-    level_start: 2,
+    level_start: 1,
+    level_end: 7,
     hp_mult: 0.5,
     xp_mult: 0.4,
     squad_size_min: 6,
@@ -265,7 +270,7 @@ MonsterConfigs.set(MonsterType.Zombified, {
     hp_mult: 1.5,
     xp_mult: 1,
     damage_mult: 0.75,
-    squad_size_min: 6,
+    squad_size_min: 5,
     squad_size_max: 12,
     common_section: "sim_default_zombied_2",
     elite_section: "sim_default_zombied_3",
@@ -275,6 +280,7 @@ MonsterConfigs.set(MonsterType.Zombified, {
 MonsterConfigs.set(MonsterType.Cat, {
     type: MonsterType.Cat,
     level_start: 3,
+    level_end: 14,
     level_type: LevelType.Open,
     hp_mult: 0.75,
     xp_mult: 0.75,
@@ -345,7 +351,7 @@ MonsterConfigs.set(MonsterType.Bloodsucker, {
     damage_mult: 1.5,
     xp_mult: 2,
     squad_size_min: 2,
-    squad_size_max: 4,
+    squad_size_max: 5,
     common_section: "bloodsucker_green_weak",
     elite_section: "bloodsucker_red_normal",
     boss_section: "bloodsucker_strong_big",
@@ -353,7 +359,8 @@ MonsterConfigs.set(MonsterType.Bloodsucker, {
 
 MonsterConfigs.set(MonsterType.Fracture, {
     type: MonsterType.Fracture,
-    level_start: 7,
+    level_start: 6,
+    level_end: 16,
     level_type: LevelType.NonLab,
     hp_mult: 1.75,
     xp_mult: 1.35,
@@ -395,8 +402,8 @@ MonsterConfigs.set(MonsterType.Sin, {
     type: MonsterType.Sin,
     level_start: 8,
     level_type: LevelType.NonLab,
-    squad_size_min: 4,
-    squad_size_max: 10,
+    squad_size_min: 6,
+    squad_size_max: 12,
     common_section: "sim_default_greh_2",
     elite_section: "sim_default_greh_3",
     boss_section: "sim_default_greh_4",
@@ -435,8 +442,8 @@ MonsterConfigs.set(MonsterType.Mercenary, {
     type: MonsterType.Mercenary,
     level_start: 12,
     level_type: LevelType.NonLab,
-    squad_size_min: 4,
-    squad_size_max: 10,
+    squad_size_min: 7,
+    squad_size_max: 14,
     common_section: "sim_default_killer_2",
     elite_section: "sim_default_killer_3",
     boss_section: "sim_default_killer_4",
@@ -464,8 +471,8 @@ MonsterConfigs.set(MonsterType.MonolithSoldier, {
     hp_mult: 2.5,
     xp_mult: 1.75,
     damage_mult: 1.5,
-    squad_size_min: 4,
-    squad_size_max: 8,
+    squad_size_min: 8,
+    squad_size_max: 16,
     common_section: "sim_default_monolith_2",
     elite_section: "sim_default_monolith_3",
     boss_section: "sim_monolith_sniper",
@@ -474,6 +481,13 @@ MonsterConfigs.set(MonsterType.MonolithSoldier, {
 //Player params
 export let PlayerHPBase = 100;
 export let PlayerHPPerLevel = 10;
+export let PlayerHPRegenBase = 0.2;
+export let PlayerHPRegenPctPerLevel = 10;
+export let PlayerRunSpeedPctPerLevel = 2;
+
+export let PlayerRunSpeedCoeff = 2.4;
+export let PlayerRunBackSpeedCoeff = 1.4;
+export let PlayerSprintSpeedCoeff = 2.1;
 
 export let PlayerXPForFirstLevel = 250;
 export let PlayerXPExp = 1.3;

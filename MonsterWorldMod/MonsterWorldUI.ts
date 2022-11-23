@@ -19,6 +19,9 @@ export class MonsterWorldUI {
     private damageNumbers: DamageNumberEntry[] = [];
     private xpRewardNumbers: XPNumberEntry[] = [];
     
+    private levelUpText: CUITextWnd;
+    private levelUpShowTime: number = 0;
+
     private enemyHP: CUIStatic;
     private enemyHPBarName: CUITextWnd;
     private enemyHPBarValue: CUITextWnd;
@@ -72,11 +75,11 @@ export class MonsterWorldUI {
                 let xml = new CScriptXmlInit()
                 xml.ParseFile("ui_monster_world.xml")
                 s.mwLevel = xml.InitStatic(`item_additions:level_text`, s.cell)
-                s.mwLevel.TextControl().SetFont(GetFontGraffiti19Russian())
+                s.mwLevel.TextControl().SetFont(GetFontLetterica16Russian())
             }
 
             s.mwLevel.SetWndPos(new vector2().set(3, s.cell.GetHeight() - 14))
-            s.mwLevel.TextControl().SetText(`L. ${weapon.Level}`)
+            s.mwLevel.TextControl().SetText(`L.${weapon.Level}   DPS:${math.floor(weapon.DPS)}`)
             s.mwLevel.TextControl().SetTextColor(cfg.QualityColors[weapon.Quality])
             s.mwLevel.Show(true)
 
@@ -135,6 +138,13 @@ export class MonsterWorldUI {
         this.UpdateDamageNumbers();
         this.UpdateXpRewardNumbers();
         this.UpdatePlayerLevelBar();
+        this.UpdateLevelUpMessage();
+    }
+
+    public ShowLevelUpMessage(newLevel: number) {
+        this.levelUpShowTime = time_global();
+        this.levelUpText.Show(true);
+        this.levelUpText.SetText(`LEVEL UP! NEW LEVEL: ${newLevel}`)
     }
 
     public ShowDamage(damage: number, isCrit: boolean = false, isKillHit: boolean = false){
@@ -211,6 +221,10 @@ export class MonsterWorldUI {
                     showTime: 0
                 });
             }
+
+            Log(`Initializing level_up`)
+            this.levelUpText = xml.InitTextWnd("level_up", cs.wnd())
+            this.levelUpText.Show(false);
             
             Log(`Initializing enemy_health`)
             this.enemyHP = xml.InitStatic("enemy_health", cs.wnd());
@@ -301,6 +315,17 @@ export class MonsterWorldUI {
                 text.SetWndPos(pos);
             }
         }
+    }
+
+    private UpdateLevelUpMessage(){
+        if (time_global() - this.levelUpShowTime > 3000){
+            this.levelUpText.Show(false);
+            return;
+        }
+
+        let pos = this.levelUpText.GetWndPos()
+        pos.y -= 0.35;
+        this.levelUpText.SetWndPos(pos)     
     }
 
     private UpdatePlayerLevelBar(){

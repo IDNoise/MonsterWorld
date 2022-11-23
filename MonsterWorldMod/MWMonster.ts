@@ -1,5 +1,5 @@
 import { IsPctRolled, Save } from '../StalkerAPI/extensions/basic';
-import { BaseMWObject } from './BaseMWObject';
+import { BaseMWObject, StatType } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
 import { MonsterSpawnParams, MonsterRank, MonsterType, MonsterConfigs } from './MonsterWorldConfig';
@@ -22,8 +22,7 @@ export class MWMonster extends BaseMWObject{
         let xpReward = this.GetXPReward(this.Level) * (monsterCfg.xp_mult || 1) * cfg.EnemyXpMultsByRank[this.Rank];
         let enemyDamage = this.GetDamage(this.Level) * (monsterCfg.damage_mult || 1) * cfg.EnemyDamageMultsByRank[this.Rank];
 
-        this.MaxHP = enemyHP;
-        this.HP = enemyHP;
+        this.SetStatBase(StatType.MaxHP, enemyHP)
         this.Damage = enemyDamage;
         this.XPReward = xpReward;
 

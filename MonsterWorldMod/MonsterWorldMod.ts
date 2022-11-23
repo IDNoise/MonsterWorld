@@ -7,9 +7,7 @@ import { MWMonster } from './MWMonster';
 export class MonsterWorldMod extends StalkerModBase {
     public World: MonsterWorld;
 
-    private hitsThisFrame: [Id, Id][] = [];
-    private lastHitFrame: number = -1;
-    
+    private playerHitsThisFrame: LuaSet<Id> = new LuaSet();
     private monsterHitsThisFrame: Map<Id, HitInfo> = new Map();
 
     constructor(){
@@ -91,23 +89,25 @@ export class MonsterWorldMod extends StalkerModBase {
         this.World.OnPlayerSpawned();
     }
 
-    protected override OnActorUpdate(): void {
-        super.OnActorUpdate();
-        this.World.Update();
+    protected override OnUpdate(deltaTime: number): void {
+        super.OnUpdate(deltaTime);
+        this.World.Update(deltaTime);
 
         if (this.monsterHitsThisFrame.size > 0){
             this.World.OnMonstersHit(this.monsterHitsThisFrame);
             this.monsterHitsThisFrame = new Map();
         }
+
+        this.playerHitsThisFrame = new LuaSet();
     }
 
     protected override OnActorBeforeHit(shit: hit, boneId: BoneId): boolean {
         super.OnActorBeforeHit(shit, boneId);   
         
-        if (!this.CanHit(db.actor.id(), shit.draftsman.id())) 
+        if (!this.CanHitPlayer(shit.draftsman.id())) 
             return false;
 
-        this.World.OnPlayerHit(shit);  
+        this.World.OnPlayerHit(shit, boneId);  
 
         shit.power = 0;
         shit.impulse = 0;
@@ -123,13 +123,13 @@ export class MonsterWorldMod extends StalkerModBase {
         return this.World.SpawnManager.OnTryRespawn(smart);
     }
 
-    protected override OnMonsterBeforeHit(monsgerGO: game_object, shit: hit, boneId: BoneId): boolean {
-        super.OnMonsterBeforeHit(monsgerGO, shit, boneId);
+    protected override OnMonsterBeforeHit(monsterGO: game_object, shit: hit, boneId: BoneId): boolean {
+        super.OnMonsterBeforeHit(monsterGO, shit, boneId);
 
-        if (monsgerGO.health <= 0 || shit.draftsman.id() != 0)// || (shit.type != HitType.fire_wound && shit.type != HitType.wound))
+        if (monsterGO.health <= 0 || shit.draftsman.id() != 0)// || (shit.type != HitType.fire_wound && shit.type != HitType.wound))
             return false;
 
-        let monster = this.World.GetMonster(monsgerGO.id())
+        let monster = this.World.GetMonster(monsterGO.id())
         if (monster == undefined) 
             return false;
 
@@ -164,16 +164,11 @@ export class MonsterWorldMod extends StalkerModBase {
         this.World.OnMonsterKilled(monster)
     }
 
-    CanHit(target: Id, attacker: Id): boolean {
-        if (this.lastHitFrame != time_global()) {
-            this.hitsThisFrame = [];
-            this.lastHitFrame = time_global();
-        }
-
-        if (this.hitsThisFrame.indexOf([target, attacker]) >= 0)
+    CanHitPlayer(attackerId: Id): boolean {
+        if (this.playerHitsThisFrame.has(attackerId))
             return false;
 
-        this.hitsThisFrame.push([target, attacker]);
+        this.playerHitsThisFrame.add(attackerId);
         return true;
     }
 }

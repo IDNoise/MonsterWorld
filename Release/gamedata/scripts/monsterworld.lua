@@ -2569,6 +2569,7 @@ ____exports.StalkerModBase = __TS__Class()
 local StalkerModBase = ____exports.StalkerModBase
 StalkerModBase.name = "StalkerModBase"
 function StalkerModBase.prototype.____constructor(self)
+    self.lastFrameTime = 0
 end
 function StalkerModBase.prototype.OnBeforeLevelChanging(self)
     ____exports.Log("OnBeforeLevelChanging")
@@ -2581,6 +2582,12 @@ end
 function StalkerModBase.prototype.OnActorFirstUpdate(self)
 end
 function StalkerModBase.prototype.OnActorUpdate(self)
+    local time = time_global()
+    local deltaTime = (time - self.lastFrameTime) / 1000
+    self:OnUpdate(deltaTime)
+    self.lastFrameTime = time
+end
+function StalkerModBase.prototype.OnUpdate(self, deltaTime)
 end
 function StalkerModBase.prototype.OnActorBeforeHit(self, shit, boneId)
     return true
@@ -2661,6 +2668,10 @@ function StalkerModBase.prototype.RegisterCallbacks(self)
     RegisterScriptCallback(
         "actor_on_update",
         function() return self:OnActorUpdate() end
+    )
+    RegisterScriptCallback(
+        "actor_on_before_death",
+        function(...) return self:OnActorUpdate() end
     )
     RegisterScriptCallback(
         "actor_on_before_hit",
@@ -3056,7 +3067,7 @@ ____exports.MonsterType.Bandit = "Bandit"
 ____exports.MonsterType.Mercenary = "Mercenary"
 ____exports.MonsterType.Sin = "Sin"
 ____exports.MonsterType.Army = "Army"
-____exports.MonsterType.Zombified = "Zombie"
+____exports.MonsterType.Zombified = "Zombified"
 ____exports.MonsterRank = MonsterRank or ({})
 ____exports.MonsterRank.Common = 0
 ____exports.MonsterRank[____exports.MonsterRank.Common] = "Common"
@@ -3068,6 +3079,7 @@ ____exports.MonsterConfigs = {}
 ____exports.MonsterConfigs[____exports.MonsterType.Bandit] = {
     type = ____exports.MonsterType.Bandit,
     level_start = 1,
+    level_end = 8,
     level_type = ____exports.LevelType.NonLab,
     squad_size_min = 5,
     squad_size_max = 12,
@@ -3078,6 +3090,7 @@ ____exports.MonsterConfigs[____exports.MonsterType.Bandit] = {
 ____exports.MonsterConfigs[____exports.MonsterType.Flesh] = {
     type = ____exports.MonsterType.Flesh,
     level_start = 1,
+    level_end = 3,
     level_type = ____exports.LevelType.Open,
     hp_mult = 1.4,
     xp_mult = 1.2,
@@ -3090,7 +3103,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Flesh] = {
 ____exports.MonsterConfigs[____exports.MonsterType.Boar] = {
     type = ____exports.MonsterType.Boar,
     level_type = ____exports.LevelType.Open,
-    level_start = 1,
+    level_start = 2,
+    level_end = 9,
     hp_mult = 1.25,
     squad_size_min = 4,
     squad_size_max = 8,
@@ -3101,7 +3115,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Boar] = {
 ____exports.MonsterConfigs[____exports.MonsterType.Dog] = {
     type = ____exports.MonsterType.Dog,
     level_type = ____exports.LevelType.Open,
-    level_start = 2,
+    level_start = 1,
+    level_end = 7,
     hp_mult = 0.5,
     xp_mult = 0.4,
     squad_size_min = 6,
@@ -3117,7 +3132,7 @@ ____exports.MonsterConfigs[____exports.MonsterType.Zombified] = {
     hp_mult = 1.5,
     xp_mult = 1,
     damage_mult = 0.75,
-    squad_size_min = 6,
+    squad_size_min = 5,
     squad_size_max = 12,
     common_section = "sim_default_zombied_2",
     elite_section = "sim_default_zombied_3",
@@ -3126,6 +3141,7 @@ ____exports.MonsterConfigs[____exports.MonsterType.Zombified] = {
 ____exports.MonsterConfigs[____exports.MonsterType.Cat] = {
     type = ____exports.MonsterType.Cat,
     level_start = 3,
+    level_end = 14,
     level_type = ____exports.LevelType.Open,
     hp_mult = 0.75,
     xp_mult = 0.75,
@@ -3191,14 +3207,15 @@ ____exports.MonsterConfigs[____exports.MonsterType.Bloodsucker] = {
     damage_mult = 1.5,
     xp_mult = 2,
     squad_size_min = 2,
-    squad_size_max = 4,
+    squad_size_max = 5,
     common_section = "bloodsucker_green_weak",
     elite_section = "bloodsucker_red_normal",
     boss_section = "bloodsucker_strong_big"
 }
 ____exports.MonsterConfigs[____exports.MonsterType.Fracture] = {
     type = ____exports.MonsterType.Fracture,
-    level_start = 7,
+    level_start = 6,
+    level_end = 16,
     level_type = ____exports.LevelType.NonLab,
     hp_mult = 1.75,
     xp_mult = 1.35,
@@ -3237,8 +3254,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Sin] = {
     type = ____exports.MonsterType.Sin,
     level_start = 8,
     level_type = ____exports.LevelType.NonLab,
-    squad_size_min = 4,
-    squad_size_max = 10,
+    squad_size_min = 6,
+    squad_size_max = 12,
     common_section = "sim_default_greh_2",
     elite_section = "sim_default_greh_3",
     boss_section = "sim_default_greh_4"
@@ -3274,8 +3291,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Mercenary] = {
     type = ____exports.MonsterType.Mercenary,
     level_start = 12,
     level_type = ____exports.LevelType.NonLab,
-    squad_size_min = 4,
-    squad_size_max = 10,
+    squad_size_min = 7,
+    squad_size_max = 14,
     common_section = "sim_default_killer_2",
     elite_section = "sim_default_killer_3",
     boss_section = "sim_default_killer_4"
@@ -3301,52 +3318,53 @@ ____exports.MonsterConfigs[____exports.MonsterType.MonolithSoldier] = {
     hp_mult = 2.5,
     xp_mult = 1.75,
     damage_mult = 1.5,
-    squad_size_min = 4,
-    squad_size_max = 8,
+    squad_size_min = 8,
+    squad_size_max = 16,
     common_section = "sim_default_monolith_2",
     elite_section = "sim_default_monolith_3",
     boss_section = "sim_monolith_sniper"
 }
 ____exports.PlayerHPBase = 100
 ____exports.PlayerHPPerLevel = 10
+____exports.PlayerHPRegenBase = 0.2
+____exports.PlayerHPRegenPctPerLevel = 10
+____exports.PlayerRunSpeedPctPerLevel = 2
+____exports.PlayerRunSpeedCoeff = 2.4
+____exports.PlayerRunBackSpeedCoeff = 1.4
+____exports.PlayerSprintSpeedCoeff = 2.1
 ____exports.PlayerXPForFirstLevel = 250
 ____exports.PlayerXPExp = 1.3
 ____exports.PlayerXPPct = 100
 ____exports.PlayerPointsPerLevelUp = 1
 ____exports.EnemyHPBase = 50
-____exports.EnemyHPExpPerLevel = 1.1
-____exports.EnemyHPPctPerLevel = 25
+____exports.EnemyHPExpPerLevel = 1.15
+____exports.EnemyHPPctPerLevel = 75
 ____exports.EnemyHpDeltaPct = 10
-____exports.EnemyDamageBase = ____exports.PlayerHPBase / 25
-____exports.EnemyDamageExpPerLevel = 1
+____exports.EnemyDamageBase = ____exports.PlayerHPBase / 20
+____exports.EnemyDamageExpPerLevel = 1.025
 ____exports.EnemyDamagePctPerLevel = 10
-____exports.EnemyXpRewardBase = 10
+____exports.EnemyXpRewardBase = ____exports.PlayerXPForFirstLevel / 20
 ____exports.EnemyXpRewardExpPerLevel = 1.25
-____exports.EnemyXpRewardPctPerLevel = 25
+____exports.EnemyXpRewardPctPerLevel = 50
 ____exports.EnemyHigherLevelChance = 5
 ____exports.EnemyEliteChance = 15
 ____exports.EnemyBossChance = 5
-____exports.EnemyBossHPMult = 10
-____exports.EnemyBossXPRewardMult = 10
-____exports.EnemyBossDamageMult = 2.5
-____exports.EnemyBossDropLevelIncreaseChance = 50
-____exports.EnemyBossDropQualityIncreaseChance = 50
-____exports.EnemyEliteHPMult = 3
-____exports.EnemyEliteXPRewardMult = 3
-____exports.EnemyEliteDamageMult = 1.5
-____exports.EnemyEliteDropLevelIncreaseChance = 20
-____exports.EnemyEliteDropQualityIncreaseChance = 20
-____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.2
-____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel
+____exports.EnemyHpMultsByRank = {1, 3, 10}
+____exports.EnemyXpMultsByRank = {1, 3, 10}
+____exports.EnemyDamageMultsByRank = {1, 1.5, 3}
+____exports.EnemyDropLevelIncreaseChanceByRank = {1, 20, 50}
+____exports.EnemyDropQualityIncreaseChanceByRank = {1, 20, 50}
+____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.3
+____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel - 0.005
 ____exports.WeaponDPSDeltaPct = 10
 ____exports.WeaponDPSPctPerQuality = 25
-____exports.EnemyDropChance = 200
+____exports.EnemyDropChance = 10
 ____exports.EnemyBossDropChance = 100
-____exports.EnemyEliteDropChance = 50
+____exports.EnemyEliteDropChance = 25
 ____exports.MinQuality = 1
 ____exports.MaxQuality = 5
 ____exports.HigherLevelDropChancePct = 5
-____exports.QualityDropChance = {{30, 2}, {15, 3}, {7, 4}, {3, 5}}
+____exports.QualityDropChance = {{25, 2}, {13, 3}, {6, 4}, {2, 5}}
 ____exports.Qualities = {
     [1] = "Common",
     [2] = "Uncommon",
@@ -3451,6 +3469,7 @@ local BaseMWObject = ____BaseMWObject.BaseMWObject
 local cfg = require("MonsterWorldMod.MonsterWorldConfig")
 local ____MonsterWorldConfig = require("MonsterWorldMod.MonsterWorldConfig")
 local MonsterRank = ____MonsterWorldConfig.MonsterRank
+local MonsterConfigs = ____MonsterWorldConfig.MonsterConfigs
 ____exports.MWMonster = __TS__Class()
 local MWMonster = ____exports.MWMonster
 MWMonster.name = "MWMonster"
@@ -3545,20 +3564,11 @@ function MWMonster.prototype.Initialize(self)
     self.Type = spawnConfig.type
     self.Level = spawnConfig.level
     self.Rank = spawnConfig.rank
-    local enemyHP = self:GetMaxHP(self.Level) * spawnConfig.hpMult
-    local xpReward = self:GetXPReward(self.Level) * spawnConfig.xpMult
-    local enemyDamage = self:GetDamage(self.Level) * spawnConfig.damageMult
-    if spawnConfig.rank == MonsterRank.Boss then
-        enemyHP = enemyHP * cfg.EnemyBossHPMult
-        xpReward = xpReward * cfg.EnemyBossXPRewardMult
-        enemyDamage = enemyDamage * cfg.EnemyBossDamageMult
-    elseif spawnConfig.rank == MonsterRank.Elite then
-        enemyHP = enemyHP * cfg.EnemyEliteHPMult
-        xpReward = xpReward * cfg.EnemyEliteXPRewardMult
-        enemyDamage = enemyDamage * cfg.EnemyEliteDamageMult
-    end
-    self.MaxHP = enemyHP
-    self.HP = enemyHP
+    local monsterCfg = MonsterConfigs[self.Type]
+    local enemyHP = self:GetMaxHP(self.Level) * (monsterCfg.hp_mult or 1) * cfg.EnemyHpMultsByRank[self.Rank + 1]
+    local xpReward = self:GetXPReward(self.Level) * (monsterCfg.xp_mult or 1) * cfg.EnemyXpMultsByRank[self.Rank + 1]
+    local enemyDamage = self:GetDamage(self.Level) * (monsterCfg.damage_mult or 1) * cfg.EnemyDamageMultsByRank[self.Rank + 1]
+    self:SetStatBase(2, enemyHP)
     self.Damage = enemyDamage
     self.XPReward = xpReward
     se_save_var(
@@ -3592,7 +3602,6 @@ local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__New = ____lualib.__TS__New
 local Map = ____lualib.Map
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
-local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf
 local ____exports = {}
 local ____basic = require("StalkerAPI.extensions.basic")
 local EnableMutantLootingWithoutKnife = ____basic.EnableMutantLootingWithoutKnife
@@ -3608,8 +3617,7 @@ MonsterWorldMod.name = "MonsterWorldMod"
 __TS__ClassExtends(MonsterWorldMod, StalkerModBase)
 function MonsterWorldMod.prototype.____constructor(self)
     StalkerModBase.prototype.____constructor(self)
-    self.hitsThisFrame = {}
-    self.lastHitFrame = -1
+    self.playerHitsThisFrame = {}
     self.monsterHitsThisFrame = __TS__New(Map)
     StalkerModBase.ModName = "MonsterWorldMod"
     StalkerModBase.IsLogEnabled = true
@@ -3665,23 +3673,21 @@ function MonsterWorldMod.prototype.OnActorFirstUpdate(self)
     EnableMutantLootingWithoutKnife()
     self.World:OnPlayerSpawned()
 end
-function MonsterWorldMod.prototype.OnActorUpdate(self)
-    StalkerModBase.prototype.OnActorUpdate(self)
-    self.World:Update()
+function MonsterWorldMod.prototype.OnUpdate(self, deltaTime)
+    StalkerModBase.prototype.OnUpdate(self, deltaTime)
+    self.World:Update(deltaTime)
     if self.monsterHitsThisFrame.size > 0 then
         self.World:OnMonstersHit(self.monsterHitsThisFrame)
         self.monsterHitsThisFrame = __TS__New(Map)
     end
+    self.playerHitsThisFrame = {}
 end
 function MonsterWorldMod.prototype.OnActorBeforeHit(self, shit, boneId)
     StalkerModBase.prototype.OnActorBeforeHit(self, shit, boneId)
-    if not self:CanHit(
-        db.actor:id(),
-        shit.draftsman:id()
-    ) then
+    if not self:CanHitPlayer(shit.draftsman:id()) then
         return false
     end
-    self.World:OnPlayerHit(shit)
+    self.World:OnPlayerHit(shit, boneId)
     shit.power = 0
     shit.impulse = 0
     return true
@@ -3693,12 +3699,12 @@ end
 function MonsterWorldMod.prototype.OnSmartTerrainTryRespawn(self, smart)
     return self.World.SpawnManager:OnTryRespawn(smart)
 end
-function MonsterWorldMod.prototype.OnMonsterBeforeHit(self, monsgerGO, shit, boneId)
-    StalkerModBase.prototype.OnMonsterBeforeHit(self, monsgerGO, shit, boneId)
-    if monsgerGO.health <= 0 or shit.draftsman:id() ~= 0 then
+function MonsterWorldMod.prototype.OnMonsterBeforeHit(self, monsterGO, shit, boneId)
+    StalkerModBase.prototype.OnMonsterBeforeHit(self, monsterGO, shit, boneId)
+    if monsterGO.health <= 0 or shit.draftsman:id() ~= 0 then
         return false
     end
-    local monster = self.World:GetMonster(monsgerGO:id())
+    local monster = self.World:GetMonster(monsterGO:id())
     if monster == nil then
         return false
     end
@@ -3730,16 +3736,11 @@ function MonsterWorldMod.prototype.OnMonsterDeath(self, monster, killer)
     end
     self.World:OnMonsterKilled(monster)
 end
-function MonsterWorldMod.prototype.CanHit(self, target, attacker)
-    if self.lastHitFrame ~= time_global() then
-        self.hitsThisFrame = {}
-        self.lastHitFrame = time_global()
-    end
-    if __TS__ArrayIndexOf(self.hitsThisFrame, {target, attacker}) >= 0 then
+function MonsterWorldMod.prototype.CanHitPlayer(self, attackerId)
+    if self.playerHitsThisFrame[attackerId] ~= nil then
         return false
     end
-    local ____self_hitsThisFrame_4 = self.hitsThisFrame
-    ____self_hitsThisFrame_4[#____self_hitsThisFrame_4 + 1] = {target, attacker}
+    self.playerHitsThisFrame[attackerId] = true
     return true
 end
 function ____exports.StartMonsterWorld()
@@ -3769,8 +3770,8 @@ __TS__SetDescriptor(
     MWPlayer.prototype,
     "RequeiredXP",
     {get = function(self)
-        local expMult = math.pow(cfg.PlayerXPExp, self.Level - 1)
-        local pctMult = 1 + cfg.PlayerXPPct * (self.Level - 1) / 100
+        local expMult = math.pow(cfg.PlayerXPExp, self.Level)
+        local pctMult = 1 + cfg.PlayerXPPct * self.Level / 100
         local xp = cfg.PlayerXPForFirstLevel * expMult * pctMult
         return math.floor(xp)
     end},
@@ -3807,16 +3808,36 @@ __TS__SetDescriptor(
     true
 )
 function MWPlayer.prototype.Initialize(self)
-    local baseHP = cfg.PlayerHPBase
-    self.Level = 1
+    self.Level = 0
     self.CurrentXP = 0
-    self.MaxHP = baseHP
-    self.HP = baseHP
+    self:SetStatBase(2, cfg.PlayerHPBase)
+    self:SetStatBase(0, 1)
+    self:SetStatBase(1, 1)
+    self:SetStatBase(3, cfg.PlayerHPRegenBase)
 end
 function MWPlayer.prototype.LevelUp(self)
     self.Level = self.Level + 1
     self.StatPoints = self.StatPoints + cfg.PlayerPointsPerLevelUp
-    self.MaxHP = self.MaxHP + cfg.PlayerHPPerLevel
+    self:UpdateLevelBonuses()
+    self.mw.UIManager:ShowLevelUpMessage(self.Level)
+end
+function MWPlayer.prototype.Reinit(self)
+    BaseMWObject.prototype.Reinit(self)
+    self:UpdateLevelBonuses()
+end
+function MWPlayer.prototype.UpdateLevelBonuses(self)
+    self:AddStatPctBonus(2, cfg.PlayerHPPerLevel * self.Level, "level_bonus")
+    self:AddStatPctBonus(3, cfg.PlayerHPRegenPctPerLevel * self.Level, "level_bonus")
+    self:AddStatPctBonus(0, cfg.PlayerRunSpeedPctPerLevel * self.Level, "level_bonus")
+end
+function MWPlayer.prototype.OnStatChanged(self, stat, total)
+    BaseMWObject.prototype.OnStatChanged(self, stat, total)
+    if stat == 0 then
+        db.actor:set_actor_run_coef(cfg.PlayerRunSpeedCoeff * total)
+        db.actor:set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * total)
+    elseif stat == 1 then
+        db.actor:set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * total)
+    end
 end
 return ____exports
  end,
@@ -3884,6 +3905,14 @@ __TS__SetDescriptor(
     },
     true
 )
+__TS__SetDescriptor(
+    MWWeapon.prototype,
+    "DPS",
+    {get = function(self)
+        return self.DamagePerHit * (1 / self.GO:cast_Weapon():RPM())
+    end},
+    true
+)
 function MWWeapon.prototype.Initialize(self)
     local spawnCfg = self:Load("SpawnParams", {level = 1, quality = 1})
     self.Level = spawnCfg.level
@@ -3908,6 +3937,8 @@ function MWWeapon.prototype.GetBonusDescription(self)
     end
     return result
 end
+function MWWeapon.prototype.OnWeaponPickedUp(self)
+end
 function MWWeapon.prototype.GenerateWeaponStats(self)
     local ammoMagSize = ini_sys:r_float_ex(self.Section, "ammo_mag_size", 1)
     local rpm = ini_sys:r_float_ex(self.Section, "rpm", 1)
@@ -3923,7 +3954,7 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
             do
                 local uType = upgradeTypes[i + 1]
                 if uType == "damage" then
-                    goto __continue16
+                    goto __continue18
                 end
                 if ini_sys:r_string_ex(self.Section, uType .. "_upgrades", "") ~= "" then
                     local upgrades = ini_sys:r_list(self.Section, uType .. "_upgrades", {})
@@ -3932,7 +3963,7 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
                     end
                 end
             end
-            ::__continue16::
+            ::__continue18::
             i = i + 1
         end
     end
@@ -4158,7 +4189,7 @@ function MonsterWorldSpawns.prototype.OnTryRespawn(self, smart)
         return false
     end
     local respawnInterval = 600
-    local maxPopulation = 4
+    local maxPopulation = 5
     if not Load(smart.id, "MW_Initialized", false) or smart.respawn_idle ~= respawnInterval or smart.max_population ~= maxPopulation then
         if Load(smart.id, "MW_Initialized", false) then
         end
@@ -4171,7 +4202,7 @@ function MonsterWorldSpawns.prototype.OnTryRespawn(self, smart)
         local selectedMonsters = {}
         for monsterType, monsterCfg in pairs(cfg.MonsterConfigs) do
             do
-                if monsterCfg.level_start > locationCfg.level then
+                if monsterCfg.level_start > locationCfg.level or (monsterCfg.level_end or 100) < locationCfg.level then
                     goto __continue17
                 end
                 if bit.band(monsterCfg.level_type, locationCfg.type) ~= locationCfg.type then
@@ -4181,15 +4212,14 @@ function MonsterWorldSpawns.prototype.OnTryRespawn(self, smart)
             end
             ::__continue17::
         end
-        local selectedMonsterType = RandomFromArray(selectedMonsters)
-        Save(smart.id, "MW_MonsterType", selectedMonsterType)
+        Save(smart.id, "MW_MonsterTypes", selectedMonsters)
         smart.respawn_params = {spawn_section_1 = {
-            num = NumberToCondList(cfg.MonsterConfigs[selectedMonsterType].max_squads_per_smart or 2),
+            num = NumberToCondList(2),
             squads = {"simulation_monster_world"}
         }}
         smart.already_spawned = {spawn_section_1 = {num = 0}}
         smart.faction = "monster"
-        smart.respawn_radius = 150
+        smart.respawn_radius = 125
         Save(smart.id, "MW_Initialized", true)
     end
     return true
@@ -4203,7 +4233,8 @@ function MonsterWorldSpawns.prototype.OnSimSquadAddMember(self, obj, section, po
         Log("SPAWN PROBLEM  NO SMART!")
         return
     end
-    local monsterType = Load(obj.smart_id, "MW_MonsterType", nil)
+    local monsterTypes = Load(obj.smart_id, "MW_MonsterTypes")
+    local monsterType = RandomFromArray(monsterTypes)
     local monsterCfg = cfg.MonsterConfigs[monsterType]
     if monsterCfg == nil then
         Log("SPAWN PROBLEM  NO monsterCfg! " .. monsterType)
@@ -4249,14 +4280,7 @@ function MonsterWorldSpawns.prototype.OnSimSquadAddMember(self, obj, section, po
                     Log("SPAWN PROBLEM  NO monster!")
                     goto __continue25
                 end
-                Save(monsterId, "MW_SpawnParams", {
-                    type = monsterType,
-                    level = enemyLvl,
-                    rank = rank,
-                    hpMult = monsterCfg.hp_mult or 1,
-                    xpMult = monsterCfg.xp_mult or 1,
-                    damageMult = monsterCfg.damage_mult or 1
-                })
+                Save(monsterId, "MW_SpawnParams", {type = monsterType, level = enemyLvl, rank = rank})
                 i = i + 1
             end
             ::__continue25::
@@ -4279,6 +4303,7 @@ function MonsterWorldUI.prototype.____constructor(self, world)
     self.world = world
     self.damageNumbers = {}
     self.xpRewardNumbers = {}
+    self.levelUpShowTime = 0
     self.lastEnemyHpShowTime = 0
     local oldPrepareStatsTable = utils_ui.prepare_stats_table
     utils_ui.prepare_stats_table = function() return self:PrepareUIItemStatsTable(oldPrepareStatsTable) end
@@ -4327,13 +4352,13 @@ function MonsterWorldUI.prototype.____constructor(self, world)
             local xml = CScriptXmlInit()
             xml:ParseFile("ui_monster_world.xml")
             s.mwLevel = xml:InitStatic("item_additions:level_text", s.cell)
-            s.mwLevel:TextControl():SetFont(GetFontGraffiti19Russian())
+            s.mwLevel:TextControl():SetFont(GetFontLetterica16Russian())
         end
         s.mwLevel:SetWndPos(vector2():set(
             3,
             s.cell:GetHeight() - 14
         ))
-        s.mwLevel:TextControl():SetText("L. " .. tostring(weapon.Level))
+        s.mwLevel:TextControl():SetText((("L." .. tostring(weapon.Level)) .. "   DPS:") .. tostring(math.floor(weapon.DPS)))
         s.mwLevel:TextControl():SetTextColor(cfg.QualityColors[weapon.Quality])
         s.mwLevel:Show(true)
         return res
@@ -4352,6 +4377,25 @@ function MonsterWorldUI.prototype.____constructor(self, world)
         s.name:SetTextColor(cfg.QualityColors[weapon.Quality])
     end
     utils_ui.UIInfoItem.Update = newUIInfoItemUpdate
+    local oldUISortBySizeKind = utils_ui.sort_by_sizekind
+    utils_ui.sort_by_sizekind = function(t, a, b)
+        local objA = t[a]
+        local objB = t[b]
+        local weaponA = self.world:GetWeapon(objA:id())
+        local weaponB = self.world:GetWeapon(objB:id())
+        if weaponA ~= nil and weaponB ~= nil and weaponA ~= weaponB then
+            if weaponA.DPS ~= weaponB.DPS then
+                return weaponA.DPS > weaponB.DPS
+            elseif weaponA.Level ~= weaponB.Level then
+                return weaponA.Level > weaponB.Level
+            elseif weaponA.Quality ~= weaponB.Quality then
+                return weaponA.Quality > weaponB.Quality
+            else
+                return weaponA.id > weaponB.id
+            end
+        end
+        return oldUISortBySizeKind(t, a, b)
+    end
 end
 function MonsterWorldUI.prototype.Save(self, data)
 end
@@ -4365,6 +4409,12 @@ function MonsterWorldUI.prototype.Update(self)
     self:UpdateDamageNumbers()
     self:UpdateXpRewardNumbers()
     self:UpdatePlayerLevelBar()
+    self:UpdateLevelUpMessage()
+end
+function MonsterWorldUI.prototype.ShowLevelUpMessage(self, newLevel)
+    self.levelUpShowTime = time_global()
+    self.levelUpText:Show(true)
+    self.levelUpText:SetText("LEVEL UP! NEW LEVEL: " .. tostring(newLevel))
 end
 function MonsterWorldUI.prototype.ShowDamage(self, damage, isCrit, isKillHit)
     if isCrit == nil then
@@ -4379,7 +4429,7 @@ function MonsterWorldUI.prototype.ShowDamage(self, damage, isCrit, isKillHit)
             do
                 local entry = self.damageNumbers[i + 1]
                 if entry.text:IsShown() then
-                    goto __continue20
+                    goto __continue27
                 end
                 local msg = tostring(math.floor(damage))
                 entry.text:SetWndPos(vector2():set(
@@ -4398,18 +4448,18 @@ function MonsterWorldUI.prototype.ShowDamage(self, damage, isCrit, isKillHit)
                 ____self_7_SetTextColor_8(____self_7, ____isCrit_6)
                 local ____self_10 = entry.text
                 local ____self_10_SetFont_11 = ____self_10.SetFont
-                local ____isCrit_9
-                if isCrit then
-                    ____isCrit_9 = GetFontGraffiti19Russian()
+                local ____temp_9
+                if isCrit or isKillHit then
+                    ____temp_9 = GetFontGraffiti22Russian()
                 else
-                    ____isCrit_9 = GetFontLetterica16Russian()
+                    ____temp_9 = GetFontLetterica18Russian()
                 end
-                ____self_10_SetFont_11(____self_10, ____isCrit_9)
+                ____self_10_SetFont_11(____self_10, ____temp_9)
                 entry.text:SetText(msg .. (isCrit and " X" or ""))
                 entry.text:Show(true)
                 return
             end
-            ::__continue20::
+            ::__continue27::
             i = i + 1
         end
     end
@@ -4421,7 +4471,7 @@ function MonsterWorldUI.prototype.ShowXPReward(self, reward)
             do
                 local entry = self.xpRewardNumbers[i + 1]
                 if entry.text:IsShown() then
-                    goto __continue23
+                    goto __continue30
                 end
                 local msg = ("+ " .. tostring(math.floor(reward))) .. " XP"
                 entry.text:SetWndPos(vector2():set(
@@ -4434,13 +4484,13 @@ function MonsterWorldUI.prototype.ShowXPReward(self, reward)
                 entry.text:Show(true)
                 return
             end
-            ::__continue23::
+            ::__continue30::
             i = i + 1
         end
     end
 end
 function MonsterWorldUI.prototype.InitHud(self)
-    if self.damageNumbersContainer ~= nil and self.enemyHP ~= nil and self.xpRewardNumbersContainer ~= nil then
+    if self.playerStatus ~= nil then
         return true
     end
     local hud = get_hud()
@@ -4489,26 +4539,33 @@ function MonsterWorldUI.prototype.InitHud(self)
                 i = i + 1
             end
         end
+        Log("Initializing level_up")
+        self.levelUpText = xml:InitTextWnd(
+            "level_up",
+            cs:wnd()
+        )
+        self.levelUpText:Show(false)
         Log("Initializing enemy_health")
         self.enemyHP = xml:InitStatic(
             "enemy_health",
             cs:wnd()
         )
         self.enemyHP:Show(false)
-        xml:InitStatic("enemy_health:value_progress_background", self.enemyHP)
         self.enemyHPBarProgress = xml:InitProgressBar("enemy_health:value_progress", self.enemyHP)
         self.enemyHPBarName = xml:InitTextWnd("enemy_health:name", self.enemyHP)
         self.enemyHPBarValue = xml:InitTextWnd("enemy_health:value", self.enemyHP)
-        Log("Initializing level_bar")
-        self.playerLevelBar = xml:InitStatic(
-            "level_bar",
+        Log("Initializing player status panel")
+        self.playerStatus = xml:InitStatic(
+            "player_status",
             cs:wnd()
         )
-        self.playerLevelBar:Show(true)
-        xml:InitStatic("level_bar:progress_background", self.playerLevelBar)
-        self.playerLevelBarProgress = xml:InitProgressBar("level_bar:progress", self.playerLevelBar)
-        self.playerLevelBarLevel = xml:InitTextWnd("level_bar:level", self.playerLevelBar)
-        self.playerLevelBarXP = xml:InitTextWnd("level_bar:xp", self.playerLevelBar)
+        self.playerStatus:Show(true)
+        xml:InitStatic("player_status:background", self.playerStatus)
+        self.playerStatusLevelValue = xml:InitTextWnd("player_status:level", self.playerStatus)
+        self.playerStatusXPBar = xml:InitProgressBar("player_status:xpbar", self.playerStatus)
+        self.playerStatusXPBarValue = xml:InitTextWnd("player_status:xpbar_value", self.playerStatus)
+        self.playerStatusHPBar = xml:InitProgressBar("player_status:healthbar", self.playerStatus)
+        self.playerStatusHPBarValue = xml:InitTextWnd("player_status:healthbar_value", self.playerStatus)
         return true
     end
     return false
@@ -4561,7 +4618,7 @@ function MonsterWorldUI.prototype.UpdateDamageNumbers(self)
         while i < #self.damageNumbers do
             local entry = self.damageNumbers[i + 1]
             local text = entry.text
-            if now - entry.showTime > 500 then
+            if now - entry.showTime > 750 then
                 text:Show(false)
             else
                 local pos = text:GetWndPos()
@@ -4590,17 +4647,30 @@ function MonsterWorldUI.prototype.UpdateXpRewardNumbers(self)
         end
     end
 end
+function MonsterWorldUI.prototype.UpdateLevelUpMessage(self)
+    if time_global() - self.levelUpShowTime > 3000 then
+        self.levelUpText:Show(false)
+        return
+    end
+    local pos = self.levelUpText:GetWndPos()
+    pos.y = pos.y - 0.35
+    self.levelUpText:SetWndPos(pos)
+end
 function MonsterWorldUI.prototype.UpdatePlayerLevelBar(self)
     local player = self.world.Player
-    local levelInfo = "Level " .. tostring(player.Level)
+    local levelInfo = "Level: " .. tostring(player.Level)
     if player.StatPoints > 0 then
         levelInfo = levelInfo .. (" (SP: " .. tostring(player.StatPoints)) .. ")"
     end
-    self.playerLevelBarLevel:SetText(levelInfo)
+    self.playerStatusLevelValue:SetText(levelInfo)
     local currentXP = player.CurrentXP
     local reqXP = player.RequeiredXP
-    self.playerLevelBarXP:SetText((tostring(math.floor(currentXP)) .. " / ") .. tostring(math.floor(reqXP)))
-    self.playerLevelBarProgress:SetProgressPos(clamp(currentXP / reqXP, 0, 1) * 100)
+    self.playerStatusXPBarValue:SetText((tostring(math.floor(currentXP)) .. " / ") .. tostring(math.floor(reqXP)))
+    self.playerStatusXPBar:SetProgressPos(clamp(currentXP / reqXP, 0, 1) * 100)
+    local currentHP = player.IsDead and 0 or player.HP
+    local maxHP = player.MaxHP
+    self.playerStatusHPBarValue:SetText((tostring(math.floor(currentHP)) .. " / ") .. tostring(math.floor(maxHP)))
+    self.playerStatusHPBar:SetProgressPos(clamp(currentHP / maxHP, 0, 1) * 100)
 end
 function MonsterWorldUI.prototype.PrepareUIItemStatsTable(self, oldPrepareStatsTable)
     local result = oldPrepareStatsTable() or utils_ui.stats_table
@@ -4661,7 +4731,7 @@ function MonsterWorldUI.prototype.UIGetItemLevel(self, obj)
     return self.world:GetWeapon(obj:id()).Level
 end
 function MonsterWorldUI.prototype.UIGetWeaponDPS(self, obj)
-    return self.world:GetWeapon(obj:id()).DamagePerHit * (1 / obj:cast_Weapon():RPM())
+    return self.world:GetWeapon(obj:id()).DPS
 end
 function MonsterWorldUI.prototype.UIGetWeaponDamagePerHit(self, obj)
     return self.world:GetWeapon(obj:id()).DamagePerHit
@@ -4698,8 +4768,6 @@ local ____MWPlayer = require("MonsterWorldMod.MWPlayer")
 local MWPlayer = ____MWPlayer.MWPlayer
 local ____MWWeapon = require("MonsterWorldMod.MWWeapon")
 local MWWeapon = ____MWWeapon.MWWeapon
-local ____MonsterWorldConfig = require("MonsterWorldMod.MonsterWorldConfig")
-local MonsterRank = ____MonsterWorldConfig.MonsterRank
 local ____MonsterWorldSpawns = require("MonsterWorldMod.MonsterWorldSpawns")
 local MonsterWorldSpawns = ____MonsterWorldSpawns.MonsterWorldSpawns
 local ____MonsterWorldUI = require("MonsterWorldMod.MonsterWorldUI")
@@ -4709,7 +4777,6 @@ local MonsterWorld = ____exports.MonsterWorld
 MonsterWorld.name = "MonsterWorld"
 function MonsterWorld.prototype.____constructor(self, mod)
     self.mod = mod
-    self.highlightedItems = {}
     self.monsters = {}
     self.weapons = {}
     self.SpawnManager = __TS__New(MonsterWorldSpawns, self)
@@ -4771,12 +4838,8 @@ function MonsterWorld.prototype.GetMonster(self, monsterId)
     end
     return self.monsters[monsterId]
 end
-function MonsterWorld.prototype.DestroyObject(self, id)
-    self.monsters[id] = nil
-    self.weapons[id] = nil
-end
 function MonsterWorld.prototype.GetWeapon(self, itemId)
-    local ____temp_8 = not (self.weapons[itemId] ~= nil)
+    local ____temp_8 = not (self.weapons[itemId] ~= nil) and alife():object(itemId) ~= nil
     if ____temp_8 then
         local ____level_object_by_id_result_is_weapon_result_6 = level.object_by_id(itemId)
         if ____level_object_by_id_result_is_weapon_result_6 ~= nil then
@@ -4789,20 +4852,18 @@ function MonsterWorld.prototype.GetWeapon(self, itemId)
     end
     return self.weapons[itemId]
 end
+function MonsterWorld.prototype.DestroyObject(self, id)
+    self.monsters[id] = nil
+    self.weapons[id] = nil
+end
 function MonsterWorld.prototype.OnTakeItem(self, item)
-    self:GetWeapon(item:id())
-    if self.highlightedItems[item:id()] ~= nil then
-        local particles, bone = unpack(Load(
-            item:id(),
-            "MW_DropHighlight"
-        ))
-        item:stop_particles(particles, bone)
-        self.highlightedItems[item:id()] = nil
+    local weapon = self:GetWeapon(item:id())
+    local ____weapon_OnWeaponPickedUp_result_9 = weapon
+    if ____weapon_OnWeaponPickedUp_result_9 ~= nil then
+        ____weapon_OnWeaponPickedUp_result_9 = ____weapon_OnWeaponPickedUp_result_9:OnWeaponPickedUp()
     end
-    RemoveTimeEvent(
-        self:GetReleaseEventName(item:id()),
-        self:GetReleaseEventName(item:id())
-    )
+    self:RemoveHighlight(item:id())
+    self:RemoveTTLTimer(item:id())
 end
 function MonsterWorld.prototype.OnWeaponFired(self, wpn, ammo_elapsed)
     local weapon = self:GetWeapon(wpn:id())
@@ -4821,10 +4882,15 @@ function MonsterWorld.prototype.Load(self, data)
     self.SpawnManager:Load(data)
     self.UIManager:Load(data)
 end
-function MonsterWorld.prototype.Update(self)
+function MonsterWorld.prototype.Update(self, deltaTime)
+    self.DeltaTime = deltaTime
     self.UIManager:Update()
+    self.Player:RegenHP(deltaTime)
+    for _, monster in pairs(self.monsters) do
+        monster:RegenHP(deltaTime)
+    end
 end
-function MonsterWorld.prototype.OnPlayerHit(self, shit)
+function MonsterWorld.prototype.OnPlayerHit(self, shit, boneId)
     local attackerGO = shit.draftsman
     if not attackerGO:is_monster() and not attackerGO:is_stalker() then
         return
@@ -4836,17 +4902,17 @@ function MonsterWorld.prototype.OnPlayerHit(self, shit)
     local damage = monster.Damage
     if attackerGO:is_stalker() and shit.weapon_id ~= 0 and shit.weapon_id ~= attackerGO:id() then
         local weapon = level.object_by_id(shit.weapon_id)
-        local ____weapon_is_weapon_result_9 = weapon
-        if ____weapon_is_weapon_result_9 ~= nil then
-            ____weapon_is_weapon_result_9 = ____weapon_is_weapon_result_9:is_weapon()
+        local ____weapon_is_weapon_result_11 = weapon
+        if ____weapon_is_weapon_result_11 ~= nil then
+            ____weapon_is_weapon_result_11 = ____weapon_is_weapon_result_11:is_weapon()
         end
-        if ____weapon_is_weapon_result_9 then
-            damage = damage * weapon:cast_Weapon():RPM()
+        if ____weapon_is_weapon_result_11 then
+            damage = damage * (weapon:cast_Weapon():RPM() * 1.2)
         end
     end
-    local ____self_Player_11, ____HP_12 = self.Player, "HP"
-    ____self_Player_11[____HP_12] = ____self_Player_11[____HP_12] - damage
-    Log(((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ")")
+    local ____self_Player_13, ____HP_14 = self.Player, "HP"
+    ____self_Player_13[____HP_14] = ____self_Player_13[____HP_14] - math.max(1, damage)
+    Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function MonsterWorld.prototype.OnMonstersHit(self, monsterHitsThisFrame)
     local hitsByWeapon = __TS__New(Map)
@@ -4883,22 +4949,13 @@ function MonsterWorld.prototype.OnMonsterKilled(self, monsterGO)
         return
     end
     self.UIManager:ShowXPReward(monster.XPReward)
-    local ____self_Player_13, ____CurrentXP_14 = self.Player, "CurrentXP"
-    ____self_Player_13[____CurrentXP_14] = ____self_Player_13[____CurrentXP_14] + monster.XPReward
+    local ____self_Player_15, ____CurrentXP_16 = self.Player, "CurrentXP"
+    ____self_Player_15[____CurrentXP_16] = ____self_Player_15[____CurrentXP_16] + monster.XPReward
     if IsPctRolled(monster.DropChance) then
         self:GenerateDrop(monster)
     end
     local se_obj = alife():object(monsterGO:id())
-    CreateTimeEvent(
-        tostring(monsterGO:id()) .. "_release",
-        tostring(monsterGO:id()) .. "_release",
-        5,
-        function(toRelease)
-            safe_release_manager.release(toRelease)
-            return true
-        end,
-        se_obj
-    )
+    self:AddTTLTimer(se_obj.id, 10)
 end
 function MonsterWorld.prototype.GenerateDrop(self, monster)
     local typedSections = ini_sys:r_list("mw_drops_by_weapon_type", "sections")
@@ -4925,58 +4982,81 @@ function MonsterWorld.prototype.GenerateDrop(self, monster)
             i = i + 1
         end
     end
-    if monster.Rank == MonsterRank.Elite then
-        if IsPctRolled(cfg.EnemyEliteDropLevelIncreaseChance) then
-            dropLevel = dropLevel + 1
-        end
-        if IsPctRolled(cfg.EnemyEliteDropQualityIncreaseChance) then
-            qualityLevel = qualityLevel + 1
-        end
-    elseif monster.Rank == MonsterRank.Boss then
-        if IsPctRolled(cfg.EnemyBossDropLevelIncreaseChance) then
-            dropLevel = dropLevel + 1
-        end
-        if IsPctRolled(cfg.EnemyBossDropQualityIncreaseChance) then
-            qualityLevel = qualityLevel + 1
-        end
+    if IsPctRolled(cfg.EnemyDropLevelIncreaseChanceByRank[monster.Rank + 1]) then
+        dropLevel = dropLevel + 1
+    end
+    if IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank + 1]) then
+        qualityLevel = qualityLevel + 1
     end
     local sgo = alife_create_item(
         selectedVariant,
         CreateWorldPositionAtGO(monster.GO)
     )
     Save(sgo.id, "MW_SpawnParams", {level = dropLevel, quality = qualityLevel})
-    Save(sgo.id, "MW_DropHighlight", {cfg.ParticlesByQuality[qualityLevel], "wpn_body"})
+    self:HighlightDroppedItem(sgo.id, qualityLevel)
+    self:AddTTLTimer(sgo.id, 120)
+end
+function MonsterWorld.prototype.HighlightDroppedItem(self, id, highlightQuality)
     CreateTimeEvent(
-        sgo:name() .. "_add_highlight",
-        sgo:name(),
+        id,
+        "add_highlight",
         0.1,
-        function(objId)
-            local go = level.object_by_id(objId)
+        function(id, quality)
+            local go = level.object_by_id(id)
             if go == nil then
                 return false
             end
-            local particles, bone = unpack(Load(objId, "MW_DropHighlight"))
+            local particles = cfg.ParticlesByQuality[quality]
             if particles ~= nil then
-                self.highlightedItems[go:id()] = true
-                go:start_particles(particles, bone)
+                go:start_particles(
+                    particles,
+                    self:GetHighlighBone(go)
+                )
+                Save(id, "highlight_particels", particles)
             end
             return true
         end,
-        sgo.id
-    )
-    CreateTimeEvent(
-        self:GetReleaseEventName(sgo.id),
-        self:GetReleaseEventName(sgo.id),
-        120,
-        function(toRelease)
-            safe_release_manager.release(toRelease)
-            return true
-        end,
-        sgo
+        id,
+        highlightQuality
     )
 end
-function MonsterWorld.prototype.GetReleaseEventName(self, id)
-    return tostring(id) .. "_release"
+function MonsterWorld.prototype.RemoveHighlight(self, id)
+    local go = level.object_by_id(id)
+    if go == nil then
+        return false
+    end
+    local particles = Load(id, "highlight_particels")
+    if particles ~= nil then
+        go:stop_particles(
+            particles,
+            self:GetHighlighBone(go)
+        )
+    end
+end
+function MonsterWorld.prototype.GetHighlighBone(self, go)
+    local bone = "link"
+    if go:is_weapon() then
+        bone = "wpn_body"
+    end
+    return bone
+end
+function MonsterWorld.prototype.AddTTLTimer(self, id, time)
+    CreateTimeEvent(
+        id,
+        "mw_ttl",
+        time,
+        function(id)
+            local toRelease = alife():object(id)
+            if toRelease ~= nil then
+                safe_release_manager.release(toRelease)
+            end
+            return true
+        end,
+        id
+    )
+end
+function MonsterWorld.prototype.RemoveTTLTimer(self, id)
+    RemoveTimeEvent(id, "mw_ttl")
 end
 return ____exports
  end,
@@ -4985,9 +5065,19 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local ____exports = {}
+local GetStatBonusField, GetStatBaseField, GetStatTotalField
 local ____basic = require("StalkerAPI.extensions.basic")
 local Load = ____basic.Load
 local Save = ____basic.Save
+function GetStatBonusField(stat, bonusType)
+    return ((tostring(stat) .. "_") .. tostring(bonusType)) .. "_bonuses"
+end
+function GetStatBaseField(stat)
+    return tostring(stat) .. "_base"
+end
+function GetStatTotalField(stat)
+    return tostring(stat) .. "_total"
+end
 ____exports.BaseMWObject = __TS__Class()
 local BaseMWObject = ____exports.BaseMWObject
 BaseMWObject.name = "BaseMWObject"
@@ -4997,6 +5087,8 @@ function BaseMWObject.prototype.____constructor(self, mw, id)
     if not self.Initialized then
         self:Initialize()
         self.Initialized = true
+    else
+        self:Reinit()
     end
 end
 __TS__SetDescriptor(
@@ -5044,7 +5136,6 @@ __TS__SetDescriptor(
             return self:Load("HP")
         end,
         set = function(self, newHp)
-            newHp = math.floor(newHp)
             self:Save("HP", newHp)
             if self.GO ~= nil then
                 self.GO:set_health_ex(newHp / self.MaxHP)
@@ -5059,16 +5150,17 @@ __TS__SetDescriptor(
 __TS__SetDescriptor(
     BaseMWObject.prototype,
     "MaxHP",
-    {
-        get = function(self)
-            return self:Load("MaxHP")
-        end,
-        set = function(self, newMaxHp)
-            newMaxHp = math.floor(newMaxHp)
-            self:Save("MaxHP", newMaxHp)
-            self.HP = newMaxHp
-        end
-    },
+    {get = function(self)
+        return self:GetStat(2)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    BaseMWObject.prototype,
+    "HPRegen",
+    {get = function(self)
+        return self:GetStat(3)
+    end},
     true
 )
 __TS__SetDescriptor(
@@ -5100,11 +5192,102 @@ __TS__SetDescriptor(
     end},
     true
 )
+function BaseMWObject.prototype.RegenHP(self, deltaTime)
+    self.HP = math.min(self.MaxHP, self.HP + self.HPRegen * deltaTime)
+end
+function BaseMWObject.prototype.GetStat(self, stat)
+    return self:Load(
+        GetStatTotalField(stat),
+        0
+    )
+end
+function BaseMWObject.prototype.SetStatBase(self, stat, baseValue)
+    self:Save(
+        GetStatBaseField(stat),
+        baseValue
+    )
+    self:RecalculateStatTotal(stat)
+end
+function BaseMWObject.prototype.AddStatPctBonus(self, stat, bonus, source)
+    self:AddStatBonus(stat, bonus, source, 1)
+end
+function BaseMWObject.prototype.RemoveStatPctBonus(self, stat, source)
+    self:RemoveStatBonus(stat, source, 1)
+end
+function BaseMWObject.prototype.AddStatFlatBonus(self, stat, bonus, source)
+    self:AddStatBonus(stat, bonus, source, 0)
+end
+function BaseMWObject.prototype.RemoveStatFlatBonus(self, stat, source)
+    self:RemoveStatBonus(stat, source, 0)
+end
+function BaseMWObject.prototype.AddStatMultBonus(self, stat, bonus, source)
+    self:AddStatBonus(stat, bonus, source, 2)
+end
+function BaseMWObject.prototype.RemoveStatMultBonus(self, stat, source)
+    self:RemoveStatBonus(stat, source, 2)
+end
+function BaseMWObject.prototype.AddStatBonus(self, stat, bonus, source, bonusType)
+    local field = GetStatBonusField(stat, bonusType)
+    local bonuses = self:Load(field, {})
+    bonuses[source] = bonus
+    self:Save(field, bonuses)
+    self:RecalculateStatTotal(stat)
+end
+function BaseMWObject.prototype.RemoveStatBonus(self, stat, source, bonusType)
+    local field = GetStatBonusField(stat, bonusType)
+    local bonuses = self:Load(field, {})
+    bonuses[source] = nil
+    self:Save(field, bonuses)
+    self:RecalculateStatTotal(stat)
+end
+function BaseMWObject.prototype.RecalculateStatTotal(self, stat)
+    local base = self:Load(
+        GetStatBaseField(stat),
+        0
+    )
+    local flatBonuses = self:Load(
+        GetStatBonusField(stat, 0),
+        {}
+    )
+    local flatBonus = 0
+    for _, value in pairs(flatBonuses) do
+        flatBonus = flatBonus + value
+    end
+    local pctBonuses = self:Load(
+        GetStatBonusField(stat, 1),
+        {}
+    )
+    local pctBonus = 0
+    for _, value in pairs(pctBonuses) do
+        pctBonus = pctBonus + value
+    end
+    local multBonuses = self:Load(
+        GetStatBonusField(stat, 2),
+        {}
+    )
+    local multBonus = 1
+    for _, value in pairs(multBonuses) do
+        multBonus = multBonus * value
+    end
+    local total = (base + flatBonus) * (1 + pctBonus / 100) * multBonus
+    self:Save(
+        GetStatTotalField(stat),
+        total
+    )
+    self:OnStatChanged(stat, total)
+end
+function BaseMWObject.prototype.OnStatChanged(self, stat, total)
+    if stat == 2 then
+        self.HP = total
+    end
+end
 function BaseMWObject.prototype.Save(self, varname, val)
     Save(self.id, "MW_" .. varname, val)
 end
 function BaseMWObject.prototype.Load(self, varname, def)
     return Load(self.id, "MW_" .. varname, def)
+end
+function BaseMWObject.prototype.Reinit(self)
 end
 function BaseMWObject.prototype.OnDeath(self)
 end
