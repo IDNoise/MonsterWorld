@@ -23,11 +23,13 @@ export class MonsterWorldUI {
     private enemyHPBarName: CUITextWnd;
     private enemyHPBarValue: CUITextWnd;
     private enemyHPBarProgress: CUIProgressBar;
-
-    private playerLevelBar: CUIStatic;
-    private playerLevelBarLevel: CUITextWnd;
-    private playerLevelBarXP: CUITextWnd;
-    private playerLevelBarProgress: CUIProgressBar;
+    
+    private playerStatus: CUIStatic;
+    private playerStatusLevelValue: CUITextWnd;
+    private playerStatusXPBar: CUIProgressBar;
+    private playerStatusXPBarValue: CUITextWnd;
+    private playerStatusHPBar: CUIProgressBar;
+    private playerStatusHPBarValue: CUITextWnd;
 
     private lastEnemyHpShowTime: number = 0;
 
@@ -145,7 +147,7 @@ export class MonsterWorldUI {
             entry.text.SetWndPos(new vector2().set(math.random(-15, 15), math.random(-5, 5)))
             entry.showTime = time_global();
             entry.text.SetTextColor(isCrit ? GetARGB(255, 255, 165, 5) : GetARGB(255, 240, 20, 20))
-            entry.text.SetFont(isCrit ? GetFontGraffiti19Russian() : GetFontLetterica16Russian())
+            entry.text.SetFont(isCrit || isKillHit ? GetFontGraffiti22Russian() : GetFontLetterica18Russian())
             entry.text.SetText(msg + (isCrit ? " X" : ""));
             entry.text.Show(true);
             
@@ -169,7 +171,7 @@ export class MonsterWorldUI {
     }
     
     private InitHud(): boolean {
-        if (this.damageNumbersContainer != null && this.enemyHP != null && this.xpRewardNumbersContainer != null) 
+        if (this.playerStatus != null) 
             return true;
 
         let hud = get_hud();
@@ -213,18 +215,22 @@ export class MonsterWorldUI {
             Log(`Initializing enemy_health`)
             this.enemyHP = xml.InitStatic("enemy_health", cs.wnd());
             this.enemyHP.Show(false);
-            xml.InitStatic("enemy_health:value_progress_background", this.enemyHP)
+           // xml.InitStatic("enemy_health:value_progress_background", this.enemyHP)
             this.enemyHPBarProgress = xml.InitProgressBar("enemy_health:value_progress", this.enemyHP)
+            // this.enemyHPBarProgress.ShowBackground(true)
+            // this.enemyHPBarProgress.UseColor(true)
             this.enemyHPBarName = xml.InitTextWnd("enemy_health:name", this.enemyHP)
             this.enemyHPBarValue = xml.InitTextWnd("enemy_health:value", this.enemyHP)
 
-            Log(`Initializing level_bar`)
-            this.playerLevelBar = xml.InitStatic("level_bar", cs.wnd());
-            this.playerLevelBar.Show(true);
-            xml.InitStatic("level_bar:progress_background", this.playerLevelBar)
-            this.playerLevelBarProgress = xml.InitProgressBar("level_bar:progress", this.playerLevelBar) 
-            this.playerLevelBarLevel = xml.InitTextWnd("level_bar:level", this.playerLevelBar)
-            this.playerLevelBarXP = xml.InitTextWnd("level_bar:xp", this.playerLevelBar)
+            Log(`Initializing player status panel`)
+            this.playerStatus = xml.InitStatic("player_status", cs.wnd());
+            this.playerStatus.Show(true)
+            xml.InitStatic("player_status:background", this.playerStatus)
+            this.playerStatusLevelValue = xml.InitTextWnd("player_status:level", this.playerStatus) 
+            this.playerStatusXPBar = xml.InitProgressBar("player_status:xpbar", this.playerStatus) 
+            this.playerStatusXPBarValue = xml.InitTextWnd("player_status:xpbar_value", this.playerStatus) 
+            this.playerStatusHPBar = xml.InitProgressBar("player_status:healthbar", this.playerStatus) 
+            this.playerStatusHPBarValue = xml.InitTextWnd("player_status:healthbar_value", this.playerStatus) 
             
             return true;
         }
@@ -270,7 +276,7 @@ export class MonsterWorldUI {
         for(let i = 0; i < this.damageNumbers.length; i++){
             let entry = this.damageNumbers[i];
             let text = entry.text;
-            if (now - entry.showTime > 500){
+            if (now - entry.showTime > 750){
                 text.Show(false);
             }
             else {
@@ -299,16 +305,21 @@ export class MonsterWorldUI {
 
     private UpdatePlayerLevelBar(){
         let player = this.world.Player;
-        let levelInfo =`Level ${player.Level}`;
+        let levelInfo =`Level: ${player.Level}`;
         if (player.StatPoints > 0){
             levelInfo += ` (SP: ${player.StatPoints})`
         }
-        this.playerLevelBarLevel.SetText(levelInfo)
+        this.playerStatusLevelValue.SetText(levelInfo)
 
         let currentXP = player.CurrentXP;
         let reqXP = player.RequeiredXP;
-        this.playerLevelBarXP.SetText(`${math.floor(currentXP)} / ${math.floor(reqXP)}`)
-        this.playerLevelBarProgress.SetProgressPos(clamp(currentXP / reqXP, 0, 1) * 100)
+        this.playerStatusXPBarValue.SetText(`${math.floor(currentXP)} / ${math.floor(reqXP)}`)
+        this.playerStatusXPBar.SetProgressPos(clamp(currentXP / reqXP, 0, 1) * 100)
+
+        let currentHP = player.IsDead ? 0 : player.HP;
+        let maxHP = player.MaxHP;
+        this.playerStatusHPBarValue.SetText(`${math.floor(currentHP)} / ${math.floor(maxHP)}`)
+        this.playerStatusHPBar.SetProgressPos(clamp(currentHP / maxHP, 0, 1) * 100)
     }
 
     PrepareUIItemStatsTable(oldPrepareStatsTable: () => utils_ui.StatsTable): utils_ui.StatsTable {

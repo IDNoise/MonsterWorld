@@ -138,6 +138,7 @@ export class StalkerModBase {
         RegisterScriptCallback("actor_on_net_destroy", () => this.OnActorNetDestroy());
         RegisterScriptCallback("actor_on_first_update", () => this.OnActorFirstUpdate());
         RegisterScriptCallback("actor_on_update",  () => this.OnActorUpdate());
+        RegisterScriptCallback("actor_on_before_death",  (...args: any[]) => this.OnActorUpdate());
         RegisterScriptCallback("actor_on_before_hit",  (shit, boneId, flags : CallbackReturnFlags) => {
             flags.ret_value = this.OnActorBeforeHit(shit, boneId)
         });

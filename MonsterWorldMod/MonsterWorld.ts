@@ -199,18 +199,20 @@ export class MonsterWorld {
         this.AddTTLTimer(sgo.id, 120)
     }
 
-    HighlightDroppedItem(id: Id, quality: number) {
-        CreateTimeEvent(id, `add_highlight`, 0.1, (id: Id) => {
+    HighlightDroppedItem(id: Id, highlightQuality: number) {
+        CreateTimeEvent(id, `add_highlight`, 0.1, (id: Id, quality: number) => {
             let go = level.object_by_id(id);
             if (go == null){
                 return false;
             }
 
             let particles = cfg.ParticlesByQuality[quality]
-            go.start_particles(particles, this.GetHighlighBone(go))
-            Save<string>(id, "highlight_particels", particles);
+            if (particles != undefined){
+                go.start_particles(particles, this.GetHighlighBone(go))
+                Save<string>(id, "highlight_particels", particles);
+            }
             return true;
-        }, id);
+        }, id, highlightQuality);
     }
 
     RemoveHighlight(id: Id){
