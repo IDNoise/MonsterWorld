@@ -15,8 +15,6 @@ export class MonsterWorld {
     private monsters: LuaTable<Id, MWMonster>
     private weapons: LuaTable<Id, MWWeapon>
 
-    private highlightedItems: LuaSet<Id> = new LuaSet();
-
     public SpawnManager: MonsterWorldSpawns;
     public UIManager: MonsterWorldUI;
 
@@ -69,15 +67,11 @@ export class MonsterWorld {
     }
 
     public OnTakeItem(item: game_object) {
-        this.GetWeapon(item.id())
+        let weapon = this.GetWeapon(item.id())
+        weapon?.OnWeaponPickedUp();
 
-        if (this.highlightedItems.has(item.id())){
-            let [particles, bone] = Load<[string, string]>(item.id(), "MW_DropHighlight")
-            item.stop_particles(particles, bone)
-            this.highlightedItems.delete(item.id())
-        }
-
-        RemoveTimeEvent(this.GetReleaseEventName(item.id()), this.GetReleaseEventName(item.id()));
+        this.RemoveHighlight(item.id());
+        this.RemoveTTLTimer(item.id())
     }
 
     public OnWeaponFired(wpn: game_object, ammo_elapsed: number) {
@@ -168,10 +162,7 @@ export class MonsterWorld {
         }
 
         let se_obj = alife().object(monsterGO.id())
-        CreateTimeEvent(`${monsterGO.id()}_release`, `${monsterGO.id()}_release`, 5, (toRelease: cse_alife_object): boolean => {
-            safe_release_manager.release(toRelease);
-            return true;
-        }, se_obj);
+        this.AddTTLTimer(se_obj.id, 10);
     }
 
     GenerateDrop(monster: MWMonster) {
@@ -201,31 +192,56 @@ export class MonsterWorld {
         
         let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
-        Save(sgo.id, "MW_DropHighlight", [cfg.ParticlesByQuality[qualityLevel], "wpn_body"])
 
         //Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
 
-        CreateTimeEvent(`${sgo.name()}_add_highlight`, `${sgo.name()}`, 0.1, (objId: Id) => {
-            let go = level.object_by_id(objId);
+        this.HighlightDroppedItem(sgo.id, qualityLevel);
+        this.AddTTLTimer(sgo.id, 120)
+    }
+
+    HighlightDroppedItem(id: Id, quality: number) {
+        CreateTimeEvent(id, `add_highlight`, 0.1, (id: Id) => {
+            let go = level.object_by_id(id);
             if (go == null){
                 return false;
             }
 
-            let [particles, bone] = Load<[string, string]>(objId, "MW_DropHighlight")
-            if (particles != undefined){
-                this.highlightedItems.add(go.id())
-                go.start_particles(particles, bone)
-            }
+            let particles = cfg.ParticlesByQuality[quality]
+            go.start_particles(particles, this.GetHighlighBone(go))
+            Save<string>(id, "highlight_particels", particles);
             return true;
-        }, sgo.id);
-
-        CreateTimeEvent(this.GetReleaseEventName(sgo.id), this.GetReleaseEventName(sgo.id), 120, (toRelease: cse_alife_object): boolean => {
-            safe_release_manager.release(toRelease);
-            return true;
-        }, sgo);
+        }, id);
     }
 
-    GetReleaseEventName(id: Id): string { return `${id}_release` };
+    RemoveHighlight(id: Id){
+        let go = level.object_by_id(id);
+        if (go == null){
+            return false;
+        }
+
+        let particles = Load<string>(id, "highlight_particels");
+        if (particles != undefined){
+            go.stop_particles(particles, this.GetHighlighBone(go))
+        }
+    }
+
+    GetHighlighBone(go: game_object): string{
+        let bone = "link";
+        if (go.is_weapon()) { bone = "wpn_body"; }
+        return bone;
+    }
+
+    AddTTLTimer(id: Id, time: number){
+        CreateTimeEvent(id, "mw_ttl", time, (id: Id): boolean => {
+            let toRelease = alife().object(id)
+            if (toRelease != undefined){
+                safe_release_manager.release(toRelease);
+            }
+            return true;
+        }, id);
+    }
+
+    RemoveTTLTimer(id: Id){ RemoveTimeEvent(id, "mw_ttl"); }
 }
 
 export type HitInfo = {

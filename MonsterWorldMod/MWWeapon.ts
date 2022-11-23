@@ -49,6 +49,10 @@ export class MWWeapon extends BaseMWObject {
         return result;
     }
 
+    public OnWeaponPickedUp(){
+        
+    }
+
     private GenerateWeaponStats() {
         const ammoMagSize = ini_sys.r_float_ex(this.Section, "ammo_mag_size", 1);
         const rpm = ini_sys.r_float_ex(this.Section, "rpm", 1);
