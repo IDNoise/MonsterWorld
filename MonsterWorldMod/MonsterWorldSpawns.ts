@@ -70,7 +70,7 @@ export class MonsterWorldSpawns {
 
         //Log(`Trying to spawn for: ${smart.name()}`)
         let respawnInterval = 600;
-        let maxPopulation = 4;
+        let maxPopulation = 5;
         if (!Load(smart.id, "MW_Initialized", false) || smart.respawn_idle != respawnInterval || smart.max_population != maxPopulation){
             if (Load(smart.id, "MW_Initialized", false)){
                 //Log(`Initialized: ${smart.name()} was initialized but reset`)
@@ -94,18 +94,17 @@ export class MonsterWorldSpawns {
                 selectedMonsters.push(monsterType);
             }
 
-            let selectedMonsterType = RandomFromArray(selectedMonsters);
-            Save(smart.id, "MW_MonsterType", selectedMonsterType);
+            Save(smart.id, "MW_MonsterTypes", selectedMonsters);
             //Log(`Selected monster: ${selectedMonsterType} (from ${selectedMonsters.length}) for ${smart.id}`)
             smart.respawn_params = {
                 "spawn_section_1": {
-                    num: NumberToCondList(cfg.MonsterConfigs.get(selectedMonsterType).max_squads_per_smart || 2),
+                    num: NumberToCondList(2),
                     squads: ["simulation_monster_world"]
                 },
             }
             smart.already_spawned = {"spawn_section_1": {num: 0}}
             smart.faction = "monster";
-            smart.respawn_radius = 150;
+            smart.respawn_radius = 125;
 
             //Log(`Initialized: ${smart.name()}`)
             Save(smart.id, "MW_Initialized", true);
@@ -128,7 +127,8 @@ export class MonsterWorldSpawns {
             return;
         }
 
-        let monsterType = Load<MonsterType>(obj.smart_id, "MW_MonsterType", undefined);
+        let monsterTypes = Load<MonsterType[]>(obj.smart_id, "MW_MonsterTypes");
+        let monsterType = RandomFromArray(monsterTypes);
         let monsterCfg = cfg.MonsterConfigs.get(monsterType);
         if (monsterCfg == undefined){
             Log(`SPAWN PROBLEM  NO monsterCfg! ${monsterType}`)
@@ -176,10 +176,7 @@ export class MonsterWorldSpawns {
             Save(monsterId, "MW_SpawnParams", {
                 type: monsterType,
                 level: enemyLvl,
-                rank: rank,
-                hpMult: monsterCfg.hp_mult || 1,
-                xpMult: monsterCfg.xp_mult || 1,
-                damageMult: monsterCfg.damage_mult || 1
+                rank: rank
             });
             i++;
         }

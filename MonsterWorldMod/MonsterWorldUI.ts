@@ -96,7 +96,25 @@ export class MonsterWorldUI {
             s.name.SetTextColor(cfg.QualityColors[weapon.Quality])
         }
         utils_ui.UIInfoItem.Update = newUIInfoItemUpdate
-        
+
+        const oldUISortBySizeKind = utils_ui.sort_by_sizekind; 
+        utils_ui.sort_by_sizekind = (t, a, b) => { //Sorting by DPS > level > quality
+            let objA = t.get(a);
+            let objB = t.get(b);
+            let weaponA = this.world.GetWeapon(objA.id())
+            let weaponB = this.world.GetWeapon(objB.id())
+            if (weaponA != null && weaponB != null && weaponA != weaponB){
+                if (weaponA.DPS != weaponB.DPS)
+                    return weaponA.DPS > weaponB.DPS;
+                else if(weaponA.Level != weaponB.Level)
+                    return weaponA.Level > weaponB.Level;
+                else if (weaponA.Quality != weaponB.Quality)
+                    return weaponA.Quality > weaponB.Quality;
+                else
+                    return weaponA.id > weaponB.id;
+            }
+            return oldUISortBySizeKind(t, a, b);
+        }
     }
 
     public Save(data: { [key: string]: any; }) {
@@ -349,7 +367,7 @@ export class MonsterWorldUI {
     }
 
     UIGetItemLevel(obj: game_object): number { return this.world.GetWeapon(obj.id()).Level; }
-    UIGetWeaponDPS(obj: game_object): number { return this.world.GetWeapon(obj.id()).DamagePerHit * (1 / obj.cast_Weapon().RPM()); }
+    UIGetWeaponDPS(obj: game_object): number { return this.world.GetWeapon(obj.id()).DPS; }
     UIGetWeaponDamagePerHit(obj: game_object): number { return this.world.GetWeapon(obj.id()).DamagePerHit; }
     UIGetWeaponRPM(obj: game_object): number { return 60 / obj.cast_Weapon().RPM(); }
     UIGetWeaponAmmoMagSize(obj: game_object): number { return obj.cast_Weapon().GetAmmoMagSize(); }

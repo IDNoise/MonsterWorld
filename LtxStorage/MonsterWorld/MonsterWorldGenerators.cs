@@ -88,8 +88,8 @@ public class WeaponsGenerator : BaseGenerator
                 box_size = ammoConfig.BoxSize * 10,
                 inv_weight = 0.000001,
                 description = "",
-                inv_name = $"\'{ammoConfig.Name}\'",
-                inv_name_short = $"\'{ammoConfig.Name}\'",
+                // inv_name = $"\'{ammoConfig.Name}\'",
+                // inv_name_short = $"\'{ammoConfig.Name}\'",
                 tier = 1,
                 cost = 1,
             });

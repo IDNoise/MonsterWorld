@@ -182,10 +182,7 @@ export enum MonsterRank {
 export type MonsterSpawnParams = {
     type: MonsterType,
     level: number,
-    rank: MonsterRank,
-    hpMult: number,
-    xpMult: number,
-    damageMult: number
+    rank: MonsterRank
 };
 
 export type  WeaponSpawnParams = {
@@ -486,54 +483,48 @@ export let PlayerPointsPerLevelUp = 1;
 
 //Monster params
 export let EnemyHPBase = 50;
-export let EnemyHPExpPerLevel = 1.1;
-export let EnemyHPPctPerLevel = 25;
+export let EnemyHPExpPerLevel = 1.15;
+export let EnemyHPPctPerLevel = 75;
 export let EnemyHpDeltaPct = 10;
 
 export let EnemyDamageBase = PlayerHPBase / 25;
-export let EnemyDamageExpPerLevel = 1; //1.1;
+export let EnemyDamageExpPerLevel = 1.05; //1.1;
 export let EnemyDamagePctPerLevel = 10;
 
-export let EnemyXpRewardBase = 10;
+export let EnemyXpRewardBase = PlayerXPForFirstLevel / 20;
 export let EnemyXpRewardExpPerLevel = 1.25;
-export let EnemyXpRewardPctPerLevel = 25;
+export let EnemyXpRewardPctPerLevel = 50;
 
 export let EnemyHigherLevelChance = 5;
 export let EnemyEliteChance = 15;
 export let EnemyBossChance = 5;
 
-export let EnemyBossHPMult = 10;
-export let EnemyBossXPRewardMult = 10;
-export let EnemyBossDamageMult = 2.5;
-export let EnemyBossDropLevelIncreaseChance = 50;
-export let EnemyBossDropQualityIncreaseChance = 50;
-
-export let EnemyEliteHPMult = 3;
-export let EnemyEliteXPRewardMult = 3;
-export let EnemyEliteDamageMult = 1.5;
-export let EnemyEliteDropLevelIncreaseChance = 20;
-export let EnemyEliteDropQualityIncreaseChance = 20;
+export let EnemyHpMultsByRank: number[] = [1, 3, 10];
+export let EnemyXpMultsByRank: number[] = [1, 3, 10];
+export let EnemyDamageMultsByRank: number[] = [1, 1.5, 3];
+export let EnemyDropLevelIncreaseChanceByRank: number[] = [1, 20, 50];
+export let EnemyDropQualityIncreaseChanceByRank: number[] = [1, 20, 50];
 
 //Weapons
-export let WeaponDPSBase = EnemyHPBase / 0.2;
-export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel;
+export let WeaponDPSBase = EnemyHPBase / 0.3;
+export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel - 0.005;
 export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
 
 //Drops
-export let EnemyDropChance = 200;
+export let EnemyDropChance = 10;
 export let EnemyBossDropChance = 100;
-export let EnemyEliteDropChance = 50;
+export let EnemyEliteDropChance = 25;
 export let MinQuality = 1;
 export let MaxQuality = 5;
 
 export let HigherLevelDropChancePct = 5;
 
 export let QualityDropChance: [chance: number, level: number][] = [
-    [30, 2],
-    [15, 3],
-    [7, 4],
-    [3, 5],
+    [25, 2],
+    [13, 3],
+    [6, 4],
+    [2, 5],
 ];
 
 export let Qualities: {[key: number]: string} = {

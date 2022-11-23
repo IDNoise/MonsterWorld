@@ -43,6 +43,15 @@ declare namespace utils_ui{
     namespace UIInfoItem{
         function Update(s: any, obj: game_object, sec: Section, flags: any): void;
     }
+
+    namespace UICellContainer{
+        function GetSortMethod(s: any): (t: LuaTable<Id, game_object>, a: Id, b: Id) => boolean;
+        //let sort_method: "kind" | "sizekind" | "props";
+    }
+
+    function sort_by_props(t: LuaTable<Id, game_object>, a: Id, b: Id): boolean;
+    function sort_by_sizekind(t: LuaTable<Id, game_object>, a: Id, b: Id): boolean;
+    function sort_by_kind(t: LuaTable<Id, game_object>, a: Id, b: Id): boolean;
 }
 
 

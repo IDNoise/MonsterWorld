@@ -2,7 +2,7 @@ import { IsPctRolled, Save } from '../StalkerAPI/extensions/basic';
 import { BaseMWObject } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
-import { MonsterSpawnParams, MonsterRank, MonsterType } from './MonsterWorldConfig';
+import { MonsterSpawnParams, MonsterRank, MonsterType, MonsterConfigs } from './MonsterWorldConfig';
 
 export class MWMonster extends BaseMWObject{
     constructor(public mw: MonsterWorld, public id: Id) {
@@ -16,21 +16,12 @@ export class MWMonster extends BaseMWObject{
         this.Level = spawnConfig.level;
         this.Rank = spawnConfig.rank;
 
-        let enemyHP = this.GetMaxHP(this.Level) * spawnConfig.hpMult;
-        let xpReward = this.GetXPReward(this.Level) * spawnConfig.xpMult;
-        let enemyDamage = this.GetDamage(this.Level) * spawnConfig.damageMult;
+        let monsterCfg = MonsterConfigs.get(this.Type);
 
-        if (spawnConfig.rank == MonsterRank.Boss){
-            enemyHP *= cfg.EnemyBossHPMult;
-            xpReward *= cfg.EnemyBossXPRewardMult;
-            enemyDamage *= cfg.EnemyBossDamageMult;
-        }
-        else if (spawnConfig.rank == MonsterRank.Elite){
-            enemyHP *= cfg.EnemyEliteHPMult;
-            xpReward *= cfg.EnemyEliteXPRewardMult;
-            enemyDamage *= cfg.EnemyEliteDamageMult;
-        }
-        
+        let enemyHP = this.GetMaxHP(this.Level) * (monsterCfg.hp_mult || 1) * cfg.EnemyHpMultsByRank[this.Rank];
+        let xpReward = this.GetXPReward(this.Level) * (monsterCfg.xp_mult || 1) * cfg.EnemyXpMultsByRank[this.Rank];
+        let enemyDamage = this.GetDamage(this.Level) * (monsterCfg.damage_mult || 1) * cfg.EnemyDamageMultsByRank[this.Rank];
+
         this.MaxHP = enemyHP;
         this.HP = enemyHP;
         this.Damage = enemyDamage;

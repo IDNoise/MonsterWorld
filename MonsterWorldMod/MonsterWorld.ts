@@ -196,18 +196,8 @@ export class MonsterWorld {
             }
         }
     
-        if (monster.Rank == MonsterRank.Elite){
-            if (IsPctRolled(cfg.EnemyEliteDropLevelIncreaseChance))
-                dropLevel++;
-            if (IsPctRolled(cfg.EnemyEliteDropQualityIncreaseChance))
-                qualityLevel++;
-        }
-        else if (monster.Rank == MonsterRank.Boss){
-            if (IsPctRolled(cfg.EnemyBossDropLevelIncreaseChance))
-                dropLevel++;
-            if (IsPctRolled(cfg.EnemyBossDropQualityIncreaseChance))
-                qualityLevel++;
-        }
+        if (IsPctRolled(cfg.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
+        if (IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
         
         let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});

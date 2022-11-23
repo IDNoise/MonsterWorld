@@ -35,6 +35,8 @@ export class MWWeapon extends BaseMWObject {
     get Bonuses(): LuaTable<BonusParams.Type, number> { return this.Load("GeneratedBonuses"); }
     set Bonuses(bonuses: LuaTable<BonusParams.Type, number>) { this.Save("GeneratedBonuses", bonuses); }
 
+    get DPS(): number { return this.DamagePerHit  * (1 / this.GO.cast_Weapon().RPM()) }
+
     public GetBonusDescription(): string{
         let result = "";
 

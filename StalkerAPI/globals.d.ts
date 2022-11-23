@@ -149,6 +149,8 @@ declare function IsGrenade(obj: game_object, clsid?: ClsId): boolean;
 declare function IsBolt(obj: game_object, clsid?: ClsId): boolean;
 declare function IsArtefact(obj: game_object, clsid?: ClsId): boolean;
 
+declare function IsItem(typ: string, sec: Section, obj?: game_object): boolean;
+
 declare function get_player_level_id(): LevelId;
 
 declare function IsAzazelMode(): boolean;
