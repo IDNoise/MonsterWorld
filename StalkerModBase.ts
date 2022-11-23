@@ -137,6 +137,37 @@ export class StalkerModBase {
         //Log(`OnItemFocusReceive ${item.section()}:${item.id()}`);
     }
 
+    protected OnHudAnimationPlay(obj: game_object, anim_table: AnimationTable): void {
+        //         function actor_on_hud_animation_play(anim_table, obj)
+        // 	if not utjan_whandling_skill or not IsWeapon(obj) then return end
+        // 	local kind = SYS_GetParam(0, obj:section(), "kind")
+            
+        // 	local anm_speed = anim_table.anm_speed
+            
+        // 	if utjan_whandling_skill.reload_anims[anim_table.anm_name] then
+        // 		if traits_list["small_guns_reload"].enabled and (kind == "w_smg" or kind == "w_pistol") then
+        // 			anim_table.anm_speed = anm_speed * (1 + traits_stats["small_guns_reload"].reload_bonus)
+        // 			--printf("small_guns_reload")
+        // 		elseif traits_list["big_guns_reload"].enabled and (kind == "w_shotgun" or kind == "w_sniper" or kind == "w_rifle") then
+        // 			--printf("small_guns_reload")
+        // 			anim_table.anm_speed = anm_speed * (1 + traits_stats["big_guns_reload"].reload_bonus)
+        // 		end
+        // 	end
+        // 	if traits_list["sidearm_quickdraw"].enabled then
+        // 		if utjan_whandling_skill.show_anims[anim_table.anm_name] and kind == "w_pistol"then
+        // 			anim_table.anm_speed = anm_speed * (1 + traits_stats["sidearm_quickdraw"].pistol_draw_bonus)
+        // 			--printf("sidearm_quickdraw_pistol")
+        // 		end
+        // 		if utjan_whandling_skill.hide_anims[anim_table.anm_name] then
+        // 			if kind == "w_smg" or kind == "w_shotgun" or kind == "w_sniper" or kind == "w_rifle" then
+        // 				anim_table.anm_speed = anm_speed * (1 + traits_stats["sidearm_quickdraw"].non_pistol_holster_bonus)
+        // 				--printf("sidearm_quickdraw_non_pistol")
+        // 			end		
+        // 		end
+        // 	end
+        // end
+            }
+
     protected RegisterCallbacks():void{
         Log("Register callbacks");
 
@@ -156,6 +187,7 @@ export class StalkerModBase {
         RegisterScriptCallback("actor_on_item_take", (item: game_object) => this.OnItemTake(item))
         RegisterScriptCallback("actor_on_item_drop",  (item) => this.OnItemDrop(item));
         RegisterScriptCallback("actor_on_weapon_fired",  (obj, wpn, ammo_elapsed,grenade_elapsed,ammo_type,grenade_type) => this.OnWeaponFired(obj, wpn, ammo_elapsed));
+        RegisterScriptCallback("actor_on_hud_animation_play",  (anim_table: AnimationTable, obj: game_object) => this.OnHudAnimationPlay(obj, anim_table));
         // actor_on_before_death		            = {}, -- Params: (<number>,<table>)
         // actor_on_weapon_fired		            = {}, -- Params: (<game_object>,<game_object>,<number>,<number>,<number>,<number>)
         // actor_on_weapon_jammed		            = {}, -- Params: (<game_object>)

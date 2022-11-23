@@ -6,6 +6,7 @@ import * as cfg from './MonsterWorldConfig';
 import { WeaponSpawnParams } from './MonsterWorldConfig';
 
 export class MWWeapon extends BaseMWObject {
+    
     constructor(public mw: MonsterWorld, public id: Id) {
         super(mw, id);
     }
@@ -50,7 +51,13 @@ export class MWWeapon extends BaseMWObject {
     }
 
     public OnWeaponPickedUp(){
-        
+        this.GO.set_ammo_elapsed(this.GO.cast_Weapon().GetAmmoMagSize());
+        this.GO.set_condition(100)
+    }
+
+    OnReloadStart(anim_table: AnimationTable) {
+        let bonus = this.Bonuses.get(BonusParams.Type.ReloadSpeed) || 0;
+        anim_table.anm_speed *= (1 + bonus / 100)
     }
 
     private GenerateWeaponStats() {
@@ -66,6 +73,7 @@ export class MWWeapon extends BaseMWObject {
 
         let upgradesByType: [BonusParams.Type, string[]][] = [];
         upgradesByType.push([BonusParams.Type.Damage, []]);
+        upgradesByType.push([BonusParams.Type.ReloadSpeed, []]);
 
         let upgradeTypes = BonusParams.AllParams;
         for (let i = 0; i < upgradeTypes.length; i++) {
@@ -88,6 +96,7 @@ export class MWWeapon extends BaseMWObject {
         }
 
         let damageBonusPct = 0;
+        let reloadSpeedBonusPct = 0;
         let allSelectedUpgrades: string[] = [];
         for (let i = 0; i < selectedUpgradeTypes.length; i++) {
             let upgradesPerTypeToSelect = 1 + (this.Level / 10) + (this.Quality - 1) / 2;
@@ -95,9 +104,16 @@ export class MWWeapon extends BaseMWObject {
             if (t == BonusParams.Type.Damage) {
                 let bonus = 0;
                 for (let j = 0; j < upgradesPerTypeToSelect; j++) {
-                    bonus += math.random(1, 5);
+                    bonus += math.random(1, 5 + this.Quality);
                 }
                 damageBonusPct = bonus;
+            }
+            else if (t == BonusParams.Type.ReloadSpeed) {
+                let bonus = 0;
+                for (let j = 0; j < upgradesPerTypeToSelect; j++) {
+                    bonus += math.random(2, 5 + this.Quality);
+                }
+                reloadSpeedBonusPct = bonus;
             }
             else if (t == BonusParams.Type.FireMode) {
                 const upgrade = TakeRandomFromArray(upgrades);
@@ -131,6 +147,8 @@ export class MWWeapon extends BaseMWObject {
             }
         }
 
+        this.Bonuses.set(BonusParams.Type.ReloadSpeed, reloadSpeedBonusPct)
+
         damageBonusPct += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
         if (damageBonusPct >= cfg.WeaponDPSDeltaPct) {
             damageBonusPct += math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct);
@@ -147,9 +165,6 @@ export class MWWeapon extends BaseMWObject {
         }
 
         //Log(`Bonus description: ${this.GetBonusDescription()}`);
-
-        this.GO.set_ammo_elapsed(this.GO.cast_Weapon().GetAmmoMagSize());
-        this.GO.set_condition(100)
     }
 }
 
@@ -162,14 +177,16 @@ export module BonusParams {
         Dispersion = "dispersion",
         Inertion = "inertion",
         Recoil = "recoil",
-        BulletSpeed = "bullet_speed"
+        ReloadSpeed = "reload_speed",
+        BulletSpeed = "bullet_speed",
     }
     
-    export let AllParams = [Type.Damage, Type.Rpm, Type.MagSize, Type.Dispersion, Type.Inertion, Type.Recoil, Type.BulletSpeed, Type.FireMode];
+    export let AllParams = [Type.Damage, Type.Rpm, Type.MagSize, Type.Dispersion, Type.Inertion, Type.Recoil, Type.ReloadSpeed, Type.BulletSpeed, Type.FireMode];
 
     export let SectionFields : {[key in Type]: string} = {
         damage: "_NotUsed",
         fire_mode: "_NotUsed",
+        reload_speed: "_NotUsed",
         rpm: "rpm",
         mag_size: "ammo_mag_size",
         dispersion: "fire_dispersion_base",
@@ -178,7 +195,7 @@ export module BonusParams {
         bullet_speed: "bullet_speed"
     }
 
-    export let PctBonuses = [Type.Damage, Type.Rpm, Type.Dispersion, Type.Inertion, Type.Recoil, Type.BulletSpeed];
+    export let PctBonuses = [Type.Damage, Type.Rpm, Type.Dispersion, Type.Inertion, Type.Recoil, Type.BulletSpeed, Type.ReloadSpeed];
 
     export function GetBonusDescription(type: Type, bonus: number = 0): string{
         if (HasNoValue.includes(type))
@@ -201,6 +218,7 @@ export module BonusParams {
         dispersion: "Accuracy",
         inertion: "Handling",
         recoil: "Recoil",
+        reload_speed: "Reload speed",
         bullet_speed: "Flatness"
     }
 }

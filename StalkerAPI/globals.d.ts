@@ -212,3 +212,8 @@ declare function  CreateTimeEvent<T1, T2, T3, T4, T5, T6>(ev_id: string | number
     callback: (arg1?: T1, arg2?: T2, arg3?: T3, arg4?: T4, arg5?: T5, arg6?: T6) => boolean, arg1?: T1, arg2?: T2, arg3?: T3, arg4?: T4, arg5?: T5, arg6?: T6): void;
 declare function  RemoveTimeEvent(ev_id: string | number, act_id: string | number): void;
 declare function  ResetTimeEvent(ev_id: string | number, act_id: string | number, timerSeconds: number): void;
+
+type AnimationTable = {
+    anm_name: string,
+    anm_speed: number
+}

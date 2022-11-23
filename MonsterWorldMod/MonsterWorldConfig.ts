@@ -503,7 +503,7 @@ export let EnemyHpDeltaPct = 10;
 
 export let EnemyDamageBase = PlayerHPBase / 20;
 export let EnemyDamageExpPerLevel = 1.025; //1.1;
-export let EnemyDamagePctPerLevel = 10;
+export let EnemyDamagePctPerLevel = 15;
 
 export let EnemyXpRewardBase = PlayerXPForFirstLevel / 20;
 export let EnemyXpRewardExpPerLevel = 1.25;
@@ -526,7 +526,7 @@ export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
 
 //Drops
-export let EnemyDropChance = 10;
+export let EnemyDropChance = 15;
 export let EnemyBossDropChance = 100;
 export let EnemyEliteDropChance = 25;
 export let MinQuality = 1;

@@ -3,6 +3,7 @@ import { Log, StalkerModBase } from '../StalkerModBase';
 import { HitInfo, MonsterWorld } from './MonsterWorld';
 import { CriticalBones } from './MonsterWorldBones';
 import { MWMonster } from './MWMonster';
+import { ReloadAnims } from './MonsterWorldAnims';
 
 export class MonsterWorldMod extends StalkerModBase {
     public World: MonsterWorld;
@@ -61,6 +62,17 @@ export class MonsterWorldMod extends StalkerModBase {
         if(obj.id() == 0){
             this.World.OnWeaponFired(wpn, ammo_elapsed)
         }
+    }
+
+    protected override OnHudAnimationPlay(obj: game_object, anim_table: AnimationTable): void {
+        super.OnHudAnimationPlay(obj, anim_table);
+
+        let weapon = this.World.GetWeapon(obj.id())
+        if (weapon == undefined)
+            return;
+
+        if (ReloadAnims.includes(anim_table.anm_name))
+            weapon.OnReloadStart(anim_table)
     }
 
     // protected override OnItemFocusReceive(item: game_object): void {
