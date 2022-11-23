@@ -32,6 +32,15 @@ export class MonsterWorld {
         treasure_manager.init_settings = () => {};
         treasure_manager.try_spawn_treasure = (_ignore: any) => {};
         treasure_manager.create_random_stash = (...args: any[]) => {};
+        death_manager.create_release_item = (_ignore: any) => {};
+        death_manager.create_item_list = (...args: any[]) => {};
+        death_manager.keep_item = (npc: game_object, item: game_object) => {
+            if (!item) return;
+            let se_obj = alife_object(item.id());
+            if (se_obj != undefined){
+                alife_release(se_obj)
+            }
+        };
     }
 
     get Player(): MWPlayer{
@@ -41,7 +50,7 @@ export class MonsterWorld {
     }
 
     GetMonster(monsterId: Id): MWMonster | undefined {
-        if (!this.monsters.has(monsterId) && level.object_by_id(monsterId)?.is_monster()){
+        if (!this.monsters.has(monsterId) && (level.object_by_id(monsterId)?.is_monster() || level.object_by_id(monsterId)?.is_stalker())){
             this.monsters.set(monsterId, new MWMonster(this, monsterId));
         }
         return this.monsters.get(monsterId);
@@ -63,9 +72,12 @@ export class MonsterWorld {
         this.GetWeapon(item.id())
 
         if (this.highlightedItems.has(item.id())){
-            item.stop_particles(Load<string>(item.id(), "MW_DropHighlight"), Load<string>(item.id(), "MW_DropHighlightBone"))
+            let [particles, bone] = Load<[string, string]>(item.id(), "MW_DropHighlight")
+            item.stop_particles(particles, bone)
             this.highlightedItems.delete(item.id())
         }
+
+        RemoveTimeEvent(this.GetReleaseEventName(item.id()), this.GetReleaseEventName(item.id()));
     }
 
     public OnWeaponFired(wpn: game_object, ammo_elapsed: number) {
@@ -97,16 +109,25 @@ export class MonsterWorld {
         this.UIManager.Update();
     }
 
-    public OnPlayerHit(attackerGO: game_object) {
-        if (!attackerGO.is_monster() || !attackerGO.is_stalker())
+    public OnPlayerHit(shit: hit) {
+        let attackerGO = shit.draftsman;
+        if (!attackerGO.is_monster() && !attackerGO.is_stalker())
             return;
 
         let monster = this.GetMonster(attackerGO.id());
         if (monster == undefined) 
             return;
 
-        this.Player.HP -= monster.Damage;
-        //Log(`Player [${ this.Player.HP} / ${this.Player.MaxHP}] was hit by ${monster.Name} for ${monster.Damage} damage`);
+        let damage = monster.Damage;
+        if (attackerGO.is_stalker() && shit.weapon_id != 0 && shit.weapon_id != attackerGO.id()){
+            let weapon = level.object_by_id(shit.weapon_id);
+            if (weapon?.is_weapon())
+                damage *= weapon.cast_Weapon().RPM();
+        }
+
+        this.Player.HP -= damage;
+
+        Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage})`)
     }
 
     public OnMonstersHit(monsterHitsThisFrame: Map<Id, HitInfo>) {
@@ -134,32 +155,6 @@ export class MonsterWorld {
         }
     }
 
-    // public OnMonsterHit(monsterGO: game_object, shit: hit, boneId: BoneId) {
-    //     let monster = this.GetMonster(monsterGO.id());
-    //     if (monster == undefined || monster.IsDead) 
-    //         return;
-
-    //     let weapon = this.GetWeapon(shit.weapon_id);
-    //     if (!weapon) 
-    //         return;
-
-    //     let damage = weapon.DamagePerHit;
-
-    //     let isCrit = CriticalBones[monster.Type]?.includes(boneId) || false;
-    //     if (isCrit){
-    //         damage *= 2.5; //TODO move to player stats
-    //     }
-
-    //     let realDamage = math.min(monster.HP, damage)
-    //     monster.HP -= realDamage;
-    //     this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
-        
-    //     Log(`${monster.Name} [${monster.HP} / ${monster.MaxHP}] was hit by player for ${damage} damage. Is crit: ${isCrit}. Bone: ${boneId}`);
-
-    //     if (monster.IsDead)
-    //         shit.impulse = 1000000;
-    // }
-
     public OnMonsterKilled(monsterGO: game_object) {
         let monster = this.GetMonster(monsterGO.id());
         if (monster == undefined) 
@@ -171,6 +166,12 @@ export class MonsterWorld {
         if (IsPctRolled(monster.DropChance)){
             this.GenerateDrop(monster)
         }
+
+        let se_obj = alife().object(monsterGO.id())
+        CreateTimeEvent(`${monsterGO.id()}_release`, `${monsterGO.id()}_release`, 5, (toRelease: cse_alife_object): boolean => {
+            safe_release_manager.release(toRelease);
+            return true;
+        }, se_obj);
     }
 
     GenerateDrop(monster: MWMonster) {
@@ -210,8 +211,7 @@ export class MonsterWorld {
         
         let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
-        Save(sgo.id, "MW_DropHighlight", cfg.ParticlesByQuality[qualityLevel])
-        Save(sgo.id, "MW_DropHighlightBone", "wpn_body")
+        Save(sgo.id, "MW_DropHighlight", [cfg.ParticlesByQuality[qualityLevel], "wpn_body"])
 
         //Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
 
@@ -221,14 +221,21 @@ export class MonsterWorld {
                 return false;
             }
 
-            let particles = Load<string>(objId, "MW_DropHighlight")
+            let [particles, bone] = Load<[string, string]>(objId, "MW_DropHighlight")
             if (particles != undefined){
                 this.highlightedItems.add(go.id())
-                go.start_particles(particles, Load(objId, "MW_DropHighlightBone"))
+                go.start_particles(particles, bone)
             }
             return true;
         }, sgo.id);
+
+        CreateTimeEvent(this.GetReleaseEventName(sgo.id), this.GetReleaseEventName(sgo.id), 120, (toRelease: cse_alife_object): boolean => {
+            safe_release_manager.release(toRelease);
+            return true;
+        }, sgo);
     }
+
+    GetReleaseEventName(id: Id): string { return `${id}_release` };
 }
 
 export type HitInfo = {

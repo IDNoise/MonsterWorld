@@ -37,6 +37,11 @@ export class MonsterWorldMod extends StalkerModBase {
         this.World.GetMonster(monster.id());
     }
 
+    protected override OnNpcNetSpawn(npc: game_object, serverObject: cse_alife_human_stalker): void {
+        //super.OnNpcNetSpawn(npc, serverObject);
+        this.World.GetMonster(npc.id());
+    }
+
     // protected override OnItemNetSpawn(item: game_object, serverObject: cse_alife_item): void {
     //     super.OnItemNetSpawn(item, serverObject);
     //     this.world.GetWeapon(item.id());
@@ -49,7 +54,9 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected override OnItemDrop(item: game_object): void {
         super.OnItemDrop(item);
-        alife_release(alife().object(item.id()))
+        let se_obj = alife().object(item.id());
+        if (se_obj != undefined)
+            alife_release(se_obj)
     }
 
     protected override OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void {
@@ -62,6 +69,11 @@ export class MonsterWorldMod extends StalkerModBase {
     //     super.OnItemFocusReceive(item);
     //     //this.world.GetWeapon(item.id());
     // }
+
+    protected override OnNpcNetDestroy(npc: game_object): void {
+        //super.OnNpcNetDestroy(npc)
+        this.OnMonsterNetDestroy(npc);
+    }
 
     protected override OnMonsterNetDestroy(monster: game_object): void {
         //super.OnMonsterNetDestroy(monster)
@@ -95,7 +107,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (!this.CanHit(db.actor.id(), shit.draftsman.id())) 
             return false;
 
-        this.World.OnPlayerHit(shit.draftsman);  
+        this.World.OnPlayerHit(shit);  
 
         shit.power = 0;
         shit.impulse = 0;
@@ -135,6 +147,14 @@ export class MonsterWorldMod extends StalkerModBase {
 
         shit.power = 0;
         return true;
+    }
+
+    protected override OnNPCBeforeHit(npc: game_object, shit: hit, boneId: number): boolean {
+        return this.OnMonsterBeforeHit(npc, shit, boneId);
+    }
+
+    protected override OnNPCDeath(monster: game_object, killer: game_object): void {
+        this.OnMonsterDeath(monster, killer)
     }
 
     protected override OnMonsterDeath(monster: game_object, killer: game_object): void {

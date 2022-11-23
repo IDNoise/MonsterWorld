@@ -164,6 +164,13 @@ export enum MonsterType {
     Controller = "Controller",
     Psysucker = "Psysucker",
     Giant = "Giant",
+
+    MonolithSoldier = "Monolith soldier",
+    Bandit = "Bandit",
+    Mercenary = "Mercenary",
+    Sin = "Sin",
+    Army = "Army",
+    Zombified = "Zombified",
 };
 
 export enum MonsterRank {
@@ -205,6 +212,17 @@ export type MonsterConfig = {
 
 export const MonsterConfigs: LuaTable<MonsterType, MonsterConfig> = new LuaTable();
 
+MonsterConfigs.set(MonsterType.Bandit, {
+    type: MonsterType.Bandit,
+    level_start: 1,
+    level_type: LevelType.NonLab,
+    squad_size_min: 5,
+    squad_size_max: 12,
+    common_section: "sim_default_bandit_2",
+    elite_section: "sim_default_bandit_3",
+    boss_section: "sim_default_bandit_4",
+});
+
 MonsterConfigs.set(MonsterType.Flesh, {
     type: MonsterType.Flesh,
     level_start: 1,
@@ -243,6 +261,20 @@ MonsterConfigs.set(MonsterType.Dog, {
     boss_section: "dog_strong_black",
 });
 
+MonsterConfigs.set(MonsterType.Zombified, {
+    type: MonsterType.Zombified,
+    level_type: LevelType.All,
+    level_start: 2,
+    hp_mult: 1.5,
+    xp_mult: 1,
+    damage_mult: 0.75,
+    squad_size_min: 6,
+    squad_size_max: 12,
+    common_section: "sim_default_zombied_2",
+    elite_section: "sim_default_zombied_3",
+    boss_section: "sim_default_zombied_4",
+});
+
 MonsterConfigs.set(MonsterType.Cat, {
     type: MonsterType.Cat,
     level_start: 3,
@@ -254,6 +286,17 @@ MonsterConfigs.set(MonsterType.Cat, {
     common_section: "cat_normal_d",
     elite_section: "cat_strong_b",
     boss_section: "cat_strong_afro",
+});
+
+MonsterConfigs.set(MonsterType.Army, {
+    type: MonsterType.Army,
+    level_start: 4,
+    level_type: LevelType.NonLab,
+    squad_size_min: 4,
+    squad_size_max: 10,
+    common_section: "sim_default_military_1",
+    elite_section: "sim_default_military_2",
+    boss_section: "sim_default_military_3",
 });
 
 MonsterConfigs.set(MonsterType.PseudoDog, {
@@ -351,6 +394,17 @@ MonsterConfigs.set(MonsterType.Controller, {
     boss_section: "m_controller_normal1111",
 });
 
+MonsterConfigs.set(MonsterType.Sin, {
+    type: MonsterType.Sin,
+    level_start: 8,
+    level_type: LevelType.NonLab,
+    squad_size_min: 4,
+    squad_size_max: 10,
+    common_section: "sim_default_greh_2",
+    elite_section: "sim_default_greh_3",
+    boss_section: "sim_default_greh_4",
+});
+
 MonsterConfigs.set(MonsterType.Psysucker, {
     type: MonsterType.Psysucker,
     level_start: 15,
@@ -367,7 +421,7 @@ MonsterConfigs.set(MonsterType.Psysucker, {
 
 MonsterConfigs.set(MonsterType.Giant, {
     type: MonsterType.Giant,
-    level_start: 15,
+    level_start: 12,
     level_type: LevelType.Open,
     hp_mult: 8,
     damage_mult: 2,
@@ -378,6 +432,17 @@ MonsterConfigs.set(MonsterType.Giant, {
     common_section: "gigant_weak",
     elite_section: "gigant_normal",
     boss_section: "gigant_strong",
+});
+
+MonsterConfigs.set(MonsterType.Mercenary, {
+    type: MonsterType.Mercenary,
+    level_start: 12,
+    level_type: LevelType.NonLab,
+    squad_size_min: 4,
+    squad_size_max: 10,
+    common_section: "sim_default_killer_2",
+    elite_section: "sim_default_killer_3",
+    boss_section: "sim_default_killer_4",
 });
 
 MonsterConfigs.set(MonsterType.Chimera, {
@@ -393,6 +458,20 @@ MonsterConfigs.set(MonsterType.Chimera, {
     common_section: "chimera_weak",
     elite_section: "chimera_strong",
     boss_section: "chimera_strong4",
+});
+
+MonsterConfigs.set(MonsterType.MonolithSoldier, {
+    type: MonsterType.MonolithSoldier,
+    level_start: 15,
+    level_type: LevelType.All,
+    hp_mult: 2.5,
+    xp_mult: 1.75,
+    damage_mult: 1.5,
+    squad_size_min: 4,
+    squad_size_max: 8,
+    common_section: "sim_default_monolith_2",
+    elite_section: "sim_default_monolith_3",
+    boss_section: "sim_monolith_sniper",
 });
 
 //Player params

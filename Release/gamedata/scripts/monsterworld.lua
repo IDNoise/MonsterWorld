@@ -2635,10 +2635,8 @@ end
 function StalkerModBase.prototype.OnItemTake(self, item)
 end
 function StalkerModBase.prototype.OnItemDrop(self, item)
-    ____exports.Log("OnItemDrop " .. item:name())
 end
 function StalkerModBase.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
-    ____exports.Log((("OnWeaponFired " .. wpn:name()) .. " by ") .. obj:name())
 end
 function StalkerModBase.prototype.OnItemFocusReceive(self, item)
 end
@@ -3053,6 +3051,12 @@ ____exports.MonsterType.Burer = "Burer"
 ____exports.MonsterType.Controller = "Controller"
 ____exports.MonsterType.Psysucker = "Psysucker"
 ____exports.MonsterType.Giant = "Giant"
+____exports.MonsterType.MonolithSoldier = "Monolith soldier"
+____exports.MonsterType.Bandit = "Bandit"
+____exports.MonsterType.Mercenary = "Mercenary"
+____exports.MonsterType.Sin = "Sin"
+____exports.MonsterType.Army = "Army"
+____exports.MonsterType.Zombified = "Zombie"
 ____exports.MonsterRank = MonsterRank or ({})
 ____exports.MonsterRank.Common = 0
 ____exports.MonsterRank[____exports.MonsterRank.Common] = "Common"
@@ -3061,6 +3065,16 @@ ____exports.MonsterRank[____exports.MonsterRank.Elite] = "Elite"
 ____exports.MonsterRank.Boss = 2
 ____exports.MonsterRank[____exports.MonsterRank.Boss] = "Boss"
 ____exports.MonsterConfigs = {}
+____exports.MonsterConfigs[____exports.MonsterType.Bandit] = {
+    type = ____exports.MonsterType.Bandit,
+    level_start = 1,
+    level_type = ____exports.LevelType.NonLab,
+    squad_size_min = 5,
+    squad_size_max = 12,
+    common_section = "sim_default_bandit_2",
+    elite_section = "sim_default_bandit_3",
+    boss_section = "sim_default_bandit_4"
+}
 ____exports.MonsterConfigs[____exports.MonsterType.Flesh] = {
     type = ____exports.MonsterType.Flesh,
     level_start = 1,
@@ -3096,6 +3110,19 @@ ____exports.MonsterConfigs[____exports.MonsterType.Dog] = {
     elite_section = "dog_strong_red",
     boss_section = "dog_strong_black"
 }
+____exports.MonsterConfigs[____exports.MonsterType.Zombified] = {
+    type = ____exports.MonsterType.Zombified,
+    level_type = ____exports.LevelType.All,
+    level_start = 2,
+    hp_mult = 1.5,
+    xp_mult = 1,
+    damage_mult = 0.75,
+    squad_size_min = 6,
+    squad_size_max = 12,
+    common_section = "sim_default_zombied_2",
+    elite_section = "sim_default_zombied_3",
+    boss_section = "sim_default_zombied_4"
+}
 ____exports.MonsterConfigs[____exports.MonsterType.Cat] = {
     type = ____exports.MonsterType.Cat,
     level_start = 3,
@@ -3107,6 +3134,16 @@ ____exports.MonsterConfigs[____exports.MonsterType.Cat] = {
     common_section = "cat_normal_d",
     elite_section = "cat_strong_b",
     boss_section = "cat_strong_afro"
+}
+____exports.MonsterConfigs[____exports.MonsterType.Army] = {
+    type = ____exports.MonsterType.Army,
+    level_start = 4,
+    level_type = ____exports.LevelType.NonLab,
+    squad_size_min = 4,
+    squad_size_max = 10,
+    common_section = "sim_default_military_1",
+    elite_section = "sim_default_military_2",
+    boss_section = "sim_default_military_3"
 }
 ____exports.MonsterConfigs[____exports.MonsterType.PseudoDog] = {
     type = ____exports.MonsterType.PseudoDog,
@@ -3191,9 +3228,20 @@ ____exports.MonsterConfigs[____exports.MonsterType.Controller] = {
     xp_mult = 3,
     squad_size_min = 1,
     squad_size_max = 3,
+    max_squads_per_smart = 1,
     common_section = "m_controller_normal666",
     elite_section = "m_controller_normal777",
     boss_section = "m_controller_normal1111"
+}
+____exports.MonsterConfigs[____exports.MonsterType.Sin] = {
+    type = ____exports.MonsterType.Sin,
+    level_start = 8,
+    level_type = ____exports.LevelType.NonLab,
+    squad_size_min = 4,
+    squad_size_max = 10,
+    common_section = "sim_default_greh_2",
+    elite_section = "sim_default_greh_3",
+    boss_section = "sim_default_greh_4"
 }
 ____exports.MonsterConfigs[____exports.MonsterType.Psysucker] = {
     type = ____exports.MonsterType.Psysucker,
@@ -3210,16 +3258,27 @@ ____exports.MonsterConfigs[____exports.MonsterType.Psysucker] = {
 }
 ____exports.MonsterConfigs[____exports.MonsterType.Giant] = {
     type = ____exports.MonsterType.Giant,
-    level_start = 15,
+    level_start = 12,
     level_type = ____exports.LevelType.Open,
     hp_mult = 8,
     damage_mult = 2,
     xp_mult = 3,
     squad_size_min = 1,
     squad_size_max = 3,
+    max_squads_per_smart = 1,
     common_section = "gigant_weak",
     elite_section = "gigant_normal",
     boss_section = "gigant_strong"
+}
+____exports.MonsterConfigs[____exports.MonsterType.Mercenary] = {
+    type = ____exports.MonsterType.Mercenary,
+    level_start = 12,
+    level_type = ____exports.LevelType.NonLab,
+    squad_size_min = 4,
+    squad_size_max = 10,
+    common_section = "sim_default_killer_2",
+    elite_section = "sim_default_killer_3",
+    boss_section = "sim_default_killer_4"
 }
 ____exports.MonsterConfigs[____exports.MonsterType.Chimera] = {
     type = ____exports.MonsterType.Chimera,
@@ -3230,9 +3289,23 @@ ____exports.MonsterConfigs[____exports.MonsterType.Chimera] = {
     xp_mult = 3,
     squad_size_min = 2,
     squad_size_max = 5,
+    max_squads_per_smart = 1,
     common_section = "chimera_weak",
     elite_section = "chimera_strong",
     boss_section = "chimera_strong4"
+}
+____exports.MonsterConfigs[____exports.MonsterType.MonolithSoldier] = {
+    type = ____exports.MonsterType.MonolithSoldier,
+    level_start = 15,
+    level_type = ____exports.LevelType.All,
+    hp_mult = 2.5,
+    xp_mult = 1.75,
+    damage_mult = 1.5,
+    squad_size_min = 4,
+    squad_size_max = 8,
+    common_section = "sim_default_monolith_2",
+    elite_section = "sim_default_monolith_3",
+    boss_section = "sim_monolith_sniper"
 }
 ____exports.PlayerHPBase = 100
 ____exports.PlayerHPPerLevel = 10
@@ -3321,6 +3394,13 @@ local chimeraBones = {
     34,
     34
 }
+local humanBones = {
+    15,
+    16,
+    17,
+    18,
+    19
+}
 ____exports.CriticalBones = {
     [MonsterType.Dog] = dogBones,
     [MonsterType.Boar] = {20},
@@ -3350,7 +3430,13 @@ ____exports.CriticalBones = {
         3,
         4,
         5
-    }
+    },
+    [MonsterType.Bandit] = humanBones,
+    [MonsterType.Army] = humanBones,
+    [MonsterType.Sin] = humanBones,
+    [MonsterType.Mercenary] = humanBones,
+    [MonsterType.MonolithSoldier] = humanBones,
+    [MonsterType.Zombified] = humanBones
 }
 return ____exports
  end,
@@ -3541,17 +3627,26 @@ end
 function MonsterWorldMod.prototype.OnMonsterNetSpawn(self, monster, serverObject)
     self.World:GetMonster(monster:id())
 end
+function MonsterWorldMod.prototype.OnNpcNetSpawn(self, npc, serverObject)
+    self.World:GetMonster(npc:id())
+end
 function MonsterWorldMod.prototype.OnItemTake(self, item)
     self.World:OnTakeItem(item)
 end
 function MonsterWorldMod.prototype.OnItemDrop(self, item)
     StalkerModBase.prototype.OnItemDrop(self, item)
-    alife_release(alife():object(item:id()))
+    local se_obj = alife():object(item:id())
+    if se_obj ~= nil then
+        alife_release(se_obj)
+    end
 end
 function MonsterWorldMod.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
     if obj:id() == 0 then
         self.World:OnWeaponFired(wpn, ammo_elapsed)
     end
+end
+function MonsterWorldMod.prototype.OnNpcNetDestroy(self, npc)
+    self:OnMonsterNetDestroy(npc)
 end
 function MonsterWorldMod.prototype.OnMonsterNetDestroy(self, monster)
     local ____table_World_DestroyObject_result_0 = self.World
@@ -3586,8 +3681,9 @@ function MonsterWorldMod.prototype.OnActorBeforeHit(self, shit, boneId)
     ) then
         return false
     end
-    self.World:OnPlayerHit(shit.draftsman)
-    shit.power = 1e-7
+    self.World:OnPlayerHit(shit)
+    shit.power = 0
+    shit.impulse = 0
     return true
 end
 function MonsterWorldMod.prototype.OnSimulationFillStartPosition(self)
@@ -3621,6 +3717,12 @@ function MonsterWorldMod.prototype.OnMonsterBeforeHit(self, monsgerGO, shit, bon
     self.monsterHitsThisFrame:set(monster.id, hitInfo)
     shit.power = 0
     return true
+end
+function MonsterWorldMod.prototype.OnNPCBeforeHit(self, npc, shit, boneId)
+    return self:OnMonsterBeforeHit(npc, shit, boneId)
+end
+function MonsterWorldMod.prototype.OnNPCDeath(self, monster, killer)
+    self:OnMonsterDeath(monster, killer)
 end
 function MonsterWorldMod.prototype.OnMonsterDeath(self, monster, killer)
     if killer:id() ~= 0 then
@@ -4056,7 +4158,7 @@ function MonsterWorldSpawns.prototype.OnTryRespawn(self, smart)
         return false
     end
     local respawnInterval = 600
-    local maxPopulation = 10
+    local maxPopulation = 4
     if not Load(smart.id, "MW_Initialized", false) or smart.respawn_idle ~= respawnInterval or smart.max_population ~= maxPopulation then
         if Load(smart.id, "MW_Initialized", false) then
         end
@@ -4082,12 +4184,12 @@ function MonsterWorldSpawns.prototype.OnTryRespawn(self, smart)
         local selectedMonsterType = RandomFromArray(selectedMonsters)
         Save(smart.id, "MW_MonsterType", selectedMonsterType)
         smart.respawn_params = {spawn_section_1 = {
-            num = NumberToCondList(cfg.MonsterConfigs[selectedMonsterType].max_squads_per_smart or 4),
+            num = NumberToCondList(cfg.MonsterConfigs[selectedMonsterType].max_squads_per_smart or 2),
             squads = {"simulation_monster_world"}
         }}
         smart.already_spawned = {spawn_section_1 = {num = 0}}
         smart.faction = "monster"
-        smart.respawn_radius = 125
+        smart.respawn_radius = 150
         Save(smart.id, "MW_Initialized", true)
     end
     return true
@@ -4587,6 +4689,8 @@ local Load = ____basic.Load
 local RandomFromArray = ____basic.RandomFromArray
 local Save = ____basic.Save
 local CreateWorldPositionAtGO = ____basic.CreateWorldPositionAtGO
+local ____StalkerModBase = require("StalkerModBase")
+local Log = ____StalkerModBase.Log
 local cfg = require("MonsterWorldMod.MonsterWorldConfig")
 local ____MWMonster = require("MonsterWorldMod.MWMonster")
 local MWMonster = ____MWMonster.MWMonster
@@ -4620,6 +4724,19 @@ function MonsterWorld.prototype.____constructor(self, mod)
     end
     treasure_manager.create_random_stash = function(...)
     end
+    death_manager.create_release_item = function(_ignore)
+    end
+    death_manager.create_item_list = function(...)
+    end
+    death_manager.keep_item = function(npc, item)
+        if not item then
+            return
+        end
+        local se_obj = alife_object(item:id())
+        if se_obj ~= nil then
+            alife_release(se_obj)
+        end
+    end
 end
 __TS__SetDescriptor(
     MonsterWorld.prototype,
@@ -4633,15 +4750,23 @@ __TS__SetDescriptor(
     true
 )
 function MonsterWorld.prototype.GetMonster(self, monsterId)
-    local ____temp_2 = not (self.monsters[monsterId] ~= nil)
-    if ____temp_2 then
+    local ____temp_5 = not (self.monsters[monsterId] ~= nil)
+    if ____temp_5 then
         local ____level_object_by_id_result_is_monster_result_0 = level.object_by_id(monsterId)
         if ____level_object_by_id_result_is_monster_result_0 ~= nil then
             ____level_object_by_id_result_is_monster_result_0 = ____level_object_by_id_result_is_monster_result_0:is_monster()
         end
-        ____temp_2 = ____level_object_by_id_result_is_monster_result_0
+        local ____level_object_by_id_result_is_monster_result_0_4 = ____level_object_by_id_result_is_monster_result_0
+        if not ____level_object_by_id_result_is_monster_result_0_4 then
+            local ____level_object_by_id_result_is_stalker_result_2 = level.object_by_id(monsterId)
+            if ____level_object_by_id_result_is_stalker_result_2 ~= nil then
+                ____level_object_by_id_result_is_stalker_result_2 = ____level_object_by_id_result_is_stalker_result_2:is_stalker()
+            end
+            ____level_object_by_id_result_is_monster_result_0_4 = ____level_object_by_id_result_is_stalker_result_2
+        end
+        ____temp_5 = ____level_object_by_id_result_is_monster_result_0_4
     end
-    if ____temp_2 then
+    if ____temp_5 then
         self.monsters[monsterId] = __TS__New(MWMonster, self, monsterId)
     end
     return self.monsters[monsterId]
@@ -4651,15 +4776,15 @@ function MonsterWorld.prototype.DestroyObject(self, id)
     self.weapons[id] = nil
 end
 function MonsterWorld.prototype.GetWeapon(self, itemId)
-    local ____temp_5 = not (self.weapons[itemId] ~= nil)
-    if ____temp_5 then
-        local ____level_object_by_id_result_is_weapon_result_3 = level.object_by_id(itemId)
-        if ____level_object_by_id_result_is_weapon_result_3 ~= nil then
-            ____level_object_by_id_result_is_weapon_result_3 = ____level_object_by_id_result_is_weapon_result_3:is_weapon()
+    local ____temp_8 = not (self.weapons[itemId] ~= nil)
+    if ____temp_8 then
+        local ____level_object_by_id_result_is_weapon_result_6 = level.object_by_id(itemId)
+        if ____level_object_by_id_result_is_weapon_result_6 ~= nil then
+            ____level_object_by_id_result_is_weapon_result_6 = ____level_object_by_id_result_is_weapon_result_6:is_weapon()
         end
-        ____temp_5 = ____level_object_by_id_result_is_weapon_result_3
+        ____temp_8 = ____level_object_by_id_result_is_weapon_result_6
     end
-    if ____temp_5 then
+    if ____temp_8 then
         self.weapons[itemId] = __TS__New(MWWeapon, self, itemId)
     end
     return self.weapons[itemId]
@@ -4667,18 +4792,17 @@ end
 function MonsterWorld.prototype.OnTakeItem(self, item)
     self:GetWeapon(item:id())
     if self.highlightedItems[item:id()] ~= nil then
-        item:stop_particles(
-            Load(
-                item:id(),
-                "MW_DropHighlight"
-            ),
-            Load(
-                item:id(),
-                "MW_DropHighlightBone"
-            )
-        )
+        local particles, bone = unpack(Load(
+            item:id(),
+            "MW_DropHighlight"
+        ))
+        item:stop_particles(particles, bone)
         self.highlightedItems[item:id()] = nil
     end
+    RemoveTimeEvent(
+        self:GetReleaseEventName(item:id()),
+        self:GetReleaseEventName(item:id())
+    )
 end
 function MonsterWorld.prototype.OnWeaponFired(self, wpn, ammo_elapsed)
     local weapon = self:GetWeapon(wpn:id())
@@ -4700,16 +4824,29 @@ end
 function MonsterWorld.prototype.Update(self)
     self.UIManager:Update()
 end
-function MonsterWorld.prototype.OnPlayerHit(self, attackerGO)
-    if not attackerGO:is_monster() or not attackerGO:is_stalker() then
+function MonsterWorld.prototype.OnPlayerHit(self, shit)
+    local attackerGO = shit.draftsman
+    if not attackerGO:is_monster() and not attackerGO:is_stalker() then
         return
     end
     local monster = self:GetMonster(attackerGO:id())
     if monster == nil then
         return
     end
-    local ____self_Player_6, ____HP_7 = self.Player, "HP"
-    ____self_Player_6[____HP_7] = ____self_Player_6[____HP_7] - monster.Damage
+    local damage = monster.Damage
+    if attackerGO:is_stalker() and shit.weapon_id ~= 0 and shit.weapon_id ~= attackerGO:id() then
+        local weapon = level.object_by_id(shit.weapon_id)
+        local ____weapon_is_weapon_result_9 = weapon
+        if ____weapon_is_weapon_result_9 ~= nil then
+            ____weapon_is_weapon_result_9 = ____weapon_is_weapon_result_9:is_weapon()
+        end
+        if ____weapon_is_weapon_result_9 then
+            damage = damage * weapon:cast_Weapon():RPM()
+        end
+    end
+    local ____self_Player_11, ____HP_12 = self.Player, "HP"
+    ____self_Player_11[____HP_12] = ____self_Player_11[____HP_12] - damage
+    Log(((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ")")
 end
 function MonsterWorld.prototype.OnMonstersHit(self, monsterHitsThisFrame)
     local hitsByWeapon = __TS__New(Map)
@@ -4746,11 +4883,22 @@ function MonsterWorld.prototype.OnMonsterKilled(self, monsterGO)
         return
     end
     self.UIManager:ShowXPReward(monster.XPReward)
-    local ____self_Player_8, ____CurrentXP_9 = self.Player, "CurrentXP"
-    ____self_Player_8[____CurrentXP_9] = ____self_Player_8[____CurrentXP_9] + monster.XPReward
+    local ____self_Player_13, ____CurrentXP_14 = self.Player, "CurrentXP"
+    ____self_Player_13[____CurrentXP_14] = ____self_Player_13[____CurrentXP_14] + monster.XPReward
     if IsPctRolled(monster.DropChance) then
         self:GenerateDrop(monster)
     end
+    local se_obj = alife():object(monsterGO:id())
+    CreateTimeEvent(
+        tostring(monsterGO:id()) .. "_release",
+        tostring(monsterGO:id()) .. "_release",
+        5,
+        function(toRelease)
+            safe_release_manager.release(toRelease)
+            return true
+        end,
+        se_obj
+    )
 end
 function MonsterWorld.prototype.GenerateDrop(self, monster)
     local typedSections = ini_sys:r_list("mw_drops_by_weapon_type", "sections")
@@ -4797,8 +4945,7 @@ function MonsterWorld.prototype.GenerateDrop(self, monster)
         CreateWorldPositionAtGO(monster.GO)
     )
     Save(sgo.id, "MW_SpawnParams", {level = dropLevel, quality = qualityLevel})
-    Save(sgo.id, "MW_DropHighlight", cfg.ParticlesByQuality[qualityLevel])
-    Save(sgo.id, "MW_DropHighlightBone", "wpn_body")
+    Save(sgo.id, "MW_DropHighlight", {cfg.ParticlesByQuality[qualityLevel], "wpn_body"})
     CreateTimeEvent(
         sgo:name() .. "_add_highlight",
         sgo:name(),
@@ -4808,18 +4955,28 @@ function MonsterWorld.prototype.GenerateDrop(self, monster)
             if go == nil then
                 return false
             end
-            local particles = Load(objId, "MW_DropHighlight")
+            local particles, bone = unpack(Load(objId, "MW_DropHighlight"))
             if particles ~= nil then
                 self.highlightedItems[go:id()] = true
-                go:start_particles(
-                    particles,
-                    Load(objId, "MW_DropHighlightBone")
-                )
+                go:start_particles(particles, bone)
             end
             return true
         end,
         sgo.id
     )
+    CreateTimeEvent(
+        self:GetReleaseEventName(sgo.id),
+        self:GetReleaseEventName(sgo.id),
+        120,
+        function(toRelease)
+            safe_release_manager.release(toRelease)
+            return true
+        end,
+        sgo
+    )
+end
+function MonsterWorld.prototype.GetReleaseEventName(self, id)
+    return tostring(id) .. "_release"
 end
 return ____exports
  end,

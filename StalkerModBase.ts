@@ -115,11 +115,11 @@ export class StalkerModBase {
     }
 
     protected OnItemDrop(item: game_object) {
-        Log(`OnItemDrop ${item.name()}`)
+        //Log(`OnItemDrop ${item.name()}`)
     }
 
     protected OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void{
-        Log(`OnWeaponFired ${wpn.name()} by ${obj.name()}`)
+        //Log(`OnWeaponFired ${wpn.name()} by ${obj.name()}`)
     }
 
     // GUI
