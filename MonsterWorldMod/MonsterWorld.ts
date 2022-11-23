@@ -116,7 +116,7 @@ export class MonsterWorld {
         if (attackerGO.is_stalker() && shit.weapon_id != 0 && shit.weapon_id != attackerGO.id()){
             let weapon = level.object_by_id(shit.weapon_id);
             if (weapon?.is_weapon())
-                damage *= weapon.cast_Weapon().RPM();
+                damage *= weapon.cast_Weapon().RPM() * 1.2; //small increase for ranged attacks
         }
 
         this.Player.HP -= damage;
