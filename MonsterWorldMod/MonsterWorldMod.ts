@@ -149,11 +149,11 @@ export class MonsterWorldMod extends StalkerModBase {
         if (weapon == undefined)
             return false;
 
-        let isCrit = CriticalBones[monster.Type].includes(boneId)
-        let hitInfo = {monster: monster, weapon: weapon, isCrit: isCrit};
+        let isCritPartHit = CriticalBones[monster.Type].includes(boneId)
+        let hitInfo = {monster: monster, weapon: weapon, isCritPartHit: isCritPartHit};
         let currentHitInfo = this.monsterHitsThisFrame.get(monster.id);
         if (currentHitInfo != undefined){
-            hitInfo.isCrit ||= currentHitInfo.isCrit;
+            hitInfo.isCritPartHit ||= currentHitInfo.isCritPartHit;
         }
         this.monsterHitsThisFrame.set(monster.id, hitInfo);
 

@@ -131,26 +131,29 @@ export class MonsterWorld {
     }
 
     public OnMonstersHit(monsterHitsThisFrame: Map<Id, HitInfo>) {
+        Log(`OnMonstersHit`)
         let hitsByWeapon = new Map<MWWeapon, [MWMonster, boolean][]>();
         for(const [_, hitInfo] of monsterHitsThisFrame){
             let hits = hitsByWeapon.get(hitInfo.weapon) || [];
-            hits.push([hitInfo.monster, hitInfo.isCrit])
+            hits.push([hitInfo.monster, hitInfo.isCritPartHit])
             hitsByWeapon.set(hitInfo.weapon, hits)
+            Log(`OnMonstersHit. ${hits.length} with ${hitInfo.weapon.SectionId}`)
         }
-
+        
         for(const [weapon, hits] of hitsByWeapon){
+            let isCritByWeapon = IsPctRolled(weapon.CritChance)
             let weaponDamage = weapon.DamagePerHit / hits.length;
 
             for(let i = 0; i < hits.length; i++){
-                const [monster, isCrit] = hits[i];
+                const [monster, isCritPartHit] = hits[i];
                 let monsterDamage = weaponDamage;
-                if (isCrit){
+                if (isCritPartHit || isCritByWeapon){
                     monsterDamage *= 2.5; //TODO move to player stats
                 }
 
                 let realDamage = math.min(monster.HP, monsterDamage)
                 monster.HP -= realDamage;
-                this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
+                this.UIManager.ShowDamage(realDamage, isCritPartHit, monster.IsDead)
             }
         }
     }
@@ -159,6 +162,8 @@ export class MonsterWorld {
         let monster = this.GetMonster(monsterGO.id());
         if (monster == undefined) 
             return;
+
+        Log(`OnMonsterKilled. ${monster.Name} (${monster.SectionId})`)
 
         this.UIManager.ShowXPReward(monster.XPReward)
         this.Player.CurrentXP += monster.XPReward;
@@ -199,7 +204,7 @@ export class MonsterWorld {
         let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
 
-        //Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
+        Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
 
         this.HighlightDroppedItem(sgo.id, qualityLevel);
         this.AddTTLTimer(sgo.id, 120)
@@ -255,7 +260,7 @@ export class MonsterWorld {
 export type HitInfo = {
     monster: MWMonster,
     weapon: MWWeapon,
-    isCrit: boolean,
+    isCritPartHit: boolean,
 }
 
 //actor_menu.set_msg(2, `Enemy ${monster.Name} was hit for ${damage}`, 3, GetARGB(255, 240, 20, 20))

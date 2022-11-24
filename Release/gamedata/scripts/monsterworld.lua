@@ -2647,6 +2647,8 @@ function StalkerModBase.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
 end
 function StalkerModBase.prototype.OnItemFocusReceive(self, item)
 end
+function StalkerModBase.prototype.OnHudAnimationPlay(self, obj, anim_table)
+end
 function StalkerModBase.prototype.RegisterCallbacks(self)
     ____exports.Log("Register callbacks")
     RegisterScriptCallback(
@@ -2694,6 +2696,10 @@ function StalkerModBase.prototype.RegisterCallbacks(self)
     RegisterScriptCallback(
         "actor_on_weapon_fired",
         function(obj, wpn, ammo_elapsed, grenade_elapsed, ammo_type, grenade_type) return self:OnWeaponFired(obj, wpn, ammo_elapsed) end
+    )
+    RegisterScriptCallback(
+        "actor_on_hud_animation_play",
+        function(anim_table, obj) return self:OnHudAnimationPlay(obj, anim_table) end
     )
     RegisterScriptCallback(
         "monster_on_net_spawn",
@@ -2851,7 +2857,7 @@ function ____exports.EnableMutantLootingWithoutKnife()
     item_knife.is_axe = function() return false end
 end
 function ____exports.IsPctRolled(value)
-    return math.random(100) < value
+    return math.random(1, 100) <= value
 end
 function ____exports.MapToTable(map)
     local result = {}
@@ -3342,7 +3348,7 @@ ____exports.EnemyHPPctPerLevel = 75
 ____exports.EnemyHpDeltaPct = 10
 ____exports.EnemyDamageBase = ____exports.PlayerHPBase / 20
 ____exports.EnemyDamageExpPerLevel = 1.025
-____exports.EnemyDamagePctPerLevel = 10
+____exports.EnemyDamagePctPerLevel = 15
 ____exports.EnemyXpRewardBase = ____exports.PlayerXPForFirstLevel / 20
 ____exports.EnemyXpRewardExpPerLevel = 1.25
 ____exports.EnemyXpRewardPctPerLevel = 50
@@ -3358,7 +3364,7 @@ ____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.3
 ____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel - 0.005
 ____exports.WeaponDPSDeltaPct = 10
 ____exports.WeaponDPSPctPerQuality = 25
-____exports.EnemyDropChance = 10
+____exports.EnemyDropChance = 15
 ____exports.EnemyBossDropChance = 100
 ____exports.EnemyEliteDropChance = 25
 ____exports.MinQuality = 1
@@ -3595,6 +3601,39 @@ function MWMonster.prototype.GetDamage(self, level)
 end
 return ____exports
  end,
+["MonsterWorldMod.MonsterWorldAnims"] = function(...) 
+local ____exports = {}
+____exports.ShowAnims = {
+    "anm_show",
+    "anm_show_0",
+    "anm_show_1",
+    "anm_show_2",
+    "anm_show_empty",
+    "anm_show_g",
+    "anm_show_w_gl"
+}
+____exports.HideAnims = {
+    "anm_hide",
+    "anm_hide_0",
+    "anm_hide_1",
+    "anm_hide_2",
+    "anm_hide_empty",
+    "anm_hide_g",
+    "anm_hide_w_gl"
+}
+____exports.ReloadAnims = {
+    "anm_reload",
+    "anm_reload_1",
+    "anm_reload_2",
+    "anm_reload_empty",
+    "anm_add_cartridge",
+    "anm_close",
+    "anm_open",
+    "anm_reload_g",
+    "anm_reload_w_gl"
+}
+return ____exports
+ end,
 ["MonsterWorldMod.MonsterWorldMod"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -3611,6 +3650,8 @@ local ____MonsterWorld = require("MonsterWorldMod.MonsterWorld")
 local MonsterWorld = ____MonsterWorld.MonsterWorld
 local ____MonsterWorldBones = require("MonsterWorldMod.MonsterWorldBones")
 local CriticalBones = ____MonsterWorldBones.CriticalBones
+local ____MonsterWorldAnims = require("MonsterWorldMod.MonsterWorldAnims")
+local ReloadAnims = ____MonsterWorldAnims.ReloadAnims
 ____exports.MonsterWorldMod = __TS__Class()
 local MonsterWorldMod = ____exports.MonsterWorldMod
 MonsterWorldMod.name = "MonsterWorldMod"
@@ -3651,6 +3692,16 @@ end
 function MonsterWorldMod.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
     if obj:id() == 0 then
         self.World:OnWeaponFired(wpn, ammo_elapsed)
+    end
+end
+function MonsterWorldMod.prototype.OnHudAnimationPlay(self, obj, anim_table)
+    StalkerModBase.prototype.OnHudAnimationPlay(self, obj, anim_table)
+    local weapon = self.World:GetWeapon(obj:id())
+    if weapon == nil then
+        return
+    end
+    if __TS__ArrayIncludes(ReloadAnims, anim_table.anm_name) then
+        weapon:OnReloadStart(anim_table)
     end
 end
 function MonsterWorldMod.prototype.OnNpcNetDestroy(self, npc)
@@ -3712,12 +3763,12 @@ function MonsterWorldMod.prototype.OnMonsterBeforeHit(self, monsterGO, shit, bon
     if weapon == nil then
         return false
     end
-    local isCrit = __TS__ArrayIncludes(CriticalBones[monster.Type], boneId)
-    local hitInfo = {monster = monster, weapon = weapon, isCrit = isCrit}
+    local isCritPartHit = __TS__ArrayIncludes(CriticalBones[monster.Type], boneId)
+    local hitInfo = {monster = monster, weapon = weapon, isCritPartHit = isCritPartHit}
     local currentHitInfo = self.monsterHitsThisFrame:get(monster.id)
     if currentHitInfo ~= nil then
-        if not hitInfo.isCrit then
-            hitInfo.isCrit = currentHitInfo.isCrit
+        if not hitInfo.isCritPartHit then
+            hitInfo.isCritPartHit = currentHitInfo.isCritPartHit
         end
     end
     self.monsterHitsThisFrame:set(monster.id, hitInfo)
@@ -3846,14 +3897,17 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__ArraySlice = ____lualib.__TS__ArraySlice
 local __TS__StringReplace = ____lualib.__TS__StringReplace
-local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__StringPadEnd = ____lualib.__TS__StringPadEnd
 local ____exports = {}
 local BonusParams
 local ____basic = require("StalkerAPI.extensions.basic")
 local TakeRandomFromArray = ____basic.TakeRandomFromArray
+local IsPctRolled = ____basic.IsPctRolled
+local ____StalkerModBase = require("StalkerModBase")
+local Log = ____StalkerModBase.Log
 local ____BaseMWObject = require("MonsterWorldMod.BaseMWObject")
 local BaseMWObject = ____BaseMWObject.BaseMWObject
 local cfg = require("MonsterWorldMod.MonsterWorldConfig")
@@ -3894,6 +3948,14 @@ __TS__SetDescriptor(
 )
 __TS__SetDescriptor(
     MWWeapon.prototype,
+    "CritChance",
+    {get = function(self)
+        return self.Bonuses.crit_chance or 0
+    end},
+    true
+)
+__TS__SetDescriptor(
+    MWWeapon.prototype,
     "Bonuses",
     {
         get = function(self)
@@ -3929,7 +3991,7 @@ function MWWeapon.prototype.Initialize(self)
 end
 function MWWeapon.prototype.GetBonusDescription(self)
     local result = ""
-    for ____, ____type in ipairs(____exports.BonusParams.AllParams) do
+    for ____, ____type in ipairs(____exports.BonusParams.ParamsForSelection) do
         local value = self.Bonuses[____type] or 0
         if value ~= 0 then
             result = result .. ____exports.BonusParams.GetBonusDescription(____type, value) .. " \\n"
@@ -3938,68 +4000,105 @@ function MWWeapon.prototype.GetBonusDescription(self)
     return result
 end
 function MWWeapon.prototype.OnWeaponPickedUp(self)
+    Log("OnWeaponPickedUp")
+    self.GO:set_ammo_elapsed(self.GO:cast_Weapon():GetAmmoMagSize())
+    self.GO:set_condition(100)
+end
+function MWWeapon.prototype.OnReloadStart(self, anim_table)
+    Log("OnReloadStart")
+    local bonus = self.Bonuses.reload_speed or 0
+    anim_table.anm_speed = anim_table.anm_speed * (1 + bonus / 100)
+end
+function MWWeapon.prototype.GetUpgradesByType(self, ____type)
+    if ini_sys:r_string_ex(self.Section, ____type .. "_upgrades", "") ~= "" then
+        return ini_sys:r_list(self.Section, ____type .. "_upgrades", {})
+    end
+    return {}
 end
 function MWWeapon.prototype.GenerateWeaponStats(self)
-    local ammoMagSize = ini_sys:r_float_ex(self.Section, "ammo_mag_size", 1)
-    local rpm = ini_sys:r_float_ex(self.Section, "rpm", 1)
-    local fireRate = 60 / rpm
+    Log("GenerateWeaponStats")
     local baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, self.Level - 1)
-    local dps = baseDPS
-    local upgradesByType = {}
-    upgradesByType[#upgradesByType + 1] = {"damage", {}}
-    local upgradeTypes = ____exports.BonusParams.AllParams
+    local weaponUpgradesByBonusType = {}
     do
         local i = 0
-        while i < #upgradeTypes do
-            do
-                local uType = upgradeTypes[i + 1]
-                if uType == "damage" then
-                    goto __continue18
-                end
-                if ini_sys:r_string_ex(self.Section, uType .. "_upgrades", "") ~= "" then
-                    local upgrades = ini_sys:r_list(self.Section, uType .. "_upgrades", {})
-                    if #upgrades ~= 0 then
-                        upgradesByType[#upgradesByType + 1] = {uType, upgrades}
-                    end
-                end
+        while i < #____exports.BonusParams.ParamsWithWeaponUpgradesSelection do
+            local uType = ____exports.BonusParams.ParamsWithWeaponUpgradesSelection[i + 1]
+            local upgrades = self:GetUpgradesByType(uType)
+            Log((("weaponUpgradesByBonusType " .. uType) .. ":") .. tostring(#upgrades))
+            if #upgrades ~= 0 then
+                weaponUpgradesByBonusType[uType] = upgrades
             end
-            ::__continue18::
             i = i + 1
         end
     end
     local selectedUpgradeTypes = {}
-    local upgradeTypesToAdd = 2 + math.random(0, self.Quality - 1)
-    local upgradeTypesToSelect = math.min(#upgradesByType, upgradeTypesToAdd)
+    local availableBonuses = {}
     do
         local i = 0
-        while i < upgradeTypesToSelect do
-            local upgrades = TakeRandomFromArray(upgradesByType)
-            selectedUpgradeTypes[#selectedUpgradeTypes + 1] = upgrades
+        while i < #____exports.BonusParams.ParamsForSelection do
+            local ____type = ____exports.BonusParams.ParamsForSelection[i + 1]
+            if not __TS__ArrayIncludes(____exports.BonusParams.ParamsWithWeaponUpgradesSelection, ____type) or weaponUpgradesByBonusType[____type] ~= nil then
+                availableBonuses[#availableBonuses + 1] = ____type
+                Log("availableBonuses " .. ____type)
+            end
             i = i + 1
         end
     end
+    local upgradeTypesToAdd = 1 + self.Quality
+    local upgradeTypesToSelect = math.min(#availableBonuses, upgradeTypesToAdd)
+    do
+        local i = 0
+        while i < upgradeTypesToSelect do
+            local ____type = TakeRandomFromArray(availableBonuses)
+            selectedUpgradeTypes[#selectedUpgradeTypes + 1] = ____type
+            Log("selectedUpgradeTypes " .. ____type)
+            i = i + 1
+        end
+    end
+    if IsPctRolled(100) and weaponUpgradesByBonusType.bullet_speed ~= nil then
+        selectedUpgradeTypes[#selectedUpgradeTypes + 1] = "bullet_speed"
+        Log("selectedUpgradeTypes " .. "bullet_speed")
+    end
+    if IsPctRolled(100) and weaponUpgradesByBonusType.fire_mode ~= nil then
+        selectedUpgradeTypes[#selectedUpgradeTypes + 1] = "fire_mode"
+        Log("selectedUpgradeTypes " .. "fire_mode")
+    end
     local damageBonusPct = 0
+    local reloadSpeedBonusPct = 0
+    local critChanceBonusPct = 0
     local allSelectedUpgrades = {}
     do
         local i = 0
         while i < #selectedUpgradeTypes do
             local upgradesPerTypeToSelect = 1 + self.Level / 10 + (self.Quality - 1) / 2
-            local t, upgrades = unpack(selectedUpgradeTypes[i + 1])
+            local t = selectedUpgradeTypes[i + 1]
             if t == "damage" then
                 local bonus = 0
                 do
                     local j = 0
                     while j < upgradesPerTypeToSelect do
-                        bonus = bonus + math.random(1, 5)
+                        bonus = bonus + math.random(1, 5 + self.Quality)
                         j = j + 1
                     end
                 end
                 damageBonusPct = bonus
+            elseif t == "reload_speed" then
+                local bonus = 0
+                do
+                    local j = 0
+                    while j < upgradesPerTypeToSelect do
+                        bonus = bonus + math.random(2, 5 + self.Quality)
+                        j = j + 1
+                    end
+                end
+                reloadSpeedBonusPct = bonus
+            elseif t == "crit_chance" then
+                critChanceBonusPct = math.random(1, self.Quality / 2 + upgradesPerTypeToSelect)
             elseif t == "fire_mode" then
-                local upgrade = TakeRandomFromArray(upgrades)
-                allSelectedUpgrades[#allSelectedUpgrades + 1] = upgrade
+                allSelectedUpgrades[#allSelectedUpgrades + 1] = weaponUpgradesByBonusType[t][1]
                 self.Bonuses.fire_mode = 1
             else
+                local upgrades = weaponUpgradesByBonusType[t]
                 if self.Quality < 3 and #upgrades >= self.Quality + 3 then
                     upgrades = __TS__ArraySlice(
                         upgrades,
@@ -4030,6 +4129,7 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
                 if bonusValue ~= 0 then
                     if __TS__ArrayIncludes(____exports.BonusParams.PctBonuses, t) then
                         local defaultValue = ini_sys:r_float_ex(self.Section, ____exports.BonusParams.SectionFields[t], 1)
+                        Log((((((("Bonus " .. t) .. ": ") .. tostring(bonusValue)) .. ", base: ") .. tostring(defaultValue)) .. ". %: ") .. tostring(bonusValue / defaultValue * 100))
                         bonusValue = bonusValue / defaultValue * 100
                     end
                     self.Bonuses[t] = math.abs(bonusValue)
@@ -4038,30 +4138,46 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
             i = i + 1
         end
     end
+    Log("Setting bonuses for damage/reload/crit")
+    self.Bonuses.reload_speed = reloadSpeedBonusPct
+    self.Bonuses.crit_chance = critChanceBonusPct
     damageBonusPct = damageBonusPct + cfg.WeaponDPSPctPerQuality * (self.Quality - 1)
     if damageBonusPct >= cfg.WeaponDPSDeltaPct then
         damageBonusPct = damageBonusPct + math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct)
     end
     self.Bonuses.damage = damageBonusPct
+    local dps = baseDPS
     dps = dps * (1 + damageBonusPct / 100)
+    local rpm = ini_sys:r_float_ex(self.Section, "rpm", 1)
+    local fireRate = 60 / rpm
     self.DamagePerHit = dps * fireRate
+    Log((((((("Base DPS: " .. tostring(baseDPS)) .. " DPS: ") .. tostring(dps)) .. ". Damage per hit: ") .. tostring(self.DamagePerHit)) .. ". Fire rate: ") .. tostring(fireRate))
     do
         local i = 0
         while i < #allSelectedUpgrades do
             local upgrade = __TS__StringReplace(allSelectedUpgrades[i + 1], "mwu", "mwe")
+            Log("Installing upgrade: " .. upgrade)
             self.GO:install_upgrade(upgrade)
             i = i + 1
         end
     end
-    self.GO:set_ammo_elapsed(self.GO:cast_Weapon():GetAmmoMagSize())
-    self.GO:set_condition(100)
+    Log("Bonus description: " .. self:GetBonusDescription())
 end
 ____exports.BonusParams = {}
 BonusParams = ____exports.BonusParams
 do
     local NegativeBonuses, HasNoValue, BonusDescriptions
-    BonusParams.AllParams = {
+    BonusParams.ParamsForSelection = {
         "damage",
+        "rpm",
+        "mag_size",
+        "dispersion",
+        "inertion",
+        "recoil",
+        "reload_speed",
+        "crit_chance"
+    }
+    BonusParams.ParamsWithWeaponUpgradesSelection = {
         "rpm",
         "mag_size",
         "dispersion",
@@ -4073,6 +4189,8 @@ do
     BonusParams.SectionFields = {
         damage = "_NotUsed",
         fire_mode = "_NotUsed",
+        reload_speed = "_NotUsed",
+        crit_chance = "_NotUsed",
         rpm = "rpm",
         mag_size = "ammo_mag_size",
         dispersion = "fire_dispersion_base",
@@ -4086,7 +4204,9 @@ do
         "dispersion",
         "inertion",
         "recoil",
-        "bullet_speed"
+        "bullet_speed",
+        "reload_speed",
+        "crit_chance"
     }
     function BonusParams.GetBonusDescription(____type, bonus)
         if bonus == nil then
@@ -4108,6 +4228,8 @@ do
         dispersion = "Accuracy",
         inertion = "Handling",
         recoil = "Recoil",
+        reload_speed = "Reload speed",
+        crit_chance = "Crit chance",
         bullet_speed = "Flatness"
     }
 end
@@ -4915,29 +5037,32 @@ function MonsterWorld.prototype.OnPlayerHit(self, shit, boneId)
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function MonsterWorld.prototype.OnMonstersHit(self, monsterHitsThisFrame)
+    Log("OnMonstersHit")
     local hitsByWeapon = __TS__New(Map)
     for ____, ____value in __TS__Iterator(monsterHitsThisFrame) do
         local _ = ____value[1]
         local hitInfo = ____value[2]
         local hits = hitsByWeapon:get(hitInfo.weapon) or ({})
-        hits[#hits + 1] = {hitInfo.monster, hitInfo.isCrit}
+        hits[#hits + 1] = {hitInfo.monster, hitInfo.isCritPartHit}
         hitsByWeapon:set(hitInfo.weapon, hits)
+        Log((("OnMonstersHit. " .. tostring(#hits)) .. " with ") .. hitInfo.weapon.SectionId)
     end
     for ____, ____value in __TS__Iterator(hitsByWeapon) do
         local weapon = ____value[1]
         local hits = ____value[2]
+        local isCritByWeapon = IsPctRolled(weapon.CritChance)
         local weaponDamage = weapon.DamagePerHit / #hits
         do
             local i = 0
             while i < #hits do
-                local monster, isCrit = unpack(hits[i + 1])
+                local monster, isCritPartHit = unpack(hits[i + 1])
                 local monsterDamage = weaponDamage
-                if isCrit then
+                if isCritPartHit or isCritByWeapon then
                     monsterDamage = monsterDamage * 2.5
                 end
                 local realDamage = math.min(monster.HP, monsterDamage)
                 monster.HP = monster.HP - realDamage
-                self.UIManager:ShowDamage(realDamage, isCrit, monster.IsDead)
+                self.UIManager:ShowDamage(realDamage, isCritPartHit, monster.IsDead)
                 i = i + 1
             end
         end
@@ -4948,6 +5073,7 @@ function MonsterWorld.prototype.OnMonsterKilled(self, monsterGO)
     if monster == nil then
         return
     end
+    Log(((("OnMonsterKilled. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
     self.UIManager:ShowXPReward(monster.XPReward)
     local ____self_Player_15, ____CurrentXP_16 = self.Player, "CurrentXP"
     ____self_Player_15[____CurrentXP_16] = ____self_Player_15[____CurrentXP_16] + monster.XPReward
@@ -4993,6 +5119,7 @@ function MonsterWorld.prototype.GenerateDrop(self, monster)
         CreateWorldPositionAtGO(monster.GO)
     )
     Save(sgo.id, "MW_SpawnParams", {level = dropLevel, quality = qualityLevel})
+    Log((("Dropping loot " .. sgo:section_name()) .. ":") .. tostring(sgo.id))
     self:HighlightDroppedItem(sgo.id, qualityLevel)
     self:AddTTLTimer(sgo.id, 120)
 end

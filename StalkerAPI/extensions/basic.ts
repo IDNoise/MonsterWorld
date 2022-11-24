@@ -31,7 +31,7 @@ export function EnableMutantLootingWithoutKnife(): void {
 }
 
 export function IsPctRolled(value: number): boolean {
-    return math.random(100) < value;
+    return math.random(1, 100) <= value;
 }
 
 export function MapToTable<K extends AnyNotNil, V>(map: Map<K, V>) : LuaTable<K, V>{
