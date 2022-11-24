@@ -23,9 +23,10 @@ export abstract class BaseMWObject {
 
     get HP(): number { return this.Load("HP"); }
     set HP(newHp: number) {
+        newHp = math.max(0, math.min(newHp, this.MaxHP))
         this.Save("HP", newHp);
         if(this.GO != undefined)
-            this.GO.set_health_ex(newHp / this.MaxHP);
+            this.GO.set_health_ex(newHp / math.max(1, this.MaxHP));
         if (this.IsDead)
             this.OnDeath();
     }

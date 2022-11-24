@@ -628,3 +628,20 @@ declare interface game_object {
   // function cast_FoodItem()
   // function cast_BottleItem()
 }
+
+/** @customConstructor particles_object */
+declare class particles_object {
+  constructor(path: string);
+
+  pause_path(doPause: boolean): void;
+  play_at_pos(pos: vector): void;
+  move_to(pos1: vector, pos2: vector): void;
+  looped(): boolean;
+  load_path(path: string): void;
+  start_path(start: boolean): void;
+  stop(): void;
+  stop_path(): void;
+  stop_deffered(): void;
+  play(): void;
+  playing(): boolean;
+}

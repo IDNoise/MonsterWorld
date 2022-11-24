@@ -58,6 +58,11 @@ export class MonsterWorldMod extends StalkerModBase {
             alife_release(se_obj)
     }
 
+    protected override OnItemUse(item: game_object): void {
+        //super.OnItemTake(item);
+        this.World.OnItemUse(item);
+    }
+
     protected override OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void {
         if(obj.id() == 0){
             this.World.OnWeaponFired(wpn, ammo_elapsed)

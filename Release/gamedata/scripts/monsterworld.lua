@@ -2643,6 +2643,8 @@ function StalkerModBase.prototype.OnItemTake(self, item)
 end
 function StalkerModBase.prototype.OnItemDrop(self, item)
 end
+function StalkerModBase.prototype.OnItemUse(self, item)
+end
 function StalkerModBase.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
 end
 function StalkerModBase.prototype.OnItemFocusReceive(self, item)
@@ -2692,6 +2694,10 @@ function StalkerModBase.prototype.RegisterCallbacks(self)
     RegisterScriptCallback(
         "actor_on_item_drop",
         function(item) return self:OnItemDrop(item) end
+    )
+    RegisterScriptCallback(
+        "actor_on_item_use",
+        function(item, sec) return self:OnItemUse(item) end
     )
     RegisterScriptCallback(
         "actor_on_weapon_fired",
@@ -2892,10 +2898,54 @@ function ____exports.NumberToCondList(value)
         tostring(value)
     )
 end
+function ____exports.GetByWeightFromArray(array, weightGetter)
+    local totalWeight = 0
+    do
+        local i = 0
+        while i < #array do
+            totalWeight = totalWeight + weightGetter(array[i + 1])
+            i = i + 1
+        end
+    end
+    local randValue = math.random(1, totalWeight)
+    local weightStartCheck = 0
+    do
+        local i = 0
+        while i < #array do
+            local element = array[i + 1]
+            weightStartCheck = weightStartCheck + weightGetter(element)
+            if randValue <= weightStartCheck then
+                return element
+            end
+            i = i + 1
+        end
+    end
+    return array[1]
+end
+function ____exports.GetByWeightFromTable(tbl, weightGetter)
+    local totalWeight = 0
+    local keys = {}
+    for k, v in pairs(tbl) do
+        keys[#keys + 1] = k
+        totalWeight = totalWeight + weightGetter(v)
+    end
+    local randValue = math.random(1, totalWeight)
+    local weightStartCheck = 0
+    local first = nil
+    for k, v in pairs(tbl) do
+        weightStartCheck = weightStartCheck + weightGetter(v)
+        if randValue <= weightStartCheck then
+            return k
+        end
+    end
+    return keys[1]
+end
 return ____exports
  end,
 ["MonsterWorldMod.MonsterWorldConfig"] = function(...) 
 local ____exports = {}
+local ____basic = require("StalkerAPI.extensions.basic")
+local GetByWeightFromArray = ____basic.GetByWeightFromArray
 ____exports.LevelType = LevelType or ({})
 ____exports.LevelType.None = 0
 ____exports.LevelType[____exports.LevelType.None] = "None"
@@ -3364,7 +3414,7 @@ ____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.3
 ____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel - 0.005
 ____exports.WeaponDPSDeltaPct = 10
 ____exports.WeaponDPSPctPerQuality = 25
-____exports.EnemyDropChance = 15
+____exports.EnemyDropChance = 150
 ____exports.EnemyBossDropChance = 100
 ____exports.EnemyEliteDropChance = 25
 ____exports.MinQuality = 1
@@ -3377,13 +3427,6 @@ ____exports.Qualities = {
     [3] = "Rare",
     [4] = "Epic",
     [5] = "Legendary"
-}
-____exports.ParticlesByQuality = {
-    [1] = "industrial_particles\\exhaust_workshop_1_small",
-    [2] = "anomaly2\\electra_damage_02_smoke",
-    [3] = "artefact\\af_acidic_idle",
-    [4] = "artefact\\af_thermal_idle",
-    [5] = "weapons\\rpg_trail_01"
 }
 ____exports.QualityColors = {
     [1] = GetARGB(255, 230, 230, 230),
@@ -3399,6 +3442,38 @@ ____exports.MonsterRankColors = {
 }
 ____exports.EndColorTag = "%c[default]"
 ____exports.LevelColor = "%c[255,104,210,26]"
+____exports.DropType = DropType or ({})
+____exports.DropType.Weapon = 0
+____exports.DropType[____exports.DropType.Weapon] = "Weapon"
+____exports.DropType.Stimpack = 1
+____exports.DropType[____exports.DropType.Stimpack] = "Stimpack"
+____exports.DropConfigs = {{type = ____exports.DropType.Weapon, weight = 50}, {type = ____exports.DropType.Stimpack, weight = 10}}
+function ____exports.GetDropType()
+    return GetByWeightFromArray(
+        ____exports.DropConfigs,
+        function(e) return e.weight end
+    ).type
+end
+____exports.Stimpacks = {{section = "mw_stimpack_25", quality = 1, weight = 100}, {section = "mw_stimpack_50", quality = 3, weight = 50}, {section = "mw_stimpack_75", quality = 5, weight = 25}}
+function ____exports.GetStimpack()
+    local stimpack = GetByWeightFromArray(
+        ____exports.Stimpacks,
+        function(e) return e.weight end
+    )
+    return {stimpack.section, stimpack.quality}
+end
+function ____exports.GetDropParticles(____type, quality)
+    if ____type == ____exports.DropType.Weapon or ____type == ____exports.DropType.Stimpack then
+        if quality <= 2 then
+            return "static\\effects\\net_base_green"
+        end
+        if quality <= 4 then
+            return "static\\effects\\net_base_blue"
+        end
+        return "static\\effects\\net_base_red"
+    end
+    return "_samples_particles_\\holo_lines"
+end
 return ____exports
  end,
 ["MonsterWorldMod.MonsterWorldBones"] = function(...) 
@@ -3688,6 +3763,9 @@ function MonsterWorldMod.prototype.OnItemDrop(self, item)
     if se_obj ~= nil then
         alife_release(se_obj)
     end
+end
+function MonsterWorldMod.prototype.OnItemUse(self, item)
+    self.World:OnItemUse(item)
 end
 function MonsterWorldMod.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
     if obj:id() == 0 then
@@ -4871,13 +4949,13 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__New = ____lualib.__TS__New
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith
 local __TS__StringEndsWith = ____lualib.__TS__StringEndsWith
 local Map = ____lualib.Map
 local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local ____basic = require("StalkerAPI.extensions.basic")
 local IsPctRolled = ____basic.IsPctRolled
-local Load = ____basic.Load
 local RandomFromArray = ____basic.RandomFromArray
 local Save = ____basic.Save
 local CreateWorldPositionAtGO = ____basic.CreateWorldPositionAtGO
@@ -4899,6 +4977,7 @@ local MonsterWorld = ____exports.MonsterWorld
 MonsterWorld.name = "MonsterWorld"
 function MonsterWorld.prototype.____constructor(self, mod)
     self.mod = mod
+    self.highlightParticles = {}
     self.monsters = {}
     self.weapons = {}
     self.SpawnManager = __TS__New(MonsterWorldSpawns, self)
@@ -4987,6 +5066,20 @@ function MonsterWorld.prototype.OnTakeItem(self, item)
     self:RemoveHighlight(item:id())
     self:RemoveTTLTimer(item:id())
 end
+function MonsterWorld.prototype.OnItemUse(self, item)
+    if __TS__StringStartsWith(
+        item:section(),
+        "mw_stimpack_"
+    ) then
+        local healPct = ini_sys:r_float_ex(
+            item:section(),
+            "mw_heal_pct",
+            25
+        )
+        local ____self_Player_11, ____HP_12 = self.Player, "HP"
+        ____self_Player_11[____HP_12] = ____self_Player_11[____HP_12] + self.Player.MaxHP * healPct / 100
+    end
+end
 function MonsterWorld.prototype.OnWeaponFired(self, wpn, ammo_elapsed)
     local weapon = self:GetWeapon(wpn:id())
     if weapon ~= nil and __TS__StringEndsWith(weapon.Section, "_mw") and weapon.GO:get_ammo_total() < 500 then
@@ -5024,16 +5117,16 @@ function MonsterWorld.prototype.OnPlayerHit(self, shit, boneId)
     local damage = monster.Damage
     if attackerGO:is_stalker() and shit.weapon_id ~= 0 and shit.weapon_id ~= attackerGO:id() then
         local weapon = level.object_by_id(shit.weapon_id)
-        local ____weapon_is_weapon_result_11 = weapon
-        if ____weapon_is_weapon_result_11 ~= nil then
-            ____weapon_is_weapon_result_11 = ____weapon_is_weapon_result_11:is_weapon()
+        local ____weapon_is_weapon_result_13 = weapon
+        if ____weapon_is_weapon_result_13 ~= nil then
+            ____weapon_is_weapon_result_13 = ____weapon_is_weapon_result_13:is_weapon()
         end
-        if ____weapon_is_weapon_result_11 then
+        if ____weapon_is_weapon_result_13 then
             damage = damage * (weapon:cast_Weapon():RPM() * 1.2)
         end
     end
-    local ____self_Player_13, ____HP_14 = self.Player, "HP"
-    ____self_Player_13[____HP_14] = ____self_Player_13[____HP_14] - math.max(1, damage)
+    local ____self_Player_15, ____HP_16 = self.Player, "HP"
+    ____self_Player_15[____HP_16] = ____self_Player_15[____HP_16] - math.max(1, damage)
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function MonsterWorld.prototype.OnMonstersHit(self, monsterHitsThisFrame)
@@ -5075,22 +5168,45 @@ function MonsterWorld.prototype.OnMonsterKilled(self, monsterGO)
     end
     Log(((("OnMonsterKilled. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
     self.UIManager:ShowXPReward(monster.XPReward)
-    local ____self_Player_15, ____CurrentXP_16 = self.Player, "CurrentXP"
-    ____self_Player_15[____CurrentXP_16] = ____self_Player_15[____CurrentXP_16] + monster.XPReward
+    local ____self_Player_17, ____CurrentXP_18 = self.Player, "CurrentXP"
+    ____self_Player_17[____CurrentXP_18] = ____self_Player_17[____CurrentXP_18] + monster.XPReward
     if IsPctRolled(monster.DropChance) then
+        Log("Generating loot")
         self:GenerateDrop(monster)
     end
-    local se_obj = alife():object(monsterGO:id())
-    self:AddTTLTimer(se_obj.id, 10)
+    Log("Add ttl timer loot")
+    self:AddTTLTimer(
+        monsterGO:id(),
+        10
+    )
 end
 function MonsterWorld.prototype.GenerateDrop(self, monster)
+    Log("GenerateDrop")
+    local ____type = cfg.GetDropType()
+    local sgo = nil
+    local quality = 1
+    if ____type == cfg.DropType.Weapon then
+        sgo, quality = self:GenerateWeaponDrop(monster)
+    elseif ____type == cfg.DropType.Stimpack then
+        sgo, quality = self:GenerateStimpackDrop(monster)
+    end
+    if sgo ~= nil then
+        Log((("Spawned " .. sgo:section_name()) .. ":") .. tostring(sgo.id))
+        Log("Highlight")
+        self:HighlightDroppedItem(sgo.id, ____type, quality)
+        Log("TTL")
+        self:AddTTLTimer(sgo.id, 300)
+    else
+        Log("Drop generation failed")
+    end
+end
+function MonsterWorld.prototype.GenerateWeaponDrop(self, monster)
     local typedSections = ini_sys:r_list("mw_drops_by_weapon_type", "sections")
     local selectedTypeSection = RandomFromArray(typedSections)
     local weaponCount = ini_sys:line_count(selectedTypeSection)
-    local _, weaponBaseSection = ini_sys:r_line_ex(
-        selectedTypeSection,
-        math.random(0, weaponCount - 1)
-    )
+    local selectedElement = math.random(0, weaponCount - 1)
+    Log((((("Selecting base " .. tostring(selectedElement)) .. " from ") .. tostring(weaponCount)) .. " in ") .. tostring(selectedTypeSection))
+    local _, weaponBaseSection = ini_sys:r_line_ex(selectedTypeSection, selectedElement)
     local weaponVariants = ini_sys:r_list(weaponBaseSection, "variants")
     local selectedVariant = RandomFromArray(weaponVariants)
     local dropLevel = monster.Level
@@ -5114,51 +5230,51 @@ function MonsterWorld.prototype.GenerateDrop(self, monster)
     if IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank + 1]) then
         qualityLevel = qualityLevel + 1
     end
+    Log("Spawning " .. tostring(selectedVariant))
     local sgo = alife_create_item(
         selectedVariant,
         CreateWorldPositionAtGO(monster.GO)
     )
+    if not sgo then
+        Log("GenerateWeaponDrop spawn failed")
+        return nil, 1
+    end
     Save(sgo.id, "MW_SpawnParams", {level = dropLevel, quality = qualityLevel})
-    Log((("Dropping loot " .. sgo:section_name()) .. ":") .. tostring(sgo.id))
-    self:HighlightDroppedItem(sgo.id, qualityLevel)
-    self:AddTTLTimer(sgo.id, 120)
+    return sgo, qualityLevel
 end
-function MonsterWorld.prototype.HighlightDroppedItem(self, id, highlightQuality)
-    CreateTimeEvent(
-        id,
-        "add_highlight",
-        0.1,
-        function(id, quality)
-            local go = level.object_by_id(id)
-            if go == nil then
-                return false
-            end
-            local particles = cfg.ParticlesByQuality[quality]
-            if particles ~= nil then
-                go:start_particles(
-                    particles,
-                    self:GetHighlighBone(go)
-                )
-                Save(id, "highlight_particels", particles)
-            end
-            return true
-        end,
-        id,
-        highlightQuality
+function MonsterWorld.prototype.GenerateStimpackDrop(self, monster)
+    local stimpackSection, quality = unpack(cfg.GetStimpack())
+    Log("Spawning " .. stimpackSection)
+    local sgo = alife_create_item(
+        stimpackSection,
+        CreateWorldPositionAtGO(monster.GO)
     )
+    if not sgo then
+        Log("GenerateStimpackDrop spawn failed")
+        return nil, 1
+    end
+    return sgo, quality
+end
+function MonsterWorld.prototype.HighlightDroppedItem(self, id, ____type, quality)
+    Log("add highligh: " .. tostring(id))
+    local particles = particles_object(cfg.GetDropParticles(____type, quality))
+    self.highlightParticles[id] = particles
+    local obj = alife():object(id)
+    if not obj then
+        return
+    end
+    local pos = obj.position
+    pos.y = pos.y - 0.2
+    particles:play_at_pos(pos)
 end
 function MonsterWorld.prototype.RemoveHighlight(self, id)
-    local go = level.object_by_id(id)
-    if go == nil then
-        return false
+    Log("remove highligh: " .. tostring(id))
+    local particles = self.highlightParticles[id]
+    local ____particles_stop_result_19 = particles
+    if ____particles_stop_result_19 ~= nil then
+        ____particles_stop_result_19 = ____particles_stop_result_19:stop()
     end
-    local particles = Load(id, "highlight_particels")
-    if particles ~= nil then
-        go:stop_particles(
-            particles,
-            self:GetHighlighBone(go)
-        )
-    end
+    self.highlightParticles[id] = nil
 end
 function MonsterWorld.prototype.GetHighlighBone(self, go)
     local bone = "link"
@@ -5168,6 +5284,7 @@ function MonsterWorld.prototype.GetHighlighBone(self, go)
     return bone
 end
 function MonsterWorld.prototype.AddTTLTimer(self, id, time)
+    Log("add ttl: " .. tostring(id))
     CreateTimeEvent(
         id,
         "mw_ttl",
@@ -5183,6 +5300,7 @@ function MonsterWorld.prototype.AddTTLTimer(self, id, time)
     )
 end
 function MonsterWorld.prototype.RemoveTTLTimer(self, id)
+    Log("remove ttl: " .. tostring(id))
     RemoveTimeEvent(id, "mw_ttl")
 end
 return ____exports
@@ -5263,9 +5381,13 @@ __TS__SetDescriptor(
             return self:Load("HP")
         end,
         set = function(self, newHp)
+            newHp = math.max(
+                0,
+                math.min(newHp, self.MaxHP)
+            )
             self:Save("HP", newHp)
             if self.GO ~= nil then
-                self.GO:set_health_ex(newHp / self.MaxHP)
+                self.GO:set_health_ex(newHp / math.max(1, self.MaxHP))
             end
             if self.IsDead then
                 self:OnDeath()

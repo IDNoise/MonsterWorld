@@ -63,5 +63,46 @@ export function TakeRandomFromArray<T>(array: T[]): T {
 
 export function NumberToCondList(value: number) : Condlist{
     return xr_logic.parse_condlist(null, null, null, `${value}`)
+}
 
+export function GetByWeightFromArray<T>(array: T[], weightGetter: (element:T) => number) : T {
+    let totalWeight = 0;
+    for(let i = 0; i < array.length; i++){
+        totalWeight += weightGetter(array[i]);
+    }
+
+    let randValue = math.random(1, totalWeight);
+    let weightStartCheck = 0;
+    for(let i = 0; i < array.length; i++){
+        let element = array[i]
+
+        weightStartCheck += weightGetter(element);
+
+        if (randValue <= weightStartCheck){
+            return element;
+        }
+    }
+    return array[0];
+}
+
+export function GetByWeightFromTable<TK extends AnyNotNil, TV>(tbl: LuaTable<TK, TV>, weightGetter: (value: TV) => number) : TK {
+    let totalWeight = 0;
+    let keys: TK[] = []
+    for(const [k, v] of tbl) {
+        keys.push(k)
+        totalWeight += weightGetter(v);
+    }
+
+    let randValue = math.random(1, totalWeight);
+    let weightStartCheck = 0;
+    let first: TK | undefined = undefined;
+    for(let [k, v] of tbl){
+        weightStartCheck += weightGetter(v);
+
+        if (randValue <= weightStartCheck){
+            return k;
+        }
+    }
+
+    return keys[0];
 }

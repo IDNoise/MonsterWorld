@@ -75,6 +75,14 @@ export class MonsterWorld {
         this.RemoveTTLTimer(item.id())
     }
 
+    public OnItemUse(item: game_object) {
+        //Log(`OnItemUse: ${item.section()}`)
+        if (item.section().startsWith("mw_stimpack_")){
+            let healPct = ini_sys.r_float_ex(item.section(), "mw_heal_pct", 25);
+            this.Player.HP += this.Player.MaxHP * healPct / 100;
+        }
+    }
+    
     public OnWeaponFired(wpn: game_object, ammo_elapsed: number) {
         let weapon = this.GetWeapon(wpn.id())
         if (weapon != undefined && weapon.Section.endsWith("_mw") && weapon.GO.get_ammo_total() < 500){
@@ -179,6 +187,31 @@ export class MonsterWorld {
 
     GenerateDrop(monster: MWMonster) {
         Log(`GenerateDrop`)
+        let type = cfg.GetDropType();
+
+        let sgo: cse_alife_object | undefined = undefined;
+        let quality = 1;
+        if (type == cfg.DropType.Weapon){
+            [sgo, quality] = this.GenerateWeaponDrop(monster);
+        }
+        else if (type == cfg.DropType.Stimpack){
+            [sgo, quality] = this.GenerateStimpackDrop(monster);
+        }
+
+        if (sgo != undefined){
+            Log(`Spawned ${sgo.section_name()}:${sgo.id}`)
+
+            Log(`Highlight`)
+            this.HighlightDroppedItem(sgo.id, type, quality);
+            Log(`TTL`)
+            this.AddTTLTimer(sgo.id, 300)
+        }
+        else {
+            Log(`Drop generation failed`)
+        }
+    }
+
+    GenerateWeaponDrop(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
         let typedSections = ini_sys.r_list("mw_drops_by_weapon_type", "sections");
         let selectedTypeSection = RandomFromArray(typedSections);
         let weaponCount = ini_sys.line_count(selectedTypeSection);
@@ -188,7 +221,6 @@ export class MonsterWorld {
         let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
         let selectedVariant = RandomFromArray(weaponVariants)
         
-        Log(`Selected: ${selectedVariant}`)
         let dropLevel = monster.Level;
         if (IsPctRolled(cfg.HigherLevelDropChancePct)){
             dropLevel++;
@@ -205,48 +237,44 @@ export class MonsterWorld {
         if (IsPctRolled(cfg.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
         if (IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
         
-        Log(`Spawning`)
+        Log(`Spawning ${selectedVariant}`)
         let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
         if (!sgo){
-            Log(`Loot spawn failed`)
-            return;
+            Log(`GenerateWeaponDrop spawn failed`)
+            return $multi(undefined, 1);
         }
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
-
-        Log(`Spawned ${sgo.section_name()}:${sgo.id}`)
-
-        Log(`Highlight`)
-        this.HighlightDroppedItem(sgo.id, qualityLevel);
-        Log(`TTL`)
-        this.AddTTLTimer(sgo.id, 120)
+        return $multi(sgo, qualityLevel);
     }
 
-    HighlightDroppedItem(id: Id, highlightQuality: number) {
-        CreateTimeEvent(id, `add_highlight`, 0.1, (id: Id, quality: number) => {
-            let go = level.object_by_id(id);
-            if (go == null){
-                return false;
-            }
+    GenerateStimpackDrop(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
+        let [stimpackSection, quality] = cfg.GetStimpack();
+        Log(`Spawning ${stimpackSection}`)
+        let sgo = alife_create_item(stimpackSection, CreateWorldPositionAtGO(monster.GO))
+        if (!sgo){
+            Log(`GenerateStimpackDrop spawn failed`)
+            return $multi(undefined, 1);
+        }
+        return $multi(sgo, quality);
+    }
 
-            let particles = cfg.ParticlesByQuality[quality]
-            if (particles != undefined){
-                go.start_particles(particles, this.GetHighlighBone(go))
-                Save<string>(id, "highlight_particels", particles);
-            }
-            return true;
-        }, id, highlightQuality);
+    highlightParticles: LuaTable<Id, particles_object> = new LuaTable()
+    HighlightDroppedItem(id: Id, type: cfg.DropType, quality: number) {
+        Log(`add highligh: ${id}`)
+        let particles = new particles_object(cfg.GetDropParticles(type, quality));
+        this.highlightParticles.set(id, particles)
+        let obj = alife().object(id);
+        if (!obj) return;
+        let pos = obj.position
+        pos.y -= 0.2;
+        particles.play_at_pos(pos)
     }
 
     RemoveHighlight(id: Id){
-        let go = level.object_by_id(id);
-        if (go == null){
-            return false;
-        }
-
-        let particles = Load<string>(id, "highlight_particels");
-        if (particles != undefined){
-            go.stop_particles(particles, this.GetHighlighBone(go))
-        }
+        Log(`remove highligh: ${id}`)
+        let particles = this.highlightParticles.get(id)
+        particles?.stop();
+        this.highlightParticles.delete(id);
     }
 
     GetHighlighBone(go: game_object): string{
@@ -256,6 +284,7 @@ export class MonsterWorld {
     }
 
     AddTTLTimer(id: Id, time: number){
+        Log(`add ttl: ${id}`)
         CreateTimeEvent(id, "mw_ttl", time, (id: Id): boolean => {
             let toRelease = alife().object(id)
             if (toRelease != undefined){
@@ -265,7 +294,10 @@ export class MonsterWorld {
         }, id);
     }
 
-    RemoveTTLTimer(id: Id){ RemoveTimeEvent(id, "mw_ttl"); }
+    RemoveTTLTimer(id: Id){ 
+        Log(`remove ttl: ${id}`)
+        RemoveTimeEvent(id, "mw_ttl"); 
+    }
 }
 
 export type HitInfo = {

@@ -1,3 +1,5 @@
+import { GetByWeightFromArray, RandomFromArray } from '../StalkerAPI/extensions/basic';
+
 export enum LevelType { //if ((types & EnemyLevelType.Open) === EnemyLevelType.Open) {
     None = 0,
     Open = 1 << 0,
@@ -526,7 +528,7 @@ export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
 
 //Drops
-export let EnemyDropChance = 15;
+export let EnemyDropChance = 150;
 export let EnemyBossDropChance = 100;
 export let EnemyEliteDropChance = 25;
 export let MinQuality = 1;
@@ -548,14 +550,6 @@ export let Qualities: {[key: number]: string} = {
     4: "Epic",
     5: "Legendary",
 };
-//Funny mess - anomaly2\\body_tear_00
-export let ParticlesByQuality: {[key: number]: string} = {
-    1: "industrial_particles\\exhaust_workshop_1_small", 
-    2: "anomaly2\\electra_damage_02_smoke",
-    3: "artefact\\af_acidic_idle",
-    4: "artefact\\af_thermal_idle",
-    5: "weapons\\rpg_trail_01",
-};
 
 export let QualityColors: {[key: number]: ARGBColor} = {
     1: GetARGB(255,230,230,230), //greish
@@ -575,4 +569,46 @@ export let EndColorTag: string = "%c[default]"
 
 export let LevelColor: string = "%c[255,104,210,26]"; //greenish
 
+export enum DropType {
+    Weapon,
+    Stimpack
+}
 
+export type DropConfig = {
+    type: DropType,
+    weight: number
+}
+export let DropConfigs: DropConfig[] = [
+    {type: DropType.Weapon, weight: 50},
+    {type: DropType.Stimpack, weight: 10},
+]
+
+export function GetDropType(): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.weight).type; }
+
+export type StimpackConfig = {
+    section: Section,
+    quality: number,
+    weight: number
+}
+export let Stimpacks: StimpackConfig[] = [
+    {section: "mw_stimpack_25", quality: 1, weight: 100},
+    {section: "mw_stimpack_50", quality: 3, weight: 50},
+    {section: "mw_stimpack_75", quality: 5, weight: 25},
+]
+
+export function GetStimpack(): [Section, number] { 
+    let stimpack = GetByWeightFromArray(Stimpacks, (e) => e.weight);
+    return [stimpack.section, stimpack.quality]; 
+}
+
+export function GetDropParticles(type: DropType, quality: number): string {
+    if (type == DropType.Weapon || type == DropType.Stimpack){
+        if (quality <= 2) return "static\\effects\\net_base_green";
+        if (quality <= 4) return "static\\effects\\net_base_blue";
+        return "static\\effects\\net_base_red";
+    }
+
+    return "_samples_particles_\\holo_lines";
+}
+
+//Funny mess - anomaly2\\body_tear_00
