@@ -113,6 +113,8 @@ export class MonsterWorld {
     }
 
     public DestroyObject(id:Id) {
+        this.RemoveTTLTimer(id)
+        this.RemoveHighlight(id)
         this.monsters.delete(id);
         this.weapons.delete(id);
     }
@@ -237,7 +239,7 @@ export class MonsterWorld {
             this.GenerateDrop(monster)
         }
 
-        this.AddTTLTimer(monsterGO.id(), 1);
+        this.AddTTLTimer(monsterGO.id(), 3);
 
         Log(`OnMonsterKilled END. ${monster.Name} (${monster.SectionId})`)
     }
@@ -318,18 +320,24 @@ export class MonsterWorld {
 
     highlightParticles: LuaTable<Id, particles_object> = new LuaTable()
     HighlightDroppedItem(id: Id, type: cfg.DropType, quality: number) {
-        //Log(`add highligh: ${id}`)
-        let particles = new particles_object(cfg.GetDropParticles(type, quality));
-        this.highlightParticles.set(id, particles)
-        let obj = alife_object(id);
-        if (obj == undefined) return;
-        let pos = obj.position
-        pos.y -= 0.2;
-        particles.play_at_pos(pos)
+        CreateTimeEvent(id, "highlight", 0.3, (): boolean => {
+            let obj = level.object_by_id(id);
+            if (obj == undefined){
+                return false;
+            }
+
+            let particles = new particles_object(cfg.GetDropParticles(type, quality));
+            this.highlightParticles.set(id, particles)
+            let pos = obj.position()
+            pos.y -= 0.1;
+            particles.play_at_pos(pos)
+            return true;
+        })
     }
 
     RemoveHighlight(id: Id){
         //Log(`remove highligh: ${id}`)
+        RemoveTimeEvent(id, "highlight"); 
         let particles = this.highlightParticles.get(id)
         particles?.stop();
         this.highlightParticles.delete(id);
@@ -343,7 +351,7 @@ export class MonsterWorld {
 
     AddTTLTimer(id: Id, time: number){
         //Log(`add ttl: ${id}`)
-        CreateTimeEvent(`${id}_ttl`, "ttl", time, (id: Id): boolean => {
+        CreateTimeEvent(id, "ttl", time, (id: Id): boolean => {
             let toRelease = alife().object(id)
             if (toRelease != undefined){
                 safe_release_manager.release(toRelease);
@@ -354,7 +362,7 @@ export class MonsterWorld {
 
     RemoveTTLTimer(id: Id){ 
         //Log(`remove ttl timer: ${id}`)
-        RemoveTimeEvent(`${id}_ttl`, "ttl"); 
+        RemoveTimeEvent(id, "ttl"); 
     }
 }
 

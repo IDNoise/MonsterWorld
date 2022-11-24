@@ -4014,13 +4014,23 @@ local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__StringReplace = ____lualib.__TS__StringReplace
 local __TS__StringPadEnd = ____lualib.__TS__StringPadEnd
 local ____exports = {}
-local BonusParams
+local NegativeBonuses, HasNoValue, BonusDescriptions
 local ____basic = require("StalkerAPI.extensions.basic")
 local TakeRandomFromArray = ____basic.TakeRandomFromArray
 local IsPctRolled = ____basic.IsPctRolled
 local ____BaseMWObject = require("MonsterWorldMod.BaseMWObject")
 local BaseMWObject = ____BaseMWObject.BaseMWObject
 local cfg = require("MonsterWorldMod.MonsterWorldConfig")
+function ____exports.GetBonusDescription(____type, bonus)
+    if bonus == nil then
+        bonus = 0
+    end
+    if __TS__ArrayIncludes(HasNoValue, ____type) then
+        return ("%c[255,255,255,0]" .. BonusDescriptions[____type]) .. cfg.EndColorTag
+    end
+    local valueStr = ((__TS__ArrayIncludes(NegativeBonuses, ____type) and "-" or "+") .. tostring(math.floor(bonus))) .. (__TS__ArrayIncludes(____exports.PctBonuses, ____type) and "%" or "")
+    return ((("%c[255,56,166,209]" .. __TS__StringPadEnd(valueStr, 6, " ")) .. cfg.EndColorTag) .. " ") .. BonusDescriptions[____type]
+end
 ____exports.MWWeapon = __TS__Class()
 local MWWeapon = ____exports.MWWeapon
 MWWeapon.name = "MWWeapon"
@@ -4113,10 +4123,10 @@ function MWWeapon.prototype.Initialize(self)
 end
 function MWWeapon.prototype.GetBonusDescription(self)
     local result = ""
-    for ____, ____type in ipairs(____exports.BonusParams.ParamsForSelection) do
+    for ____, ____type in ipairs(____exports.ParamsForSelection) do
         local value = self.DescriptionBonuses[____type] or 0
         if value ~= 0 then
-            result = result .. ____exports.BonusParams.GetBonusDescription(____type, value) .. " \\n"
+            result = result .. ____exports.GetBonusDescription(____type, value) .. " \\n"
         end
     end
     return result
@@ -4143,8 +4153,8 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
     local weaponUpgradesByBonusType = {}
     do
         local i = 0
-        while i < #____exports.BonusParams.ParamsWithWeaponUpgradesSelection do
-            local uType = ____exports.BonusParams.ParamsWithWeaponUpgradesSelection[i + 1]
+        while i < #____exports.ParamsWithWeaponUpgradesSelection do
+            local uType = ____exports.ParamsWithWeaponUpgradesSelection[i + 1]
             local upgrades = self:GetUpgradesByType(uType)
             if #upgrades ~= 0 then
                 weaponUpgradesByBonusType[uType] = upgrades
@@ -4156,9 +4166,9 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
     local availableBonuses = {}
     do
         local i = 0
-        while i < #____exports.BonusParams.ParamsForSelection do
-            local ____type = ____exports.BonusParams.ParamsForSelection[i + 1]
-            if not __TS__ArrayIncludes(____exports.BonusParams.ParamsWithWeaponUpgradesSelection, ____type) or weaponUpgradesByBonusType[____type] ~= nil then
+        while i < #____exports.ParamsForSelection do
+            local ____type = ____exports.ParamsForSelection[i + 1]
+            if not __TS__ArrayIncludes(____exports.ParamsWithWeaponUpgradesSelection, ____type) or weaponUpgradesByBonusType[____type] ~= nil then
                 availableBonuses[#availableBonuses + 1] = ____type
             end
             i = i + 1
@@ -4174,11 +4184,11 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
             i = i + 1
         end
     end
-    if IsPctRolled(100) and weaponUpgradesByBonusType.bullet_speed ~= nil then
-        selectedUpgradeTypes[#selectedUpgradeTypes + 1] = "bullet_speed"
+    if IsPctRolled(30) and weaponUpgradesByBonusType[____exports.WeaponBonusParamType.BulletSpeed] ~= nil then
+        selectedUpgradeTypes[#selectedUpgradeTypes + 1] = ____exports.WeaponBonusParamType.BulletSpeed
     end
-    if IsPctRolled(100) and weaponUpgradesByBonusType.fire_mode ~= nil then
-        selectedUpgradeTypes[#selectedUpgradeTypes + 1] = "fire_mode"
+    if IsPctRolled(30) and weaponUpgradesByBonusType[____exports.WeaponBonusParamType.FireMode] ~= nil then
+        selectedUpgradeTypes[#selectedUpgradeTypes + 1] = ____exports.WeaponBonusParamType.FireMode
     end
     local minUpgradesToSelect = 1 + 2 * (self.Quality - 1)
     local maxUpgradesToSelect = 4 * self.Quality
@@ -4189,19 +4199,19 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
         while upgradeTypeIndex < #selectedUpgradeTypes do
             local upgradesToSelect = math.random(minUpgradesToSelect, maxUpgradesToSelect)
             local t = selectedUpgradeTypes[upgradeTypeIndex + 1]
-            if t == "damage" then
+            if t == ____exports.WeaponBonusParamType.Damage then
                 damageBonusPct = damageBonusPct + upgradesToSelect * cfg.WeaponDamageBonusPctPerUpgrade
-            elseif t == "reload_speed" then
+            elseif t == ____exports.WeaponBonusParamType.ReloadSpeed then
                 local reloadSpeedBonus = upgradesToSelect * cfg.WeaponReloadSpeedBonusPctPerUpgrade
-                self.DescriptionBonuses.reload_speed = reloadSpeedBonus
+                self.DescriptionBonuses[____exports.WeaponBonusParamType.ReloadSpeed] = reloadSpeedBonus
                 self:AddStatFlatBonus(5, reloadSpeedBonus, "generation")
-            elseif t == "crit_chance" then
+            elseif t == ____exports.WeaponBonusParamType.CritChance then
                 local critChanceBonus = 1 + upgradesToSelect * cfg.WeaponCritChanceBonusPctPerUpgrade
-                self.DescriptionBonuses.crit_chance = critChanceBonus
+                self.DescriptionBonuses[____exports.WeaponBonusParamType.CritChance] = critChanceBonus
                 self:AddStatFlatBonus(6, critChanceBonus, "generation")
-            elseif t == "fire_mode" then
+            elseif t == ____exports.WeaponBonusParamType.FireMode then
                 allSelectedUpgrades[#allSelectedUpgrades + 1] = weaponUpgradesByBonusType[t][1]
-                self.DescriptionBonuses.fire_mode = 1
+                self.DescriptionBonuses[____exports.WeaponBonusParamType.FireMode] = 1
             else
                 local upgrades = weaponUpgradesByBonusType[t]
                 local bonusValue = 0
@@ -4212,15 +4222,15 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
                         allSelectedUpgrades[#allSelectedUpgrades + 1] = upgrade
                         bonusValue = bonusValue + ini_sys:r_float_ex(
                             __TS__StringReplace(upgrade, "mwu", "mwb"),
-                            ____exports.BonusParams.SectionFields[t],
+                            ____exports.SectionFields[t],
                             0
                         )
                         i = i + 1
                     end
                 end
                 if bonusValue ~= 0 then
-                    if __TS__ArrayIncludes(____exports.BonusParams.PctBonuses, t) then
-                        local defaultValue = ini_sys:r_float_ex(self.Section, ____exports.BonusParams.SectionFields[t], 1)
+                    if __TS__ArrayIncludes(____exports.PctBonuses, t) then
+                        local defaultValue = ini_sys:r_float_ex(self.Section, ____exports.SectionFields[t], 1)
                         if defaultValue == 0 then
                             defaultValue = 1
                         end
@@ -4238,7 +4248,7 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
         damageBonusPct + math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct)
     )
     if damageBonusPct > 0 then
-        self.DescriptionBonuses.damage = damageBonusPct
+        self.DescriptionBonuses[____exports.WeaponBonusParamType.Damage] = damageBonusPct
         self:AddStatPctBonus(4, damageBonusPct, "generation")
     end
     do
@@ -4250,76 +4260,72 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
         end
     end
 end
-____exports.BonusParams = {}
-BonusParams = ____exports.BonusParams
-do
-    local NegativeBonuses, HasNoValue, BonusDescriptions
-    BonusParams.ParamsForSelection = {
-        "damage",
-        "rpm",
-        "mag_size",
-        "dispersion",
-        "inertion",
-        "recoil",
-        "reload_speed",
-        "crit_chance"
-    }
-    BonusParams.ParamsWithWeaponUpgradesSelection = {
-        "rpm",
-        "mag_size",
-        "dispersion",
-        "inertion",
-        "recoil",
-        "bullet_speed",
-        "fire_mode"
-    }
-    BonusParams.SectionFields = {
-        damage = "_NotUsed",
-        fire_mode = "_NotUsed",
-        reload_speed = "_NotUsed",
-        crit_chance = "_NotUsed",
-        rpm = "rpm",
-        mag_size = "ammo_mag_size",
-        dispersion = "fire_dispersion_base",
-        inertion = "crosshair_inertion",
-        recoil = "cam_dispersion",
-        bullet_speed = "bullet_speed"
-    }
-    BonusParams.PctBonuses = {
-        "damage",
-        "rpm",
-        "dispersion",
-        "inertion",
-        "recoil",
-        "bullet_speed",
-        "reload_speed",
-        "crit_chance"
-    }
-    function BonusParams.GetBonusDescription(____type, bonus)
-        if bonus == nil then
-            bonus = 0
-        end
-        if __TS__ArrayIncludes(HasNoValue, ____type) then
-            return ("%c[255,255,255,0]" .. BonusDescriptions[____type]) .. cfg.EndColorTag
-        end
-        local valueStr = ((__TS__ArrayIncludes(NegativeBonuses, ____type) and "-" or "+") .. tostring(math.floor(bonus))) .. (__TS__ArrayIncludes(BonusParams.PctBonuses, ____type) and "%" or "")
-        return ((("%c[255,56,166,209]" .. __TS__StringPadEnd(valueStr, 6, " ")) .. cfg.EndColorTag) .. " ") .. BonusDescriptions[____type]
-    end
-    NegativeBonuses = {"recoil"}
-    HasNoValue = {"fire_mode"}
-    BonusDescriptions = {
-        damage = "Damage",
-        rpm = "Fire Rate",
-        mag_size = "Mag size",
-        fire_mode = "AUTO fire mode enabled",
-        dispersion = "Accuracy",
-        inertion = "Handling",
-        recoil = "Recoil",
-        reload_speed = "Reload speed",
-        crit_chance = "Crit chance",
-        bullet_speed = "Flatness"
-    }
-end
+____exports.WeaponBonusParamType = WeaponBonusParamType or ({})
+____exports.WeaponBonusParamType.Damage = "damage"
+____exports.WeaponBonusParamType.Rpm = "rpm"
+____exports.WeaponBonusParamType.MagSize = "mag_size"
+____exports.WeaponBonusParamType.FireMode = "fire_mode"
+____exports.WeaponBonusParamType.Dispersion = "dispersion"
+____exports.WeaponBonusParamType.Inertion = "inertion"
+____exports.WeaponBonusParamType.Recoil = "recoil"
+____exports.WeaponBonusParamType.ReloadSpeed = "reload_speed"
+____exports.WeaponBonusParamType.BulletSpeed = "bullet_speed"
+____exports.WeaponBonusParamType.CritChance = "crit_chance"
+____exports.ParamsForSelection = {
+    ____exports.WeaponBonusParamType.Damage,
+    ____exports.WeaponBonusParamType.Rpm,
+    ____exports.WeaponBonusParamType.MagSize,
+    ____exports.WeaponBonusParamType.Dispersion,
+    ____exports.WeaponBonusParamType.Inertion,
+    ____exports.WeaponBonusParamType.Recoil,
+    ____exports.WeaponBonusParamType.ReloadSpeed,
+    ____exports.WeaponBonusParamType.CritChance
+}
+____exports.ParamsWithWeaponUpgradesSelection = {
+    ____exports.WeaponBonusParamType.Rpm,
+    ____exports.WeaponBonusParamType.MagSize,
+    ____exports.WeaponBonusParamType.Dispersion,
+    ____exports.WeaponBonusParamType.Inertion,
+    ____exports.WeaponBonusParamType.Recoil,
+    ____exports.WeaponBonusParamType.BulletSpeed,
+    ____exports.WeaponBonusParamType.FireMode
+}
+NegativeBonuses = {____exports.WeaponBonusParamType.Recoil}
+HasNoValue = {____exports.WeaponBonusParamType.FireMode}
+____exports.PctBonuses = {
+    ____exports.WeaponBonusParamType.Damage,
+    ____exports.WeaponBonusParamType.Rpm,
+    ____exports.WeaponBonusParamType.Dispersion,
+    ____exports.WeaponBonusParamType.Inertion,
+    ____exports.WeaponBonusParamType.Recoil,
+    ____exports.WeaponBonusParamType.BulletSpeed,
+    ____exports.WeaponBonusParamType.ReloadSpeed,
+    ____exports.WeaponBonusParamType.CritChance
+}
+____exports.SectionFields = {
+    damage = "_NotUsed",
+    reload_speed = "_NotUsed",
+    crit_chance = "_NotUsed",
+    rpm = "rpm",
+    mag_size = "ammo_mag_size",
+    dispersion = "fire_dispersion_base",
+    inertion = "crosshair_inertion",
+    recoil = "cam_dispersion",
+    bullet_speed = "bullet_speed",
+    fire_mode = "fire_mode"
+}
+BonusDescriptions = {
+    damage = "Damage",
+    rpm = "Fire Rate",
+    mag_size = "Mag size",
+    fire_mode = "AUTO fire mode enabled",
+    dispersion = "Accuracy",
+    inertion = "Handling",
+    recoil = "Recoil",
+    reload_speed = "Reload speed",
+    crit_chance = "Crit chance",
+    bullet_speed = "Flatness"
+}
 return ____exports
  end,
 ["MonsterWorldMod.MonsterWorldSpawns"] = function(...) 
@@ -5113,6 +5119,8 @@ function MonsterWorld.prototype.GetWeapon(self, itemOrId)
     return self.weapons[itemId]
 end
 function MonsterWorld.prototype.DestroyObject(self, id)
+    self:RemoveTTLTimer(id)
+    self:RemoveHighlight(id)
     self.monsters[id] = nil
     self.weapons[id] = nil
 end
@@ -5253,7 +5261,7 @@ function MonsterWorld.prototype.OnMonsterKilled(self, monsterGO)
     end
     self:AddTTLTimer(
         monsterGO:id(),
-        1
+        3
     )
     Log(((("OnMonsterKilled END. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
 end
@@ -5337,17 +5345,26 @@ function MonsterWorld.prototype.GenerateStimpackDrop(self, monster)
     return sgo, quality
 end
 function MonsterWorld.prototype.HighlightDroppedItem(self, id, ____type, quality)
-    local particles = particles_object(cfg.GetDropParticles(____type, quality))
-    self.highlightParticles[id] = particles
-    local obj = alife_object(id)
-    if obj == nil then
-        return
-    end
-    local pos = obj.position
-    pos.y = pos.y - 0.2
-    particles:play_at_pos(pos)
+    CreateTimeEvent(
+        id,
+        "highlight",
+        0.3,
+        function()
+            local obj = level.object_by_id(id)
+            if obj == nil then
+                return false
+            end
+            local particles = particles_object(cfg.GetDropParticles(____type, quality))
+            self.highlightParticles[id] = particles
+            local pos = obj:position()
+            pos.y = pos.y - 0.1
+            particles:play_at_pos(pos)
+            return true
+        end
+    )
 end
 function MonsterWorld.prototype.RemoveHighlight(self, id)
+    RemoveTimeEvent(id, "highlight")
     local particles = self.highlightParticles[id]
     local ____particles_stop_result_24 = particles
     if ____particles_stop_result_24 ~= nil then
@@ -5364,7 +5381,7 @@ function MonsterWorld.prototype.GetHighlighBone(self, go)
 end
 function MonsterWorld.prototype.AddTTLTimer(self, id, time)
     CreateTimeEvent(
-        tostring(id) .. "_ttl",
+        id,
         "ttl",
         time,
         function(id)
@@ -5378,10 +5395,7 @@ function MonsterWorld.prototype.AddTTLTimer(self, id, time)
     )
 end
 function MonsterWorld.prototype.RemoveTTLTimer(self, id)
-    RemoveTimeEvent(
-        tostring(id) .. "_ttl",
-        "ttl"
-    )
+    RemoveTimeEvent(id, "ttl")
 end
 return ____exports
  end,
