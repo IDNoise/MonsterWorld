@@ -3137,8 +3137,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Bandit] = {
     level_start = 1,
     level_end = 8,
     level_type = ____exports.LevelType.NonLab,
-    squad_size_min = 5,
-    squad_size_max = 12,
+    squad_size_min = 8,
+    squad_size_max = 16,
     common_section = "sim_default_bandit_2",
     elite_section = "sim_default_bandit_3",
     boss_section = "sim_default_bandit_4"
@@ -3188,8 +3188,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Zombified] = {
     hp_mult = 1.5,
     xp_mult = 1,
     damage_mult = 0.75,
-    squad_size_min = 5,
-    squad_size_max = 12,
+    squad_size_min = 10,
+    squad_size_max = 24,
     common_section = "sim_default_zombied_2",
     elite_section = "sim_default_zombied_3",
     boss_section = "sim_default_zombied_4"
@@ -3211,8 +3211,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Army] = {
     type = ____exports.MonsterType.Army,
     level_start = 4,
     level_type = ____exports.LevelType.NonLab,
-    squad_size_min = 4,
-    squad_size_max = 10,
+    squad_size_min = 8,
+    squad_size_max = 16,
     common_section = "sim_default_military_1",
     elite_section = "sim_default_military_2",
     boss_section = "sim_default_military_3"
@@ -3310,8 +3310,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Sin] = {
     type = ____exports.MonsterType.Sin,
     level_start = 8,
     level_type = ____exports.LevelType.NonLab,
-    squad_size_min = 6,
-    squad_size_max = 12,
+    squad_size_min = 8,
+    squad_size_max = 16,
     common_section = "sim_default_greh_2",
     elite_section = "sim_default_greh_3",
     boss_section = "sim_default_greh_4"
@@ -3347,8 +3347,8 @@ ____exports.MonsterConfigs[____exports.MonsterType.Mercenary] = {
     type = ____exports.MonsterType.Mercenary,
     level_start = 12,
     level_type = ____exports.LevelType.NonLab,
-    squad_size_min = 7,
-    squad_size_max = 14,
+    squad_size_min = 8,
+    squad_size_max = 16,
     common_section = "sim_default_killer_2",
     elite_section = "sim_default_killer_3",
     boss_section = "sim_default_killer_4"
@@ -3374,12 +3374,18 @@ ____exports.MonsterConfigs[____exports.MonsterType.MonolithSoldier] = {
     hp_mult = 2.5,
     xp_mult = 1.75,
     damage_mult = 1.5,
-    squad_size_min = 8,
-    squad_size_max = 16,
+    squad_size_min = 10,
+    squad_size_max = 20,
     common_section = "sim_default_monolith_2",
     elite_section = "sim_default_monolith_3",
     boss_section = "sim_monolith_sniper"
 }
+function ____exports.GetDifficultyDamageMult()
+    return 1 + 0.5 * (alife_storage_manager.get_state().diff_game.type - 1)
+end
+function ____exports.GetDifficultyDropChanceMult()
+    return 0.5 + 0.5 / alife_storage_manager.get_state().diff_eco.type
+end
 ____exports.PlayerHPBase = 100
 ____exports.PlayerHPPerLevel = 10
 ____exports.PlayerHPRegenBase = 0.2
@@ -3407,14 +3413,14 @@ ____exports.EnemyEliteChance = 15
 ____exports.EnemyBossChance = 5
 ____exports.EnemyHpMultsByRank = {1, 3, 10}
 ____exports.EnemyXpMultsByRank = {1, 3, 10}
-____exports.EnemyDamageMultsByRank = {1, 1.5, 3}
+____exports.EnemyDamageMultsByRank = {1, 2, 5}
 ____exports.EnemyDropLevelIncreaseChanceByRank = {1, 20, 50}
 ____exports.EnemyDropQualityIncreaseChanceByRank = {1, 20, 50}
 ____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.3
 ____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel - 0.005
 ____exports.WeaponDPSDeltaPct = 10
 ____exports.WeaponDPSPctPerQuality = 25
-____exports.EnemyDropChance = 150
+____exports.EnemyDropChance = 15
 ____exports.EnemyBossDropChance = 100
 ____exports.EnemyEliteDropChance = 25
 ____exports.MinQuality = 1
@@ -3447,14 +3453,14 @@ ____exports.DropType.Weapon = 0
 ____exports.DropType[____exports.DropType.Weapon] = "Weapon"
 ____exports.DropType.Stimpack = 1
 ____exports.DropType[____exports.DropType.Stimpack] = "Stimpack"
-____exports.DropConfigs = {{type = ____exports.DropType.Weapon, weight = 50}, {type = ____exports.DropType.Stimpack, weight = 10}}
+____exports.DropConfigs = {{type = ____exports.DropType.Weapon, weight = 50}, {type = ____exports.DropType.Stimpack, weight = 15}}
 function ____exports.GetDropType()
     return GetByWeightFromArray(
         ____exports.DropConfigs,
         function(e) return e.weight end
     ).type
 end
-____exports.Stimpacks = {{section = "mw_stimpack_25", quality = 1, weight = 100}, {section = "mw_stimpack_50", quality = 3, weight = 50}, {section = "mw_stimpack_75", quality = 5, weight = 25}}
+____exports.Stimpacks = {{section = "mw_stimpack_25", quality = 1, weight = 150}, {section = "mw_stimpack_50", quality = 3, weight = 40}, {section = "mw_stimpack_75", quality = 5, weight = 10}}
 function ____exports.GetStimpack()
     local stimpack = GetByWeightFromArray(
         ____exports.Stimpacks,
@@ -5122,11 +5128,12 @@ function MonsterWorld.prototype.OnPlayerHit(self, shit, boneId)
             ____weapon_is_weapon_result_13 = ____weapon_is_weapon_result_13:is_weapon()
         end
         if ____weapon_is_weapon_result_13 then
-            damage = damage * (weapon:cast_Weapon():RPM() * 1.2)
+            damage = damage * (weapon:cast_Weapon():RPM() * 1.5)
         end
     end
+    damage = math.max(2, damage) * cfg.GetDifficultyDamageMult()
     local ____self_Player_15, ____HP_16 = self.Player, "HP"
-    ____self_Player_15[____HP_16] = ____self_Player_15[____HP_16] - math.max(1, damage)
+    ____self_Player_15[____HP_16] = ____self_Player_15[____HP_16] - damage
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function MonsterWorld.prototype.OnMonstersHit(self, monsterHitsThisFrame)
@@ -5170,7 +5177,8 @@ function MonsterWorld.prototype.OnMonsterKilled(self, monsterGO)
     self.UIManager:ShowXPReward(monster.XPReward)
     local ____self_Player_17, ____CurrentXP_18 = self.Player, "CurrentXP"
     ____self_Player_17[____CurrentXP_18] = ____self_Player_17[____CurrentXP_18] + monster.XPReward
-    if IsPctRolled(monster.DropChance) then
+    local dropChance = monster.DropChance * cfg.GetDifficultyDropChanceMult()
+    if IsPctRolled(dropChance) then
         Log("Generating loot")
         self:GenerateDrop(monster)
     end

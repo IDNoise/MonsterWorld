@@ -44,7 +44,7 @@ declare namespace level {
 //   function remove_call(object, string, string)
 //   function set_weather(string, boolean)
 //   function show_indicators()
-//   function get_game_difficulty()
+    function get_game_difficulty(): game_difficulty;
 //   function map_remove_object_spot(number, string)
 //   function remove_dialog_to_render(CUIDialogWnd*)
 //   function stop_weather_fx()

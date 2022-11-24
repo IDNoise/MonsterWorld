@@ -130,10 +130,11 @@ export class MonsterWorld {
         if (attackerGO.is_stalker() && shit.weapon_id != 0 && shit.weapon_id != attackerGO.id()){
             let weapon = level.object_by_id(shit.weapon_id);
             if (weapon?.is_weapon())
-                damage *= weapon.cast_Weapon().RPM() * 1.2; //small increase for ranged attacks
+                damage *= weapon.cast_Weapon().RPM() * 1.5; //small increase for ranged attacks
         }
 
-        this.Player.HP -= math.max(1, damage);
+        damage = math.max(2, damage) * cfg.GetDifficultyDamageMult();
+        this.Player.HP -= damage;
 
         Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage}) in ${boneId}`)
     }
@@ -176,7 +177,8 @@ export class MonsterWorld {
         this.UIManager.ShowXPReward(monster.XPReward)
         this.Player.CurrentXP += monster.XPReward;
 
-        if (IsPctRolled(monster.DropChance)){
+        let dropChance = monster.DropChance * cfg.GetDifficultyDropChanceMult()
+        if (IsPctRolled(dropChance)){
             Log(`Generating loot`)
             this.GenerateDrop(monster)
         }

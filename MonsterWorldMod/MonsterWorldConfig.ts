@@ -217,8 +217,8 @@ MonsterConfigs.set(MonsterType.Bandit, {
     level_start: 1,
     level_end: 8,
     level_type: LevelType.NonLab,
-    squad_size_min: 5,
-    squad_size_max: 12,
+    squad_size_min: 8,
+    squad_size_max: 16,
     common_section: "sim_default_bandit_2",
     elite_section: "sim_default_bandit_3",
     boss_section: "sim_default_bandit_4",
@@ -272,8 +272,8 @@ MonsterConfigs.set(MonsterType.Zombified, {
     hp_mult: 1.5,
     xp_mult: 1,
     damage_mult: 0.75,
-    squad_size_min: 5,
-    squad_size_max: 12,
+    squad_size_min: 10,
+    squad_size_max: 24,
     common_section: "sim_default_zombied_2",
     elite_section: "sim_default_zombied_3",
     boss_section: "sim_default_zombied_4",
@@ -297,8 +297,8 @@ MonsterConfigs.set(MonsterType.Army, {
     type: MonsterType.Army,
     level_start: 4,
     level_type: LevelType.NonLab,
-    squad_size_min: 4,
-    squad_size_max: 10,
+    squad_size_min: 8,
+    squad_size_max: 16,
     common_section: "sim_default_military_1",
     elite_section: "sim_default_military_2",
     boss_section: "sim_default_military_3",
@@ -404,8 +404,8 @@ MonsterConfigs.set(MonsterType.Sin, {
     type: MonsterType.Sin,
     level_start: 8,
     level_type: LevelType.NonLab,
-    squad_size_min: 6,
-    squad_size_max: 12,
+    squad_size_min: 8,
+    squad_size_max: 16,
     common_section: "sim_default_greh_2",
     elite_section: "sim_default_greh_3",
     boss_section: "sim_default_greh_4",
@@ -444,8 +444,8 @@ MonsterConfigs.set(MonsterType.Mercenary, {
     type: MonsterType.Mercenary,
     level_start: 12,
     level_type: LevelType.NonLab,
-    squad_size_min: 7,
-    squad_size_max: 14,
+    squad_size_min: 8,
+    squad_size_max: 16,
     common_section: "sim_default_killer_2",
     elite_section: "sim_default_killer_3",
     boss_section: "sim_default_killer_4",
@@ -473,12 +473,20 @@ MonsterConfigs.set(MonsterType.MonolithSoldier, {
     hp_mult: 2.5,
     xp_mult: 1.75,
     damage_mult: 1.5,
-    squad_size_min: 8,
-    squad_size_max: 16,
+    squad_size_min: 10,
+    squad_size_max: 20,
     common_section: "sim_default_monolith_2",
     elite_section: "sim_default_monolith_3",
     boss_section: "sim_monolith_sniper",
 });
+
+export function GetDifficultyDamageMult(){
+    return 1 + 0.5 * (alife_storage_manager.get_state().diff_game.type - 1)
+}
+
+export function GetDifficultyDropChanceMult(){
+    return 1 / alife_storage_manager.get_state().diff_eco.type
+}
 
 //Player params
 export let PlayerHPBase = 100;
@@ -517,7 +525,7 @@ export let EnemyBossChance = 5;
 
 export let EnemyHpMultsByRank: number[] = [1, 3, 10];
 export let EnemyXpMultsByRank: number[] = [1, 3, 10];
-export let EnemyDamageMultsByRank: number[] = [1, 1.5, 3];
+export let EnemyDamageMultsByRank: number[] = [1, 2, 5];
 export let EnemyDropLevelIncreaseChanceByRank: number[] = [1, 20, 50];
 export let EnemyDropQualityIncreaseChanceByRank: number[] = [1, 20, 50];
 
@@ -528,7 +536,7 @@ export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
 
 //Drops
-export let EnemyDropChance = 150;
+export let EnemyDropChance = 15;
 export let EnemyBossDropChance = 100;
 export let EnemyEliteDropChance = 25;
 export let MinQuality = 1;
@@ -580,7 +588,7 @@ export type DropConfig = {
 }
 export let DropConfigs: DropConfig[] = [
     {type: DropType.Weapon, weight: 50},
-    {type: DropType.Stimpack, weight: 10},
+    {type: DropType.Stimpack, weight: 15},
 ]
 
 export function GetDropType(): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.weight).type; }
@@ -591,9 +599,9 @@ export type StimpackConfig = {
     weight: number
 }
 export let Stimpacks: StimpackConfig[] = [
-    {section: "mw_stimpack_25", quality: 1, weight: 100},
-    {section: "mw_stimpack_50", quality: 3, weight: 50},
-    {section: "mw_stimpack_75", quality: 5, weight: 25},
+    {section: "mw_stimpack_25", quality: 1, weight: 150},
+    {section: "mw_stimpack_50", quality: 3, weight: 40},
+    {section: "mw_stimpack_75", quality: 5, weight: 10},
 ]
 
 export function GetStimpack(): [Section, number] { 
