@@ -17,4 +17,4 @@ Features:
 
 Not sure if i'll continue with it. Putting it here in case someone will find typescript declarations for stalker api useful (only partly done)
 
-[Gameplay](https://youtu.be/SyTLRF14pzM)
+[Gameplay](https://youtu.be/Den6uAioD3Q)

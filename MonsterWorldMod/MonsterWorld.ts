@@ -169,22 +169,26 @@ export class MonsterWorld {
         this.Player.CurrentXP += monster.XPReward;
 
         if (IsPctRolled(monster.DropChance)){
+            Log(`Generating loot`)
             this.GenerateDrop(monster)
         }
 
-        let se_obj = alife().object(monsterGO.id())
-        this.AddTTLTimer(se_obj.id, 10);
+        Log(`Add ttl timer loot`)
+        this.AddTTLTimer(monsterGO.id(), 10);
     }
 
     GenerateDrop(monster: MWMonster) {
-
+        Log(`GenerateDrop`)
         let typedSections = ini_sys.r_list("mw_drops_by_weapon_type", "sections");
         let selectedTypeSection = RandomFromArray(typedSections);
         let weaponCount = ini_sys.line_count(selectedTypeSection);
-        let [_, weaponBaseSection] = ini_sys.r_line_ex(selectedTypeSection, math.random(0, weaponCount - 1))
+        let selectedElement = math.random(0, weaponCount - 1);
+        Log(`Selecting base ${selectedElement} from ${weaponCount} in ${selectedTypeSection}`)
+        let [_, weaponBaseSection] = ini_sys.r_line_ex(selectedTypeSection, selectedElement)
         let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
         let selectedVariant = RandomFromArray(weaponVariants)
         
+        Log(`Selected: ${selectedVariant}`)
         let dropLevel = monster.Level;
         if (IsPctRolled(cfg.HigherLevelDropChancePct)){
             dropLevel++;
@@ -201,12 +205,19 @@ export class MonsterWorld {
         if (IsPctRolled(cfg.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
         if (IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
         
+        Log(`Spawning`)
         let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
+        if (!sgo){
+            Log(`Loot spawn failed`)
+            return;
+        }
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
 
-        Log(`Dropping loot ${sgo.section_name()}:${sgo.id}`)
+        Log(`Spawned ${sgo.section_name()}:${sgo.id}`)
 
+        Log(`Highlight`)
         this.HighlightDroppedItem(sgo.id, qualityLevel);
+        Log(`TTL`)
         this.AddTTLTimer(sgo.id, 120)
     }
 
