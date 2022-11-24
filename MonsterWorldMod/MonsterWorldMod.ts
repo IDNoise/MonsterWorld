@@ -32,22 +32,22 @@ export class MonsterWorldMod extends StalkerModBase {
     }
 
     protected override OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
-        //super.OnMonsterNetSpawn(monster, serverObject);
+        super.OnMonsterNetSpawn(monster, serverObject);
         this.World.GetMonster(monster.id());
     }
 
     protected override OnNpcNetSpawn(npc: game_object, serverObject: cse_alife_human_stalker): void {
-        //super.OnNpcNetSpawn(npc, serverObject);
+        super.OnNpcNetSpawn(npc, serverObject);
         this.World.GetMonster(npc.id());
     }
 
-    // protected override OnItemNetSpawn(item: game_object, serverObject: cse_alife_item): void {
-    //     super.OnItemNetSpawn(item, serverObject);
-    //     this.world.GetWeapon(item.id());
-    // }
+    protected override OnItemNetSpawn(item: game_object, serverObject: cse_alife_item): void {
+        super.OnItemNetSpawn(item, serverObject);
+        //this.World.GetWeapon(item.id());
+    }
 
     protected override OnItemTake(item: game_object): void {
-        //super.OnItemTake(item);
+        super.OnItemTake(item);
         this.World.OnTakeItem(item);
     }
 
@@ -59,11 +59,12 @@ export class MonsterWorldMod extends StalkerModBase {
     }
 
     protected override OnItemUse(item: game_object): void {
-        //super.OnItemTake(item);
+        super.OnItemTake(item);
         this.World.OnItemUse(item);
     }
 
     protected override OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void {
+        super.OnWeaponFired(obj, wpn, ammo_elapsed)
         if(obj.id() == 0){
             this.World.OnWeaponFired(wpn, ammo_elapsed)
         }
@@ -72,7 +73,7 @@ export class MonsterWorldMod extends StalkerModBase {
     protected override OnHudAnimationPlay(obj: game_object, anim_table: AnimationTable): void {
         super.OnHudAnimationPlay(obj, anim_table);
 
-        let weapon = this.World.GetWeapon(obj.id())
+        let weapon = this.World.GetWeapon(obj)
         if (weapon == undefined)
             return;
 
@@ -86,17 +87,17 @@ export class MonsterWorldMod extends StalkerModBase {
     // }
 
     protected override OnNpcNetDestroy(npc: game_object): void {
-        //super.OnNpcNetDestroy(npc)
+        super.OnNpcNetDestroy(npc)
         this.OnMonsterNetDestroy(npc);
     }
 
     protected override OnMonsterNetDestroy(monster: game_object): void {
-        //super.OnMonsterNetDestroy(monster)
+        super.OnMonsterNetDestroy(monster)
         this.World?.DestroyObject(monster.id());
     }
 
     protected override OnServerEntityUnregister(serverObject: cse_alife_object, type: ServerObjectType): void {
-        //super.OnServerEntityUnregister(serverObject, type)
+        super.OnServerEntityUnregister(serverObject, type)
         this.World?.DestroyObject(serverObject.id);
     }
 
@@ -137,6 +138,7 @@ export class MonsterWorldMod extends StalkerModBase {
     }
 
     protected override OnSmartTerrainTryRespawn(smart: SmartTerrain): boolean {
+        super.OnSmartTerrainTryRespawn(smart)
         return this.World.SpawnManager.OnTryRespawn(smart);
     }
 
@@ -167,14 +169,17 @@ export class MonsterWorldMod extends StalkerModBase {
     }
 
     protected override OnNPCBeforeHit(npc: game_object, shit: hit, boneId: number): boolean {
+        super.OnNPCBeforeHit(npc, shit, boneId)
         return this.OnMonsterBeforeHit(npc, shit, boneId);
     }
 
-    protected override OnNPCDeath(monster: game_object, killer: game_object): void {
-        this.OnMonsterDeath(monster, killer)
+    protected override OnNPCDeath(npc: game_object, killer: game_object): void {
+        super.OnNPCDeath(npc, killer);
+        this.OnMonsterDeath(npc, killer)
     }
 
     protected override OnMonsterDeath(monster: game_object, killer: game_object): void {
+        super.OnMonsterDeath(monster, killer)
         if (killer.id() != 0)
             return;
 

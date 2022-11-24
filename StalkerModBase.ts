@@ -16,10 +16,10 @@ export class StalkerModBase {
 
     //Player
     protected OnBeforeLevelChanging() : void {
-        Log("OnBeforeLevelChanging")
+        //Log("OnBeforeLevelChanging")
     }
     protected OnLevelChanging() : void {
-        Log("OnLevelChanging")
+        //Log("OnLevelChanging")
     }
     protected OnActorNetDestroy() : void {
         //Log("OnActorNetDestroy")
@@ -28,11 +28,12 @@ export class StalkerModBase {
         //Log("OnActorFirstUpdate")
     }
     protected OnActorUpdate() : void {
+        //Log("OnActorUpdate start")
         let time = time_global();
         let deltaTime = (time - this.lastFrameTime) / 1000;
         this.OnUpdate(deltaTime);
         this.lastFrameTime = time;
-        //Log("OnActorUpdate")
+        //Log("OnActorUpdate end")
     }
     protected OnUpdate(deltaTime: number){
 
@@ -91,7 +92,7 @@ export class StalkerModBase {
 
     //Simulation
     protected OnSimulationFillStartPosition(): void{
-        Log(`OnSimulationFillStartPosition`)
+        //Log(`OnSimulationFillStartPosition`)
     }
     protected OnSmartTerrainTryRespawn(smart: SmartTerrain) : boolean{
         //Log(`OnSmartTerrainTryRespawn ${smart.id} ${smart.name()}`)
@@ -108,11 +109,11 @@ export class StalkerModBase {
 
     //Files
     protected OnSaveState(data: {[key: string]: any}): void {
-        Log(`OnSaveState`)
+        //Log(`OnSaveState`)
     }
 
     protected OnLoadState(data: {[key: string]: any}): void {
-        Log(`OnLoadState`)
+        //Log(`OnLoadState`)
     }
 
     //Items
@@ -142,7 +143,7 @@ export class StalkerModBase {
     }
 
     protected OnHudAnimationPlay(obj: game_object, anim_table: AnimationTable): void {
-
+        //Log(`OnHudAnimationPlay ${obj.section()}:${obj.id()}`);
     }
 
     protected RegisterCallbacks():void{

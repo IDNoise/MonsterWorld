@@ -67,7 +67,7 @@ export class MonsterWorldUI {
             if (!res || !obj) 
                 return res;
 
-            let weapon = this.world.GetWeapon(obj.id());
+            let weapon = this.world.GetWeapon(obj);
             if (!weapon)
                 return res;
 
@@ -94,7 +94,7 @@ export class MonsterWorldUI {
             if (!obj) 
                 return;
 
-            let weapon = this.world.GetWeapon(obj.id());
+            let weapon = this.world.GetWeapon(obj);
             if (!weapon)
                 return;
             
@@ -106,8 +106,8 @@ export class MonsterWorldUI {
         utils_ui.sort_by_sizekind = (t, a, b) => { //Sorting by DPS > level > quality
             let objA = t.get(a);
             let objB = t.get(b);
-            let weaponA = this.world.GetWeapon(objA.id())
-            let weaponB = this.world.GetWeapon(objB.id())
+            let weaponA = this.world.GetWeapon(objA)
+            let weaponB = this.world.GetWeapon(objB)
             if (weaponA != null && weaponB != null && weaponA != weaponB){
                 if (weaponA.DPS != weaponB.DPS)
                     return weaponA.DPS > weaponB.DPS;
@@ -152,7 +152,7 @@ export class MonsterWorldUI {
             let entry = this.damageNumbers[i];
             if (entry.text.IsShown()) continue;
 
-            let msg = `${math.floor(damage)}`
+            let msg = `${math.max(1, math.floor(damage))}`
 
             entry.text.SetWndPos(new vector2().set(math.random(-15, 15), math.random(-5, 5)))
             entry.showTime = time_global();
@@ -229,10 +229,7 @@ export class MonsterWorldUI {
             Log(`Initializing enemy_health`)
             this.enemyHP = xml.InitStatic("enemy_health", cs.wnd());
             this.enemyHP.Show(false);
-           // xml.InitStatic("enemy_health:value_progress_background", this.enemyHP)
             this.enemyHPBarProgress = xml.InitProgressBar("enemy_health:value_progress", this.enemyHP)
-            // this.enemyHPBarProgress.ShowBackground(true)
-            // this.enemyHPBarProgress.UseColor(true)
             this.enemyHPBarName = xml.InitTextWnd("enemy_health:name", this.enemyHP)
             this.enemyHPBarValue = xml.InitTextWnd("enemy_health:value", this.enemyHP)
 
@@ -253,9 +250,11 @@ export class MonsterWorldUI {
     }
 
     private UpdateTarget(){
+        //Log(`UpdateTarget start`)
         let targetObj = level.get_target_obj();
         if (!targetObj){
             this.HideEnemyHealthUI();
+            //Log(`UpdateTarget end - no targetObj`)
             return;
         }
 
@@ -267,6 +266,7 @@ export class MonsterWorldUI {
         else {
             this.HideEnemyHealthUI(monster?.IsDead || false);
         }
+        //Log(`UpdateTarget end`)
     }
 
     private HideEnemyHealthUI(force: boolean = false) {
@@ -275,14 +275,14 @@ export class MonsterWorldUI {
     }
     
     private ShowEnemyHealthUI(monster: MWMonster) {
-        if (!this.enemyHP) return;
-
-        this.lastEnemyHpShowTime= time_global();
+        //Log(`ShowEnemyHealthUI start`)
+        this.lastEnemyHpShowTime = time_global();
         this.enemyHP.Show(true);
-        this.enemyHPBarProgress.SetProgressPos(monster.HP / monster.MaxHP * 100);
+        this.enemyHPBarProgress.SetProgressPos(clamp(monster.HP / monster.MaxHP, 0, 1) * 100);
         this.enemyHPBarName.SetText(monster.Name);
         this.enemyHPBarName.SetTextColor(cfg.MonsterRankColors[monster.Rank]);
         this.enemyHPBarValue.SetText(`${math.floor(monster.HP)} / ${math.floor(monster.MaxHP)}`);
+        //Log(`ShowEnemyHealthUI end`)
     }
 
     private UpdateDamageNumbers(){
@@ -386,27 +386,57 @@ export class MonsterWorldUI {
     }
 
     UIGetItemName(obj: game_object, current: string): string{
-        if (!IsWeapon(obj))
-            return current;
-
-        const weapon = this.world.GetWeapon(obj.id());
+        let weapon = this.world.GetWeapon(obj);
+        if (weapon == undefined)
+            return "";
 
         //return `${cfg.QualityColors[weapon.Quality]}${cfg.Qualities[weapon.Quality]}${cfg.EndColorTag} ${current} ${cfg.LevelColor}L.${weapon.Level}${cfg.EndColorTag}`
         return `${cfg.Qualities[weapon.Quality]} ${current} L.${weapon.Level}`
     }
 
     UIGetItemDescription(obj: game_object, current: string): string{
-        if (!IsWeapon(obj))
-            return current;
+        let weapon = this.world.GetWeapon(obj);
+        if (weapon == undefined)
+            return "";
 
-        return this.world.GetWeapon(obj.id()).GetBonusDescription();
+        return weapon.GetBonusDescription();
     }
 
-    UIGetItemLevel(obj: game_object): number { return this.world.GetWeapon(obj.id()).Level; }
-    UIGetWeaponDPS(obj: game_object): number { return this.world.GetWeapon(obj.id()).DPS; }
-    UIGetWeaponDamagePerHit(obj: game_object): number { return this.world.GetWeapon(obj.id()).DamagePerHit; }
-    UIGetWeaponRPM(obj: game_object): number { return 60 / obj.cast_Weapon().RPM(); }
-    UIGetWeaponAmmoMagSize(obj: game_object): number { return obj.cast_Weapon().GetAmmoMagSize(); }
+    UIGetItemLevel(obj: game_object): number { 
+        let weapon = this.world.GetWeapon(obj);
+        if (weapon == undefined)
+            return 0;
+
+        return weapon.Level; 
+    }
+    UIGetWeaponDPS(obj: game_object): number { 
+        let weapon = this.world.GetWeapon(obj);
+        if (weapon == undefined)
+            return 0;
+
+        return weapon.DPS; 
+    }
+    UIGetWeaponDamagePerHit(obj: game_object): number { 
+        let weapon = this.world.GetWeapon(obj);
+        if (weapon == undefined)
+            return 0;
+
+        return weapon.DamagePerHit; 
+    }
+    UIGetWeaponRPM(obj: game_object): number { 
+        let weapon = this.world.GetWeapon(obj);
+        if (weapon == undefined)
+            return 0;
+
+        return 60 / weapon.RPM; 
+    }
+    UIGetWeaponAmmoMagSize(obj: game_object): number { 
+        let weapon = this.world.GetWeapon(obj);
+        if (weapon == undefined)
+            return 0;
+
+        return math.max(1, obj?.cast_Weapon()?.GetAmmoMagSize() || 0); 
+    }
 }
 
 

@@ -160,7 +160,7 @@ declare interface game_object {
   
   // -- items
   // function active_slot()
-  // function active_item()
+  active_item(): game_object;
   // function active_detector() const
   // function show_detector(): void;
   // function hide_detector(): void;
@@ -202,7 +202,7 @@ declare interface game_object {
   // function iterate_ruck(function<void>, object): void;
   // function iterate_belt(function<void>, object): void;
   inventory_for_each(iterator: (item: game_object) => void): void;
-  // function transfer_item(game_object*, game_object*): void;
+  transfer_item(item: game_object, npc: game_object): void;
   // function is_trade_enabled()
   // function switch_to_trade(): void;
   // function enable_trade(): void;

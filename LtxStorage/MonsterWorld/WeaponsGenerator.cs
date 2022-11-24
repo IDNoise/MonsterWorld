@@ -213,138 +213,101 @@ public class WeaponsGenerator : BaseGenerator
         result.Add(UpgradeType.FireMode, new List<Section>());
         result.Add(UpgradeType.MagSize, new List<Section>());
         
-        var rpm = weapon.GetInt("rpm");
-        if (rpm <= 750)
+        float GetValuePerStep(float currentValue, int pctPerStep, float minValuePerStep = 0) 
         {
-            var pctMax = 30;
-            var pctStep = 5;
-            while ((int)(rpm * pctStep / 100f) < 5)
-            {
-                 pctMax += 25;
-                 pctStep += 5;
+            while (currentValue * pctPerStep / 100f < minValuePerStep) {
+                pctPerStep += 1;
             }
-            for (var pct = pctStep; pct <= pctMax; pct += pctStep)
-            {
-                int upgradeRpm = (int)(rpm * pct / 100f);
-                if (!rpmUpgrades.ContainsKey(upgradeRpm))
-                    rpmUpgrades.Add(upgradeRpm, GenerateUpgrade(new { rpm = ToUpgradeValue(upgradeRpm) }));
 
-                result[UpgradeType.Rpm].Add(rpmUpgrades[upgradeRpm]);
-            }
+            return currentValue * pctPerStep / 100f;
         }
-        var magSize = weapon.GetInt("ammo_mag_size");
+        
+        int steps = 20;
+        
         {
-            var pctMax = 100;
-            var pctStep = 10;
-            while ((int)(magSize * pctStep / 100f) < 1)
-            {
-                pctMax += 60;
-                pctStep += 10;
-            }
-
-            for (var pct = pctStep; pct <= pctMax; pct += pctStep)
-            {
-                int upgradeMagSize = (int)(magSize * pct / 100f);
-                if (!magSizeUpgrades.ContainsKey(upgradeMagSize))
-                    magSizeUpgrades.Add(upgradeMagSize, GenerateUpgrade(new { ammo_mag_size = ToUpgradeValue(upgradeMagSize) }));
-
-                result[UpgradeType.MagSize].Add(magSizeUpgrades[upgradeMagSize]);
-            }
-        }
-
-        var bulletSpeed = weapon.GetInt("bullet_speed");
-        if (bulletSpeed < 800){
-            var pctMax = 30;
-            var pctStep = 5;
-            for (var pct = pctStep; pct <= pctMax; pct += pctStep)
-            {
-                int upgradeBulletSpeed = (int)(bulletSpeed * pct / 100f);
-                if (!bulletSpeedUpgrades.ContainsKey(upgradeBulletSpeed))
-                    bulletSpeedUpgrades.Add(upgradeBulletSpeed, GenerateUpgrade(new
-                    {
-                        bullet_speed = ToUpgradeValue(upgradeBulletSpeed),
-                        fire_distance = ToUpgradeValue(upgradeBulletSpeed)
-                    }));
-
-                result[UpgradeType.BulletSpeed].Add(bulletSpeedUpgrades[upgradeBulletSpeed]);
+            var rpm = weapon.GetInt("rpm");
+            int valuePerStep = (int)GetValuePerStep(rpm, 5, rpm <= 100 ? 2 : 1);
+            for (int i = 0; i < steps; i++) {
+                result[UpgradeType.Rpm].Add(GenerateUpgrade(new { rpm = ToUpgradeValue(valuePerStep) }));
             }
         }
         
-        var camDispersion = weapon.GetFloat("cam_dispersion"); // Recoil
-        if (camDispersion > 0.3f)
         {
-            var pctMax = 30;
-            var pctStep = 5;
-            for (var pct = pctStep; pct <= pctMax; pct += pctStep)
-            {
-                float upgradeCamDispersion = -(camDispersion * pct / 100f);
-                if (!recoilUpgrades.ContainsKey(upgradeCamDispersion))
-                    recoilUpgrades.Add(upgradeCamDispersion, GenerateUpgrade(new
-                    {
-                        cam_dispersion                           = ToUpgradeValue(upgradeCamDispersion),
-                        cam_step_angle_horz                      = ToUpgradeValue(upgradeCamDispersion * 0.75f), 
-                        zoom_cam_dispersion                      = ToUpgradeValue(upgradeCamDispersion * 0.9f),
-                        zoom_cam_step_angle_horz                 = ToUpgradeValue(upgradeCamDispersion * 0.5f),
-                    }));
-
-                result[UpgradeType.Recoil].Add(recoilUpgrades[upgradeCamDispersion]);
+            var magSize = weapon.GetInt("ammo_mag_size");
+            int valuePerStep = (int)GetValuePerStep(magSize, 10, 1);
+            for (int i = 0; i < steps; i++) {
+                result[UpgradeType.MagSize].Add(GenerateUpgrade(new { ammo_mag_size = ToUpgradeValue(valuePerStep) }));
             }
         }
         
+        
+        {
+            var bulletSpeed = weapon.GetInt("bullet_speed");
+            int valuePerStep = (int)GetValuePerStep(bulletSpeed, 5, 1);
+            for (int i = 0; i < steps; i++) {
+                result[UpgradeType.BulletSpeed].Add(GenerateUpgrade(new {
+                    bullet_speed = ToUpgradeValue(valuePerStep),
+                    fire_distance = ToUpgradeValue(valuePerStep)
+                }));
+            }
+        }
+        {
+            var camDispersion = weapon.GetFloat("cam_dispersion"); // Recoil
+            if (camDispersion > 0.2f) {
+                float valuePerStep = -GetValuePerStep(camDispersion, 5);
+                for (int i = 0; i < steps; i++) {
+                    result[UpgradeType.Recoil].Add(GenerateUpgrade(new {
+                        cam_dispersion = ToUpgradeValue(valuePerStep),
+                        cam_step_angle_horz = ToUpgradeValue(valuePerStep * 0.75f),
+                        zoom_cam_dispersion = ToUpgradeValue(valuePerStep * 0.9f),
+                        zoom_cam_step_angle_horz = ToUpgradeValue(valuePerStep * 0.5f),
+                    }));
+                }
+            }
+        }
+
         {
             var crosshairInertion = weapon.GetFloat("crosshair_inertion"); // Inertion
-            var pctMax = 30;
-            var pctStep = 5;
-            for (var pct = pctStep; pct <= pctMax; pct += pctStep)
+            if (crosshairInertion > 0.1)
             {
-                float upgradeCrosshairInertion = -(crosshairInertion * pct / 100f);
-                if (!inertionUpgrades.ContainsKey(upgradeCrosshairInertion))
-                    inertionUpgrades.Add(upgradeCrosshairInertion, GenerateUpgrade(new
+                float valuePerStep = -GetValuePerStep(crosshairInertion, 5);
+                for (int i = 0; i < steps; i++)
+                {
+                    result[UpgradeType.Inertion].Add(GenerateUpgrade(new
                     {
-                        crosshair_inertion                       = ToUpgradeValue(upgradeCrosshairInertion),
-                        PDM_disp_base                            = ToUpgradeValue(upgradeCrosshairInertion * 0.1f),
-                        PDM_disp_vel_factor                      = ToUpgradeValue(upgradeCrosshairInertion * 0.5f),
-                        PDM_disp_accel_factor                    = ToUpgradeValue(upgradeCrosshairInertion * 0.5f),
+                        crosshair_inertion = ToUpgradeValue(valuePerStep),
+                        PDM_disp_base = ToUpgradeValue(valuePerStep * 0.1f),
+                        PDM_disp_vel_factor = ToUpgradeValue(valuePerStep * 0.5f),
+                        PDM_disp_accel_factor = ToUpgradeValue(valuePerStep * 0.5f),
                     }));
-
-                result[UpgradeType.Inertion].Add(inertionUpgrades[upgradeCrosshairInertion]);
+                }
             }
         }
-        
-        var fireDispersionBase = weapon.GetFloat("fire_dispersion_base"); // Dispersion
-        if (fireDispersionBase > 0.2)
-        {
-            var pctMax = 30;
-            var pctStep = 5;
-            for (var pct = pctStep; pct <= pctMax; pct += pctStep)
-            {
-                float upgradeFireDispersionBase = -(fireDispersionBase * pct / 100f);
-                if (!dispersionUpgrades.ContainsKey(upgradeFireDispersionBase))
-                    dispersionUpgrades.Add(upgradeFireDispersionBase, GenerateUpgrade(new
-                    {
-                        fire_dispersion_base = ToUpgradeValue(upgradeFireDispersionBase)
-                    }));
 
-                result[UpgradeType.Dispersion].Add(dispersionUpgrades[upgradeFireDispersionBase]);
+        {
+            var fireDispersionBase = weapon.GetFloat("fire_dispersion_base"); // Dispersion
+            if (fireDispersionBase > 0.1) {
+                float valuePerStep = -GetValuePerStep(fireDispersionBase, 5);
+                for (int i = 0; i < steps; i++) {
+                    result[UpgradeType.Dispersion].Add(GenerateUpgrade(new {
+                        fire_dispersion_base = ToUpgradeValue(valuePerStep)
+                    }));
+                }
             }
         }
-        
-        if (rpm >= 100 && magSize >= 10)
-        {
-            if (fireModeUpgrades.Count == 0)
-            {
+
+        if (weapon.GetInt("rpm") >= 100 && weapon.GetInt("ammo_mag_size") >= 10) {
+            if (fireModeUpgrades.Count == 0) {
                 fireModeUpgrades.Add(FireModeUpgradeType.OneAuto, GenerateUpgrade(new { fire_modes = "1, -1" }));
                 fireModeUpgrades.Add(FireModeUpgradeType.OneThreeAuto, GenerateUpgrade(new { fire_modes = "1, 3, -1" }));
                 fireModeUpgrades.Add(FireModeUpgradeType.ThreeAuto, GenerateUpgrade(new { fire_modes = "3, -1" }));
             }
             
             var fireModesString = weapon.GetString("fire_modes");
-            if (fireModesString == null)
-            {
+            if (fireModesString == null) {
                 result[UpgradeType.FireMode].Add(fireModeUpgrades[FireModeUpgradeType.OneThreeAuto]);
             }
-            else
-            {
+            else {
                 var fireModes = fireModesString.Replace(" ", "").Split(",", StringSplitOptions.RemoveEmptyEntries);
                 if (fireModes.Length < 3 && !fireModes.Contains("-1"))
                 {
@@ -426,15 +389,9 @@ public class WeaponsGenerator : BaseGenerator
         BulletSpeed,
         MagSize
     }
-    
-    private Dictionary<int, Section> rpmUpgrades = new();
-    private Dictionary<float, Section> dispersionUpgrades = new();
-    private Dictionary<float, Section> inertionUpgrades = new();
-    private Dictionary<float, Section> recoilUpgrades = new();
+
     private Dictionary<FireModeUpgradeType, Section> fireModeUpgrades = new();
-    private Dictionary<int, Section> bulletSpeedUpgrades = new();
-    private Dictionary<int, Section> magSizeUpgrades = new();
-    
+
     string ToUpgradeValue(float value) => (value > 0 ? "+" : "") + value.ToString(Property.FloatFormat);
     string ToUpgradeValue(int value) => (value > 0 ? "+" : "") + value;
 

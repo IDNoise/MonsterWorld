@@ -238,19 +238,6 @@ MonsterConfigs.set(MonsterType.Flesh, {
     boss_section: "flesh_bolot",
 });
 
-MonsterConfigs.set(MonsterType.Boar, {
-    type: MonsterType.Boar,
-    level_type: LevelType.Open,
-    level_start: 2,
-    level_end: 9,
-    hp_mult: 1.25,
-    squad_size_min: 4,
-    squad_size_max: 8,
-    common_section: "boar_01a_weak",
-    elite_section: "boar_02a_strong",
-    boss_section: "boar_02a_hard",
-});
-
 MonsterConfigs.set(MonsterType.Dog, {
     type: MonsterType.Dog,
     level_type: LevelType.Open,
@@ -263,6 +250,19 @@ MonsterConfigs.set(MonsterType.Dog, {
     common_section: "dog_weak_white",
     elite_section: "dog_strong_red",
     boss_section: "dog_strong_black",
+});
+
+MonsterConfigs.set(MonsterType.Boar, {
+    type: MonsterType.Boar,
+    level_type: LevelType.Open,
+    level_start: 2,
+    level_end: 9,
+    hp_mult: 1.25,
+    squad_size_min: 4,
+    squad_size_max: 8,
+    common_section: "boar_01a_weak",
+    elite_section: "boar_02a_strong",
+    boss_section: "boar_02a_hard",
 });
 
 MonsterConfigs.set(MonsterType.Zombified, {
@@ -481,11 +481,11 @@ MonsterConfigs.set(MonsterType.MonolithSoldier, {
 });
 
 export function GetDifficultyDamageMult(){
-    return 1 + 0.5 * (alife_storage_manager.get_state().diff_game.type - 1)
+    return 1 + 0.5 * (math.max(1, alife_storage_manager.get_state()?.diff_game.type || 0) - 1)
 }
 
 export function GetDifficultyDropChanceMult(){
-    return 1 / alife_storage_manager.get_state().diff_eco.type
+    return 1 / math.max(1, alife_storage_manager.get_state()?.diff_eco.type || 0)
 }
 
 //Player params
@@ -534,6 +534,10 @@ export let WeaponDPSBase = EnemyHPBase / 0.3;
 export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel - 0.005;
 export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
+
+export let WeaponDamageBonusPctPerUpgrade = 5;
+export let WeaponReloadSpeedBonusPctPerUpgrade = 5;
+export let WeaponCritChanceBonusPctPerUpgrade = 0.225;
 
 //Drops
 export let EnemyDropChance = 15;

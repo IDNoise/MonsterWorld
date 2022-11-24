@@ -20,7 +20,7 @@ export class MWPlayer extends BaseMWObject {
         let expMult = math.pow(cfg.PlayerXPExp, this.Level);
         let pctMult = (1 + cfg.PlayerXPPct * this.Level / 100)
         let xp = cfg.PlayerXPForFirstLevel * expMult * pctMult;
-        return math.floor(xp)
+        return math.max(1, math.floor(xp))
     }
 
     get CurrentXP(): number { return this.Load("CurrentXP", 0); }
@@ -36,7 +36,7 @@ export class MWPlayer extends BaseMWObject {
         this.Level++;
         this.StatPoints += cfg.PlayerPointsPerLevelUp;
         this.UpdateLevelBonuses();
-        this.mw.UIManager.ShowLevelUpMessage(this.Level);
+        this.mw.UIManager?.ShowLevelUpMessage(this.Level);
     }
 
     protected override Reinit(): void {

@@ -14,6 +14,8 @@ export class MonsterWorld {
     private player?: MWPlayer;
     private monsters: LuaTable<Id, MWMonster>
     private weapons: LuaTable<Id, MWWeapon>
+    private enemyDamageMult: number = 1;
+    private enemyDropChanceMult: number = 1;
 
     public SpawnManager: MonsterWorldSpawns;
     public UIManager: MonsterWorldUI;
@@ -33,11 +35,17 @@ export class MonsterWorld {
         treasure_manager.create_random_stash = (...args: any[]) => {};
         death_manager.create_release_item = (_ignore: any) => {};
         death_manager.create_item_list = (...args: any[]) => {};
+        let oldKeepItem = death_manager.keep_item;
         death_manager.keep_item = (npc: game_object, item: game_object) => {
             if (!item) return;
-            let se_obj = alife_object(item.id());
-            if (se_obj != undefined){
-                alife_release(se_obj)
+	
+            let item_id = item.id()
+            let active_item = npc.active_item()
+	
+	        oldKeepItem(npc, item)
+
+            if (active_item != null && active_item.id() == item_id) {
+                npc.transfer_item(item, npc)
             }
         };
     }
@@ -48,17 +56,59 @@ export class MonsterWorld {
         return this.player;
     }
 
-    public GetMonster(monsterId: Id): MWMonster | undefined {
-        if (!this.monsters.has(monsterId) && (level.object_by_id(monsterId)?.is_monster() || level.object_by_id(monsterId)?.is_stalker())){
+    public GetMonster(monsterOrId: Id | game_object): MWMonster | undefined {
+        //Log(`GetMonster: ${monsterId}`)
+        let monsterId = 0;
+        if (typeof(monsterOrId) != "number"){
+            if (monsterOrId?.id != undefined){
+                monsterId = monsterOrId.id();
+            }
+            else {
+                return undefined;
+            }
+        }
+        else {
+            monsterId = monsterOrId;
+        }
+
+        let se_obj = alife_object(monsterId);
+        let go = level.object_by_id(monsterId);
+        if (se_obj == null || go == null || !(go.is_monster() || go.is_stalker()))
+            return undefined;
+
+        if (!this.monsters.has(monsterId)){
+            //Log(`GetMonster crate new: ${monsterId}`)
             this.monsters.set(monsterId, new MWMonster(this, monsterId));
         }
+        //Log(`GetMonster end: ${monsterId}`)
         return this.monsters.get(monsterId);
     }
 
-    public GetWeapon(itemId: Id): MWWeapon {
-        if (!this.weapons.has(itemId) && alife().object(itemId) != null && level.object_by_id(itemId)?.is_weapon()){    
+    public GetWeapon(itemOrId: Id | game_object): MWWeapon | undefined {
+        let itemId = 0;
+        if (typeof(itemOrId) != "number"){
+            if (itemOrId?.id != undefined){
+                itemId = itemOrId.id();
+            }
+            else {
+                return undefined;
+            }
+        }
+        else {
+            itemId = itemOrId;
+        }
+        //Log(`GetWeapon: ${itemId}`)
+        let se_obj = alife_object(itemId);
+        let go = level.object_by_id(itemId);
+        if (se_obj == null || go == null || !go.is_weapon())
+            return undefined;
+
+        if (!this.weapons.has(itemId)){    
+            //Log(`GetWeapon crate new: ${itemId}`)
             this.weapons.set(itemId, new MWWeapon(this, itemId));
         }
+
+        //Log(`GetWeapon end: ${itemId}`)
         return this.weapons.get(itemId);
     }
 
@@ -68,7 +118,8 @@ export class MonsterWorld {
     }
 
     public OnTakeItem(item: game_object) {
-        let weapon = this.GetWeapon(item.id())
+        //Log(`OnTakeItem: ${item.id()}`)
+        let weapon = this.GetWeapon(item)
         weapon?.OnWeaponPickedUp();
 
         this.RemoveHighlight(item.id());
@@ -84,14 +135,18 @@ export class MonsterWorld {
     }
     
     public OnWeaponFired(wpn: game_object, ammo_elapsed: number) {
-        let weapon = this.GetWeapon(wpn.id())
+        //Log(`OnWeaponFired: ${wpn.section()}`)
+        let weapon = this.GetWeapon(wpn)
         if (weapon != undefined && weapon.Section.endsWith("_mw") && weapon.GO.get_ammo_total() < 500){
             let ammo = ini_sys.r_sec_ex(weapon.Section, "ammo_class")
             alife_create_item(ammo, this.Player.GO, {ammo: 1});
         }
+        //Log(`OnWeaponFired END: ${wpn.section()}`)
     }
 
     public OnPlayerSpawned():void{
+        this.enemyDamageMult = cfg.GetDifficultyDamageMult();
+        this.enemyDropChanceMult = cfg.GetDifficultyDropChanceMult()
         // db.actor.inventory_for_each((item) => {
         //     if (item.is_weapon())
         //         this.GetWeapon(item.id());
@@ -100,17 +155,17 @@ export class MonsterWorld {
 
     public Save(data: { [key: string]: any; }) {
         this.SpawnManager.Save(data)
-        this.UIManager.Save(data)
+        this.UIManager?.Save(data)
     }
 
     public Load(data: { [key: string]: any; }) {
         this.SpawnManager.Load(data)
-        this.UIManager.Load(data)
+        this.UIManager?.Load(data)
     }
 
     public Update(deltaTime: number) {
         this.DeltaTime = deltaTime;
-        this.UIManager.Update();
+        this.UIManager?.Update();
         this.Player.RegenHP(deltaTime)
         for(let [_, monster] of this.monsters){
             monster.RegenHP(deltaTime)
@@ -133,7 +188,7 @@ export class MonsterWorld {
                 damage *= weapon.cast_Weapon().RPM() * 1.5; //small increase for ranged attacks
         }
 
-        damage = math.max(2, damage) * cfg.GetDifficultyDamageMult();
+        damage = math.max(2, damage) * this.enemyDamageMult;
         this.Player.HP -= damage;
 
         Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage}) in ${boneId}`)
@@ -162,7 +217,7 @@ export class MonsterWorld {
 
                 let realDamage = math.min(monster.HP, monsterDamage)
                 monster.HP -= realDamage;
-                this.UIManager.ShowDamage(realDamage, isCritPartHit, monster.IsDead)
+                this.UIManager?.ShowDamage(realDamage, isCritPartHit, monster.IsDead)
             }
         }
     }
@@ -174,17 +229,17 @@ export class MonsterWorld {
 
         Log(`OnMonsterKilled. ${monster.Name} (${monster.SectionId})`)
 
-        this.UIManager.ShowXPReward(monster.XPReward)
+        this.UIManager?.ShowXPReward(monster.XPReward)
         this.Player.CurrentXP += monster.XPReward;
 
-        let dropChance = monster.DropChance * cfg.GetDifficultyDropChanceMult()
+        let dropChance = monster.DropChance * this.enemyDropChanceMult
         if (IsPctRolled(dropChance)){
-            Log(`Generating loot`)
             this.GenerateDrop(monster)
         }
 
-        Log(`Add ttl timer loot`)
-        this.AddTTLTimer(monsterGO.id(), 10);
+        this.AddTTLTimer(monsterGO.id(), 1);
+
+        Log(`OnMonsterKilled END. ${monster.Name} (${monster.SectionId})`)
     }
 
     GenerateDrop(monster: MWMonster) {
@@ -203,10 +258,11 @@ export class MonsterWorld {
         if (sgo != undefined){
             Log(`Spawned ${sgo.section_name()}:${sgo.id}`)
 
-            Log(`Highlight`)
+            //Log(`Highlight drop`)
             this.HighlightDroppedItem(sgo.id, type, quality);
-            Log(`TTL`)
+            //Log(`Add ttl timer for drop`)
             this.AddTTLTimer(sgo.id, 300)
+            //Log(`Post add ttl timer for drop`)
         }
         else {
             Log(`Drop generation failed`)
@@ -240,7 +296,7 @@ export class MonsterWorld {
         if (IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
         
         Log(`Spawning ${selectedVariant}`)
-        let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtGO(monster.GO))// db.actor.position());
+        let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO))// db.actor.position());
         if (!sgo){
             Log(`GenerateWeaponDrop spawn failed`)
             return $multi(undefined, 1);
@@ -252,7 +308,7 @@ export class MonsterWorld {
     GenerateStimpackDrop(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
         let [stimpackSection, quality] = cfg.GetStimpack();
         Log(`Spawning ${stimpackSection}`)
-        let sgo = alife_create_item(stimpackSection, CreateWorldPositionAtGO(monster.GO))
+        let sgo = alife_create_item(stimpackSection, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO))
         if (!sgo){
             Log(`GenerateStimpackDrop spawn failed`)
             return $multi(undefined, 1);
@@ -262,18 +318,18 @@ export class MonsterWorld {
 
     highlightParticles: LuaTable<Id, particles_object> = new LuaTable()
     HighlightDroppedItem(id: Id, type: cfg.DropType, quality: number) {
-        Log(`add highligh: ${id}`)
+        //Log(`add highligh: ${id}`)
         let particles = new particles_object(cfg.GetDropParticles(type, quality));
         this.highlightParticles.set(id, particles)
-        let obj = alife().object(id);
-        if (!obj) return;
+        let obj = alife_object(id);
+        if (obj == undefined) return;
         let pos = obj.position
         pos.y -= 0.2;
         particles.play_at_pos(pos)
     }
 
     RemoveHighlight(id: Id){
-        Log(`remove highligh: ${id}`)
+        //Log(`remove highligh: ${id}`)
         let particles = this.highlightParticles.get(id)
         particles?.stop();
         this.highlightParticles.delete(id);
@@ -286,8 +342,8 @@ export class MonsterWorld {
     }
 
     AddTTLTimer(id: Id, time: number){
-        Log(`add ttl: ${id}`)
-        CreateTimeEvent(id, "mw_ttl", time, (id: Id): boolean => {
+        //Log(`add ttl: ${id}`)
+        CreateTimeEvent(`${id}_ttl`, "ttl", time, (id: Id): boolean => {
             let toRelease = alife().object(id)
             if (toRelease != undefined){
                 safe_release_manager.release(toRelease);
@@ -297,8 +353,8 @@ export class MonsterWorld {
     }
 
     RemoveTTLTimer(id: Id){ 
-        Log(`remove ttl: ${id}`)
-        RemoveTimeEvent(id, "mw_ttl"); 
+        //Log(`remove ttl timer: ${id}`)
+        RemoveTimeEvent(`${id}_ttl`, "ttl"); 
     }
 }
 

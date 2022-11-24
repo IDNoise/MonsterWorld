@@ -4,13 +4,17 @@ import { MonsterWorld } from './MonsterWorld';
 
 export abstract class BaseMWObject {
     constructor(public mw: MonsterWorld, public id: Id) {
+        //Log(`Construct ${id}`)
         if (!this.Initialized){
+            //Log(`Initialize ${id}`)
             this.Initialize();
             this.Initialized = true;
         }
         else {
+            //Log(`Reinitialize ${id}`)
             this.Reinit()
         }
+        //Log(`Construct ${id} finished`)
     }
 
     get Initialized(): boolean { return this.Load("Initialized"); }
@@ -23,20 +27,24 @@ export abstract class BaseMWObject {
 
     get HP(): number { return this.Load("HP"); }
     set HP(newHp: number) {
+        //Log(`HP change start ${this.id}`)
         newHp = math.max(0, math.min(newHp, this.MaxHP))
         this.Save("HP", newHp);
         if(this.GO != undefined)
-            this.GO.set_health_ex(newHp / math.max(1, this.MaxHP));
+            this.GO.set_health_ex(newHp / this.MaxHP);
         if (this.IsDead)
             this.OnDeath();
+        //Log(`HP change end ${this.id}`)
     }
 
-    get MaxHP(): number { return this.GetStat(StatType.MaxHP); }
+    get MaxHP(): number { return  math.max(1, this.GetStat(StatType.MaxHP)); }
 
     get HPRegen(): number { return this.GetStat(StatType.HPRegen); }
 
     RegenHP(deltaTime: number){
+        //Log(`HP Regen start ${this.id}`)
         this.HP = math.min(this.MaxHP, this.HP + this.HPRegen * deltaTime);
+        //Log(`HP Regen end ${this.id}`)
     }
 
     get Level(): number { return this.Load("Level"); }

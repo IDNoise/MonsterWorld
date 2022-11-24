@@ -2572,10 +2572,8 @@ function StalkerModBase.prototype.____constructor(self)
     self.lastFrameTime = 0
 end
 function StalkerModBase.prototype.OnBeforeLevelChanging(self)
-    ____exports.Log("OnBeforeLevelChanging")
 end
 function StalkerModBase.prototype.OnLevelChanging(self)
-    ____exports.Log("OnLevelChanging")
 end
 function StalkerModBase.prototype.OnActorNetDestroy(self)
 end
@@ -2622,7 +2620,6 @@ end
 function StalkerModBase.prototype.OnNPCDeath(self, npc, killer)
 end
 function StalkerModBase.prototype.OnSimulationFillStartPosition(self)
-    ____exports.Log("OnSimulationFillStartPosition")
 end
 function StalkerModBase.prototype.OnSmartTerrainTryRespawn(self, smart)
     return true
@@ -2632,10 +2629,8 @@ end
 function StalkerModBase.prototype.OnServerEntityUnregister(self, serverObject, ____type)
 end
 function StalkerModBase.prototype.OnSaveState(self, data)
-    ____exports.Log("OnSaveState")
 end
 function StalkerModBase.prototype.OnLoadState(self, data)
-    ____exports.Log("OnLoadState")
 end
 function StalkerModBase.prototype.OnItemNetSpawn(self, item, serverObject)
 end
@@ -3156,18 +3151,6 @@ ____exports.MonsterConfigs[____exports.MonsterType.Flesh] = {
     elite_section = "flesh_02a_normal",
     boss_section = "flesh_bolot"
 }
-____exports.MonsterConfigs[____exports.MonsterType.Boar] = {
-    type = ____exports.MonsterType.Boar,
-    level_type = ____exports.LevelType.Open,
-    level_start = 2,
-    level_end = 9,
-    hp_mult = 1.25,
-    squad_size_min = 4,
-    squad_size_max = 8,
-    common_section = "boar_01a_weak",
-    elite_section = "boar_02a_strong",
-    boss_section = "boar_02a_hard"
-}
 ____exports.MonsterConfigs[____exports.MonsterType.Dog] = {
     type = ____exports.MonsterType.Dog,
     level_type = ____exports.LevelType.Open,
@@ -3180,6 +3163,18 @@ ____exports.MonsterConfigs[____exports.MonsterType.Dog] = {
     common_section = "dog_weak_white",
     elite_section = "dog_strong_red",
     boss_section = "dog_strong_black"
+}
+____exports.MonsterConfigs[____exports.MonsterType.Boar] = {
+    type = ____exports.MonsterType.Boar,
+    level_type = ____exports.LevelType.Open,
+    level_start = 2,
+    level_end = 9,
+    hp_mult = 1.25,
+    squad_size_min = 4,
+    squad_size_max = 8,
+    common_section = "boar_01a_weak",
+    elite_section = "boar_02a_strong",
+    boss_section = "boar_02a_hard"
 }
 ____exports.MonsterConfigs[____exports.MonsterType.Zombified] = {
     type = ____exports.MonsterType.Zombified,
@@ -3381,10 +3376,20 @@ ____exports.MonsterConfigs[____exports.MonsterType.MonolithSoldier] = {
     boss_section = "sim_monolith_sniper"
 }
 function ____exports.GetDifficultyDamageMult()
-    return 1 + 0.5 * (alife_storage_manager.get_state().diff_game.type - 1)
+    local ____math_max_77 = math.max
+    local ____alife_storage_manager_get_state_result_diff_game_type_75 = alife_storage_manager.get_state()
+    if ____alife_storage_manager_get_state_result_diff_game_type_75 ~= nil then
+        ____alife_storage_manager_get_state_result_diff_game_type_75 = ____alife_storage_manager_get_state_result_diff_game_type_75.diff_game.type
+    end
+    return 1 + 0.5 * (____math_max_77(1, ____alife_storage_manager_get_state_result_diff_game_type_75 or 0) - 1)
 end
 function ____exports.GetDifficultyDropChanceMult()
-    return 1 / alife_storage_manager.get_state().diff_eco.type
+    local ____math_max_80 = math.max
+    local ____alife_storage_manager_get_state_result_diff_eco_type_78 = alife_storage_manager.get_state()
+    if ____alife_storage_manager_get_state_result_diff_eco_type_78 ~= nil then
+        ____alife_storage_manager_get_state_result_diff_eco_type_78 = ____alife_storage_manager_get_state_result_diff_eco_type_78.diff_eco.type
+    end
+    return 1 / ____math_max_80(1, ____alife_storage_manager_get_state_result_diff_eco_type_78 or 0)
 end
 ____exports.PlayerHPBase = 100
 ____exports.PlayerHPPerLevel = 10
@@ -3420,6 +3425,9 @@ ____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.3
 ____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel - 0.005
 ____exports.WeaponDPSDeltaPct = 10
 ____exports.WeaponDPSPctPerQuality = 25
+____exports.WeaponDamageBonusPctPerUpgrade = 5
+____exports.WeaponReloadSpeedBonusPctPerUpgrade = 5
+____exports.WeaponCritChanceBonusPctPerUpgrade = 0.225
 ____exports.EnemyDropChance = 15
 ____exports.EnemyBossDropChance = 100
 ____exports.EnemyEliteDropChance = 25
@@ -3755,12 +3763,18 @@ function MonsterWorldMod.prototype.OnLoadState(self, data)
     self.World:Load(data)
 end
 function MonsterWorldMod.prototype.OnMonsterNetSpawn(self, monster, serverObject)
+    StalkerModBase.prototype.OnMonsterNetSpawn(self, monster, serverObject)
     self.World:GetMonster(monster:id())
 end
 function MonsterWorldMod.prototype.OnNpcNetSpawn(self, npc, serverObject)
+    StalkerModBase.prototype.OnNpcNetSpawn(self, npc, serverObject)
     self.World:GetMonster(npc:id())
 end
+function MonsterWorldMod.prototype.OnItemNetSpawn(self, item, serverObject)
+    StalkerModBase.prototype.OnItemNetSpawn(self, item, serverObject)
+end
 function MonsterWorldMod.prototype.OnItemTake(self, item)
+    StalkerModBase.prototype.OnItemTake(self, item)
     self.World:OnTakeItem(item)
 end
 function MonsterWorldMod.prototype.OnItemDrop(self, item)
@@ -3771,16 +3785,18 @@ function MonsterWorldMod.prototype.OnItemDrop(self, item)
     end
 end
 function MonsterWorldMod.prototype.OnItemUse(self, item)
+    StalkerModBase.prototype.OnItemTake(self, item)
     self.World:OnItemUse(item)
 end
 function MonsterWorldMod.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
+    StalkerModBase.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
     if obj:id() == 0 then
         self.World:OnWeaponFired(wpn, ammo_elapsed)
     end
 end
 function MonsterWorldMod.prototype.OnHudAnimationPlay(self, obj, anim_table)
     StalkerModBase.prototype.OnHudAnimationPlay(self, obj, anim_table)
-    local weapon = self.World:GetWeapon(obj:id())
+    local weapon = self.World:GetWeapon(obj)
     if weapon == nil then
         return
     end
@@ -3789,15 +3805,18 @@ function MonsterWorldMod.prototype.OnHudAnimationPlay(self, obj, anim_table)
     end
 end
 function MonsterWorldMod.prototype.OnNpcNetDestroy(self, npc)
+    StalkerModBase.prototype.OnNpcNetDestroy(self, npc)
     self:OnMonsterNetDestroy(npc)
 end
 function MonsterWorldMod.prototype.OnMonsterNetDestroy(self, monster)
+    StalkerModBase.prototype.OnMonsterNetDestroy(self, monster)
     local ____table_World_DestroyObject_result_0 = self.World
     if ____table_World_DestroyObject_result_0 ~= nil then
         ____table_World_DestroyObject_result_0 = ____table_World_DestroyObject_result_0:DestroyObject(monster:id())
     end
 end
 function MonsterWorldMod.prototype.OnServerEntityUnregister(self, serverObject, ____type)
+    StalkerModBase.prototype.OnServerEntityUnregister(self, serverObject, ____type)
     local ____table_World_DestroyObject_result_2 = self.World
     if ____table_World_DestroyObject_result_2 ~= nil then
         ____table_World_DestroyObject_result_2 = ____table_World_DestroyObject_result_2:DestroyObject(serverObject.id)
@@ -3832,6 +3851,7 @@ function MonsterWorldMod.prototype.OnSimulationFillStartPosition(self)
     self.World.SpawnManager:FillStartPositions()
 end
 function MonsterWorldMod.prototype.OnSmartTerrainTryRespawn(self, smart)
+    StalkerModBase.prototype.OnSmartTerrainTryRespawn(self, smart)
     return self.World.SpawnManager:OnTryRespawn(smart)
 end
 function MonsterWorldMod.prototype.OnMonsterBeforeHit(self, monsterGO, shit, boneId)
@@ -3860,12 +3880,15 @@ function MonsterWorldMod.prototype.OnMonsterBeforeHit(self, monsterGO, shit, bon
     return true
 end
 function MonsterWorldMod.prototype.OnNPCBeforeHit(self, npc, shit, boneId)
+    StalkerModBase.prototype.OnNPCBeforeHit(self, npc, shit, boneId)
     return self:OnMonsterBeforeHit(npc, shit, boneId)
 end
-function MonsterWorldMod.prototype.OnNPCDeath(self, monster, killer)
-    self:OnMonsterDeath(monster, killer)
+function MonsterWorldMod.prototype.OnNPCDeath(self, npc, killer)
+    StalkerModBase.prototype.OnNPCDeath(self, npc, killer)
+    self:OnMonsterDeath(npc, killer)
 end
 function MonsterWorldMod.prototype.OnMonsterDeath(self, monster, killer)
+    StalkerModBase.prototype.OnMonsterDeath(self, monster, killer)
     if killer:id() ~= 0 then
         return
     end
@@ -3908,7 +3931,10 @@ __TS__SetDescriptor(
         local expMult = math.pow(cfg.PlayerXPExp, self.Level)
         local pctMult = 1 + cfg.PlayerXPPct * self.Level / 100
         local xp = cfg.PlayerXPForFirstLevel * expMult * pctMult
-        return math.floor(xp)
+        return math.max(
+            1,
+            math.floor(xp)
+        )
     end},
     true
 )
@@ -3954,7 +3980,10 @@ function MWPlayer.prototype.LevelUp(self)
     self.Level = self.Level + 1
     self.StatPoints = self.StatPoints + cfg.PlayerPointsPerLevelUp
     self:UpdateLevelBonuses()
-    self.mw.UIManager:ShowLevelUpMessage(self.Level)
+    local ____table_mw_UIManager_ShowLevelUpMessage_result_0 = self.mw.UIManager
+    if ____table_mw_UIManager_ShowLevelUpMessage_result_0 ~= nil then
+        ____table_mw_UIManager_ShowLevelUpMessage_result_0 = ____table_mw_UIManager_ShowLevelUpMessage_result_0:ShowLevelUpMessage(self.Level)
+    end
 end
 function MWPlayer.prototype.Reinit(self)
     BaseMWObject.prototype.Reinit(self)
@@ -3982,7 +4011,6 @@ local __TS__Class = ____lualib.__TS__Class
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
-local __TS__ArraySlice = ____lualib.__TS__ArraySlice
 local __TS__StringReplace = ____lualib.__TS__StringReplace
 local __TS__StringPadEnd = ____lualib.__TS__StringPadEnd
 local ____exports = {}
@@ -3990,8 +4018,6 @@ local BonusParams
 local ____basic = require("StalkerAPI.extensions.basic")
 local TakeRandomFromArray = ____basic.TakeRandomFromArray
 local IsPctRolled = ____basic.IsPctRolled
-local ____StalkerModBase = require("StalkerModBase")
-local Log = ____StalkerModBase.Log
 local ____BaseMWObject = require("MonsterWorldMod.BaseMWObject")
 local BaseMWObject = ____BaseMWObject.BaseMWObject
 local cfg = require("MonsterWorldMod.MonsterWorldConfig")
@@ -4048,9 +4074,26 @@ __TS__SetDescriptor(
 )
 __TS__SetDescriptor(
     MWWeapon.prototype,
+    "RPM",
+    {get = function(self)
+        local ____math_max_4 = math.max
+        local ____table_GO_cast_Weapon_result_2 = self.GO
+        if ____table_GO_cast_Weapon_result_2 ~= nil then
+            ____table_GO_cast_Weapon_result_2 = ____table_GO_cast_Weapon_result_2:cast_Weapon()
+        end
+        local ____table_GO_cast_Weapon_result_RPM_result_0 = ____table_GO_cast_Weapon_result_2
+        if ____table_GO_cast_Weapon_result_RPM_result_0 ~= nil then
+            ____table_GO_cast_Weapon_result_RPM_result_0 = ____table_GO_cast_Weapon_result_RPM_result_0:RPM()
+        end
+        return ____math_max_4(0.0001, ____table_GO_cast_Weapon_result_RPM_result_0)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    MWWeapon.prototype,
     "DPS",
     {get = function(self)
-        return self.DamagePerHit * (1 / self.GO:cast_Weapon():RPM())
+        return self.DamagePerHit * (1 / self.RPM)
     end},
     true
 )
@@ -4079,12 +4122,10 @@ function MWWeapon.prototype.GetBonusDescription(self)
     return result
 end
 function MWWeapon.prototype.OnWeaponPickedUp(self)
-    Log("OnWeaponPickedUp")
     self.GO:set_ammo_elapsed(self.GO:cast_Weapon():GetAmmoMagSize())
     self.GO:set_condition(100)
 end
 function MWWeapon.prototype.OnReloadStart(self, anim_table)
-    Log("OnReloadStart")
     local bonus = self:GetStat(5)
     anim_table.anm_speed = anim_table.anm_speed * (1 + bonus / 100)
 end
@@ -4095,7 +4136,6 @@ function MWWeapon.prototype.GetUpgradesByType(self, ____type)
     return {}
 end
 function MWWeapon.prototype.GenerateWeaponStats(self)
-    Log("GenerateWeaponStats")
     local baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, self.Level - 1)
     local fireRate = 60 / ini_sys:r_float_ex(self.Section, "rpm", 1)
     local damagePerHit = baseDPS * fireRate
@@ -4106,7 +4146,6 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
         while i < #____exports.BonusParams.ParamsWithWeaponUpgradesSelection do
             local uType = ____exports.BonusParams.ParamsWithWeaponUpgradesSelection[i + 1]
             local upgrades = self:GetUpgradesByType(uType)
-            Log((("weaponUpgradesByBonusType " .. uType) .. ":") .. tostring(#upgrades))
             if #upgrades ~= 0 then
                 weaponUpgradesByBonusType[uType] = upgrades
             end
@@ -4121,7 +4160,6 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
             local ____type = ____exports.BonusParams.ParamsForSelection[i + 1]
             if not __TS__ArrayIncludes(____exports.BonusParams.ParamsWithWeaponUpgradesSelection, ____type) or weaponUpgradesByBonusType[____type] ~= nil then
                 availableBonuses[#availableBonuses + 1] = ____type
-                Log("availableBonuses " .. ____type)
             end
             i = i + 1
         end
@@ -4133,90 +4171,65 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
         while i < upgradeTypesToSelect do
             local ____type = TakeRandomFromArray(availableBonuses)
             selectedUpgradeTypes[#selectedUpgradeTypes + 1] = ____type
-            Log("selectedUpgradeTypes " .. ____type)
             i = i + 1
         end
     end
     if IsPctRolled(100) and weaponUpgradesByBonusType.bullet_speed ~= nil then
         selectedUpgradeTypes[#selectedUpgradeTypes + 1] = "bullet_speed"
-        Log("selectedUpgradeTypes " .. "bullet_speed")
     end
     if IsPctRolled(100) and weaponUpgradesByBonusType.fire_mode ~= nil then
         selectedUpgradeTypes[#selectedUpgradeTypes + 1] = "fire_mode"
-        Log("selectedUpgradeTypes " .. "fire_mode")
     end
+    local minUpgradesToSelect = 1 + 2 * (self.Quality - 1)
+    local maxUpgradesToSelect = 4 * self.Quality
     local damageBonusPct = 0
     local allSelectedUpgrades = {}
     do
-        local i = 0
-        while i < #selectedUpgradeTypes do
-            local upgradesPerTypeToSelect = 1 + self.Level / 10 + (self.Quality - 1) / 2
-            local t = selectedUpgradeTypes[i + 1]
+        local upgradeTypeIndex = 0
+        while upgradeTypeIndex < #selectedUpgradeTypes do
+            local upgradesToSelect = math.random(minUpgradesToSelect, maxUpgradesToSelect)
+            local t = selectedUpgradeTypes[upgradeTypeIndex + 1]
             if t == "damage" then
-                do
-                    local j = 0
-                    while j < upgradesPerTypeToSelect do
-                        damageBonusPct = damageBonusPct + math.random(1, 5 + self.Quality)
-                        j = j + 1
-                    end
-                end
+                damageBonusPct = damageBonusPct + upgradesToSelect * cfg.WeaponDamageBonusPctPerUpgrade
             elseif t == "reload_speed" then
-                local bonus = 0
-                do
-                    local j = 0
-                    while j < upgradesPerTypeToSelect do
-                        bonus = bonus + math.random(2, 5 + self.Quality)
-                        j = j + 1
-                    end
-                end
-                self.DescriptionBonuses.reload_speed = bonus
-                self:AddStatFlatBonus(5, bonus, "generation")
+                local reloadSpeedBonus = upgradesToSelect * cfg.WeaponReloadSpeedBonusPctPerUpgrade
+                self.DescriptionBonuses.reload_speed = reloadSpeedBonus
+                self:AddStatFlatBonus(5, reloadSpeedBonus, "generation")
             elseif t == "crit_chance" then
-                local bonus = math.random(1, self.Quality / 2 + upgradesPerTypeToSelect)
-                self.DescriptionBonuses.crit_chance = bonus
-                self:AddStatFlatBonus(6, bonus, "generation")
+                local critChanceBonus = 1 + upgradesToSelect * cfg.WeaponCritChanceBonusPctPerUpgrade
+                self.DescriptionBonuses.crit_chance = critChanceBonus
+                self:AddStatFlatBonus(6, critChanceBonus, "generation")
             elseif t == "fire_mode" then
                 allSelectedUpgrades[#allSelectedUpgrades + 1] = weaponUpgradesByBonusType[t][1]
                 self.DescriptionBonuses.fire_mode = 1
             else
                 local upgrades = weaponUpgradesByBonusType[t]
-                if self.Quality < 3 and #upgrades >= self.Quality + 3 then
-                    upgrades = __TS__ArraySlice(
-                        upgrades,
-                        0,
-                        math.min(2 + self.Quality, #upgrades) - 1
-                    )
-                elseif self.Quality >= 3 and #upgrades >= self.Quality + 3 then
-                    upgrades = __TS__ArraySlice(upgrades, 3)
-                end
-                local toSelect = math.min(
-                    upgradesPerTypeToSelect,
-                    math.max(1, #upgrades)
-                )
                 local bonusValue = 0
                 do
-                    local j = 0
-                    while j < toSelect do
-                        local upgrade = TakeRandomFromArray(upgrades)
+                    local i = 0
+                    while i < upgradesToSelect do
+                        local upgrade = upgrades[i + 1]
                         allSelectedUpgrades[#allSelectedUpgrades + 1] = upgrade
                         bonusValue = bonusValue + ini_sys:r_float_ex(
                             __TS__StringReplace(upgrade, "mwu", "mwb"),
                             ____exports.BonusParams.SectionFields[t],
                             0
                         )
-                        j = j + 1
+                        i = i + 1
                     end
                 end
                 if bonusValue ~= 0 then
                     if __TS__ArrayIncludes(____exports.BonusParams.PctBonuses, t) then
                         local defaultValue = ini_sys:r_float_ex(self.Section, ____exports.BonusParams.SectionFields[t], 1)
-                        Log((((((("Bonus " .. t) .. ": ") .. tostring(bonusValue)) .. ", base: ") .. tostring(defaultValue)) .. ". %: ") .. tostring(bonusValue / defaultValue * 100))
+                        if defaultValue == 0 then
+                            defaultValue = 1
+                        end
                         bonusValue = bonusValue / defaultValue * 100
                     end
                     self.DescriptionBonuses[t] = math.abs(bonusValue)
                 end
             end
-            i = i + 1
+            upgradeTypeIndex = upgradeTypeIndex + 1
         end
     end
     damageBonusPct = damageBonusPct + cfg.WeaponDPSPctPerQuality * (self.Quality - 1)
@@ -4228,17 +4241,14 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
         self.DescriptionBonuses.damage = damageBonusPct
         self:AddStatPctBonus(4, damageBonusPct, "generation")
     end
-    Log((((((("Base DPS: " .. tostring(baseDPS)) .. " DPS: ") .. tostring(self.DPS)) .. ". Damage per hit: ") .. tostring(damagePerHit)) .. ". Fire rate: ") .. tostring(fireRate))
     do
         local i = 0
         while i < #allSelectedUpgrades do
             local upgrade = __TS__StringReplace(allSelectedUpgrades[i + 1], "mwu", "mwe")
-            Log("Installing upgrade: " .. upgrade)
             self.GO:install_upgrade(upgrade)
             i = i + 1
         end
     end
-    Log("Bonus description: " .. self:GetBonusDescription())
 end
 ____exports.BonusParams = {}
 BonusParams = ____exports.BonusParams
@@ -4388,7 +4398,7 @@ function MonsterWorldSpawns.prototype.OnTryRespawn(self, smart)
         return false
     end
     local respawnInterval = 600
-    local maxPopulation = 5
+    local maxPopulation = 2
     if not Load(smart.id, "MW_Initialized", false) or smart.respawn_idle ~= respawnInterval or smart.max_population ~= maxPopulation then
         if Load(smart.id, "MW_Initialized", false) then
         end
@@ -4413,7 +4423,7 @@ function MonsterWorldSpawns.prototype.OnTryRespawn(self, smart)
         end
         Save(smart.id, "MW_MonsterTypes", selectedMonsters)
         smart.respawn_params = {spawn_section_1 = {
-            num = NumberToCondList(2),
+            num = NumberToCondList(math.random(1, 2)),
             squads = {"simulation_monster_world"}
         }}
         smart.already_spawned = {spawn_section_1 = {num = 0}}
@@ -4543,7 +4553,7 @@ function MonsterWorldUI.prototype.____constructor(self, world)
         if not res or not obj then
             return res
         end
-        local weapon = self.world:GetWeapon(obj:id())
+        local weapon = self.world:GetWeapon(obj)
         if not weapon then
             return res
         end
@@ -4569,7 +4579,7 @@ function MonsterWorldUI.prototype.____constructor(self, world)
         if not obj then
             return
         end
-        local weapon = self.world:GetWeapon(obj:id())
+        local weapon = self.world:GetWeapon(obj)
         if not weapon then
             return
         end
@@ -4580,8 +4590,8 @@ function MonsterWorldUI.prototype.____constructor(self, world)
     utils_ui.sort_by_sizekind = function(t, a, b)
         local objA = t[a]
         local objB = t[b]
-        local weaponA = self.world:GetWeapon(objA:id())
-        local weaponB = self.world:GetWeapon(objB:id())
+        local weaponA = self.world:GetWeapon(objA)
+        local weaponB = self.world:GetWeapon(objB)
         if weaponA ~= nil and weaponB ~= nil and weaponA ~= weaponB then
             if weaponA.DPS ~= weaponB.DPS then
                 return weaponA.DPS > weaponB.DPS
@@ -4630,7 +4640,10 @@ function MonsterWorldUI.prototype.ShowDamage(self, damage, isCrit, isKillHit)
                 if entry.text:IsShown() then
                     goto __continue27
                 end
-                local msg = tostring(math.floor(damage))
+                local msg = tostring(math.max(
+                    1,
+                    math.floor(damage)
+                ))
                 entry.text:SetWndPos(vector2():set(
                     math.random(-15, 15),
                     math.random(-5, 5)
@@ -4800,12 +4813,9 @@ function MonsterWorldUI.prototype.HideEnemyHealthUI(self, force)
     end
 end
 function MonsterWorldUI.prototype.ShowEnemyHealthUI(self, monster)
-    if not self.enemyHP then
-        return
-    end
     self.lastEnemyHpShowTime = time_global()
     self.enemyHP:Show(true)
-    self.enemyHPBarProgress:SetProgressPos(monster.HP / monster.MaxHP * 100)
+    self.enemyHPBarProgress:SetProgressPos(clamp(monster.HP / monster.MaxHP, 0, 1) * 100)
     self.enemyHPBarName:SetText(monster.Name)
     self.enemyHPBarName:SetTextColor(cfg.MonsterRankColors[monster.Rank])
     self.enemyHPBarValue:SetText((tostring(math.floor(monster.HP)) .. " / ") .. tostring(math.floor(monster.MaxHP)))
@@ -4914,32 +4924,62 @@ function MonsterWorldUI.prototype.PrepareUIItemStatsTable(self, oldPrepareStatsT
     return result
 end
 function MonsterWorldUI.prototype.UIGetItemName(self, obj, current)
-    if not IsWeapon(obj) then
-        return current
+    local weapon = self.world:GetWeapon(obj)
+    if weapon == nil then
+        return ""
     end
-    local weapon = self.world:GetWeapon(obj:id())
     return (((cfg.Qualities[weapon.Quality] .. " ") .. current) .. " L.") .. tostring(weapon.Level)
 end
 function MonsterWorldUI.prototype.UIGetItemDescription(self, obj, current)
-    if not IsWeapon(obj) then
-        return current
+    local weapon = self.world:GetWeapon(obj)
+    if weapon == nil then
+        return ""
     end
-    return self.world:GetWeapon(obj:id()):GetBonusDescription()
+    return weapon:GetBonusDescription()
 end
 function MonsterWorldUI.prototype.UIGetItemLevel(self, obj)
-    return self.world:GetWeapon(obj:id()).Level
+    local weapon = self.world:GetWeapon(obj)
+    if weapon == nil then
+        return 0
+    end
+    return weapon.Level
 end
 function MonsterWorldUI.prototype.UIGetWeaponDPS(self, obj)
-    return self.world:GetWeapon(obj:id()).DPS
+    local weapon = self.world:GetWeapon(obj)
+    if weapon == nil then
+        return 0
+    end
+    return weapon.DPS
 end
 function MonsterWorldUI.prototype.UIGetWeaponDamagePerHit(self, obj)
-    return self.world:GetWeapon(obj:id()).DamagePerHit
+    local weapon = self.world:GetWeapon(obj)
+    if weapon == nil then
+        return 0
+    end
+    return weapon.DamagePerHit
 end
 function MonsterWorldUI.prototype.UIGetWeaponRPM(self, obj)
-    return 60 / obj:cast_Weapon():RPM()
+    local weapon = self.world:GetWeapon(obj)
+    if weapon == nil then
+        return 0
+    end
+    return 60 / weapon.RPM
 end
 function MonsterWorldUI.prototype.UIGetWeaponAmmoMagSize(self, obj)
-    return obj:cast_Weapon():GetAmmoMagSize()
+    local weapon = self.world:GetWeapon(obj)
+    if weapon == nil then
+        return 0
+    end
+    local ____math_max_23 = math.max
+    local ____obj_cast_Weapon_result_21 = obj
+    if ____obj_cast_Weapon_result_21 ~= nil then
+        ____obj_cast_Weapon_result_21 = ____obj_cast_Weapon_result_21:cast_Weapon()
+    end
+    local ____obj_cast_Weapon_result_GetAmmoMagSize_result_19 = ____obj_cast_Weapon_result_21
+    if ____obj_cast_Weapon_result_GetAmmoMagSize_result_19 ~= nil then
+        ____obj_cast_Weapon_result_GetAmmoMagSize_result_19 = ____obj_cast_Weapon_result_GetAmmoMagSize_result_19:GetAmmoMagSize()
+    end
+    return ____math_max_23(1, ____obj_cast_Weapon_result_GetAmmoMagSize_result_19 or 0)
 end
 return ____exports
  end,
@@ -4957,7 +4997,8 @@ local ____basic = require("StalkerAPI.extensions.basic")
 local IsPctRolled = ____basic.IsPctRolled
 local RandomFromArray = ____basic.RandomFromArray
 local Save = ____basic.Save
-local CreateWorldPositionAtGO = ____basic.CreateWorldPositionAtGO
+local CreateVector = ____basic.CreateVector
+local CreateWorldPositionAtPosWithGO = ____basic.CreateWorldPositionAtPosWithGO
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
 local cfg = require("MonsterWorldMod.MonsterWorldConfig")
@@ -4976,6 +5017,8 @@ local MonsterWorld = ____exports.MonsterWorld
 MonsterWorld.name = "MonsterWorld"
 function MonsterWorld.prototype.____constructor(self, mod)
     self.mod = mod
+    self.enemyDamageMult = 1
+    self.enemyDropChanceMult = 1
     self.highlightParticles = {}
     self.monsters = {}
     self.weapons = {}
@@ -4995,13 +5038,16 @@ function MonsterWorld.prototype.____constructor(self, mod)
     end
     death_manager.create_item_list = function(...)
     end
+    local oldKeepItem = death_manager.keep_item
     death_manager.keep_item = function(npc, item)
         if not item then
             return
         end
-        local se_obj = alife_object(item:id())
-        if se_obj ~= nil then
-            alife_release(se_obj)
+        local item_id = item:id()
+        local active_item = npc:active_item()
+        oldKeepItem(npc, item)
+        if active_item ~= nil and active_item:id() == item_id then
+            npc:transfer_item(item, npc)
         end
     end
 end
@@ -5016,38 +5062,52 @@ __TS__SetDescriptor(
     end},
     true
 )
-function MonsterWorld.prototype.GetMonster(self, monsterId)
-    local ____temp_5 = not (self.monsters[monsterId] ~= nil)
-    if ____temp_5 then
-        local ____level_object_by_id_result_is_monster_result_0 = level.object_by_id(monsterId)
-        if ____level_object_by_id_result_is_monster_result_0 ~= nil then
-            ____level_object_by_id_result_is_monster_result_0 = ____level_object_by_id_result_is_monster_result_0:is_monster()
+function MonsterWorld.prototype.GetMonster(self, monsterOrId)
+    local monsterId = 0
+    if type(monsterOrId) ~= "number" then
+        local ____monsterOrId_id_0 = monsterOrId
+        if ____monsterOrId_id_0 ~= nil then
+            ____monsterOrId_id_0 = ____monsterOrId_id_0.id
         end
-        local ____level_object_by_id_result_is_monster_result_0_4 = ____level_object_by_id_result_is_monster_result_0
-        if not ____level_object_by_id_result_is_monster_result_0_4 then
-            local ____level_object_by_id_result_is_stalker_result_2 = level.object_by_id(monsterId)
-            if ____level_object_by_id_result_is_stalker_result_2 ~= nil then
-                ____level_object_by_id_result_is_stalker_result_2 = ____level_object_by_id_result_is_stalker_result_2:is_stalker()
-            end
-            ____level_object_by_id_result_is_monster_result_0_4 = ____level_object_by_id_result_is_stalker_result_2
+        if ____monsterOrId_id_0 ~= nil then
+            monsterId = monsterOrId:id()
+        else
+            return nil
         end
-        ____temp_5 = ____level_object_by_id_result_is_monster_result_0_4
+    else
+        monsterId = monsterOrId
     end
-    if ____temp_5 then
+    local se_obj = alife_object(monsterId)
+    local go = level.object_by_id(monsterId)
+    if se_obj == nil or go == nil or not (go:is_monster() or go:is_stalker()) then
+        return nil
+    end
+    if not (self.monsters[monsterId] ~= nil) then
         self.monsters[monsterId] = __TS__New(MWMonster, self, monsterId)
     end
     return self.monsters[monsterId]
 end
-function MonsterWorld.prototype.GetWeapon(self, itemId)
-    local ____temp_8 = not (self.weapons[itemId] ~= nil) and alife():object(itemId) ~= nil
-    if ____temp_8 then
-        local ____level_object_by_id_result_is_weapon_result_6 = level.object_by_id(itemId)
-        if ____level_object_by_id_result_is_weapon_result_6 ~= nil then
-            ____level_object_by_id_result_is_weapon_result_6 = ____level_object_by_id_result_is_weapon_result_6:is_weapon()
+function MonsterWorld.prototype.GetWeapon(self, itemOrId)
+    local itemId = 0
+    if type(itemOrId) ~= "number" then
+        local ____itemOrId_id_2 = itemOrId
+        if ____itemOrId_id_2 ~= nil then
+            ____itemOrId_id_2 = ____itemOrId_id_2.id
         end
-        ____temp_8 = ____level_object_by_id_result_is_weapon_result_6
+        if ____itemOrId_id_2 ~= nil then
+            itemId = itemOrId:id()
+        else
+            return nil
+        end
+    else
+        itemId = itemOrId
     end
-    if ____temp_8 then
+    local se_obj = alife_object(itemId)
+    local go = level.object_by_id(itemId)
+    if se_obj == nil or go == nil or not go:is_weapon() then
+        return nil
+    end
+    if not (self.weapons[itemId] ~= nil) then
         self.weapons[itemId] = __TS__New(MWWeapon, self, itemId)
     end
     return self.weapons[itemId]
@@ -5057,10 +5117,10 @@ function MonsterWorld.prototype.DestroyObject(self, id)
     self.weapons[id] = nil
 end
 function MonsterWorld.prototype.OnTakeItem(self, item)
-    local weapon = self:GetWeapon(item:id())
-    local ____weapon_OnWeaponPickedUp_result_9 = weapon
-    if ____weapon_OnWeaponPickedUp_result_9 ~= nil then
-        ____weapon_OnWeaponPickedUp_result_9 = ____weapon_OnWeaponPickedUp_result_9:OnWeaponPickedUp()
+    local weapon = self:GetWeapon(item)
+    local ____weapon_OnWeaponPickedUp_result_4 = weapon
+    if ____weapon_OnWeaponPickedUp_result_4 ~= nil then
+        ____weapon_OnWeaponPickedUp_result_4 = ____weapon_OnWeaponPickedUp_result_4:OnWeaponPickedUp()
     end
     self:RemoveHighlight(item:id())
     self:RemoveTTLTimer(item:id())
@@ -5075,30 +5135,41 @@ function MonsterWorld.prototype.OnItemUse(self, item)
             "mw_heal_pct",
             25
         )
-        local ____self_Player_11, ____HP_12 = self.Player, "HP"
-        ____self_Player_11[____HP_12] = ____self_Player_11[____HP_12] + self.Player.MaxHP * healPct / 100
+        local ____self_Player_6, ____HP_7 = self.Player, "HP"
+        ____self_Player_6[____HP_7] = ____self_Player_6[____HP_7] + self.Player.MaxHP * healPct / 100
     end
 end
 function MonsterWorld.prototype.OnWeaponFired(self, wpn, ammo_elapsed)
-    local weapon = self:GetWeapon(wpn:id())
+    local weapon = self:GetWeapon(wpn)
     if weapon ~= nil and __TS__StringEndsWith(weapon.Section, "_mw") and weapon.GO:get_ammo_total() < 500 then
         local ammo = ini_sys:r_sec_ex(weapon.Section, "ammo_class")
         alife_create_item(ammo, self.Player.GO, {ammo = 1})
     end
 end
 function MonsterWorld.prototype.OnPlayerSpawned(self)
+    self.enemyDamageMult = cfg.GetDifficultyDamageMult()
+    self.enemyDropChanceMult = cfg.GetDifficultyDropChanceMult()
 end
 function MonsterWorld.prototype.Save(self, data)
     self.SpawnManager:Save(data)
-    self.UIManager:Save(data)
+    local ____table_UIManager_Save_result_8 = self.UIManager
+    if ____table_UIManager_Save_result_8 ~= nil then
+        ____table_UIManager_Save_result_8 = ____table_UIManager_Save_result_8:Save(data)
+    end
 end
 function MonsterWorld.prototype.Load(self, data)
     self.SpawnManager:Load(data)
-    self.UIManager:Load(data)
+    local ____table_UIManager_Load_result_10 = self.UIManager
+    if ____table_UIManager_Load_result_10 ~= nil then
+        ____table_UIManager_Load_result_10 = ____table_UIManager_Load_result_10:Load(data)
+    end
 end
 function MonsterWorld.prototype.Update(self, deltaTime)
     self.DeltaTime = deltaTime
-    self.UIManager:Update()
+    local ____table_UIManager_Update_result_12 = self.UIManager
+    if ____table_UIManager_Update_result_12 ~= nil then
+        ____table_UIManager_Update_result_12 = ____table_UIManager_Update_result_12:Update()
+    end
     self.Player:RegenHP(deltaTime)
     for _, monster in pairs(self.monsters) do
         monster:RegenHP(deltaTime)
@@ -5116,17 +5187,17 @@ function MonsterWorld.prototype.OnPlayerHit(self, shit, boneId)
     local damage = monster.Damage
     if attackerGO:is_stalker() and shit.weapon_id ~= 0 and shit.weapon_id ~= attackerGO:id() then
         local weapon = level.object_by_id(shit.weapon_id)
-        local ____weapon_is_weapon_result_13 = weapon
-        if ____weapon_is_weapon_result_13 ~= nil then
-            ____weapon_is_weapon_result_13 = ____weapon_is_weapon_result_13:is_weapon()
+        local ____weapon_is_weapon_result_14 = weapon
+        if ____weapon_is_weapon_result_14 ~= nil then
+            ____weapon_is_weapon_result_14 = ____weapon_is_weapon_result_14:is_weapon()
         end
-        if ____weapon_is_weapon_result_13 then
+        if ____weapon_is_weapon_result_14 then
             damage = damage * (weapon:cast_Weapon():RPM() * 1.5)
         end
     end
-    damage = math.max(2, damage) * cfg.GetDifficultyDamageMult()
-    local ____self_Player_15, ____HP_16 = self.Player, "HP"
-    ____self_Player_15[____HP_16] = ____self_Player_15[____HP_16] - damage
+    damage = math.max(2, damage) * self.enemyDamageMult
+    local ____self_Player_16, ____HP_17 = self.Player, "HP"
+    ____self_Player_16[____HP_17] = ____self_Player_16[____HP_17] - damage
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function MonsterWorld.prototype.OnMonstersHit(self, monsterHitsThisFrame)
@@ -5155,7 +5226,10 @@ function MonsterWorld.prototype.OnMonstersHit(self, monsterHitsThisFrame)
                 end
                 local realDamage = math.min(monster.HP, monsterDamage)
                 monster.HP = monster.HP - realDamage
-                self.UIManager:ShowDamage(realDamage, isCritPartHit, monster.IsDead)
+                local ____table_UIManager_ShowDamage_result_18 = self.UIManager
+                if ____table_UIManager_ShowDamage_result_18 ~= nil then
+                    ____table_UIManager_ShowDamage_result_18 = ____table_UIManager_ShowDamage_result_18:ShowDamage(realDamage, isCritPartHit, monster.IsDead)
+                end
                 i = i + 1
             end
         end
@@ -5167,19 +5241,21 @@ function MonsterWorld.prototype.OnMonsterKilled(self, monsterGO)
         return
     end
     Log(((("OnMonsterKilled. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
-    self.UIManager:ShowXPReward(monster.XPReward)
-    local ____self_Player_17, ____CurrentXP_18 = self.Player, "CurrentXP"
-    ____self_Player_17[____CurrentXP_18] = ____self_Player_17[____CurrentXP_18] + monster.XPReward
-    local dropChance = monster.DropChance * cfg.GetDifficultyDropChanceMult()
+    local ____table_UIManager_ShowXPReward_result_20 = self.UIManager
+    if ____table_UIManager_ShowXPReward_result_20 ~= nil then
+        ____table_UIManager_ShowXPReward_result_20 = ____table_UIManager_ShowXPReward_result_20:ShowXPReward(monster.XPReward)
+    end
+    local ____self_Player_22, ____CurrentXP_23 = self.Player, "CurrentXP"
+    ____self_Player_22[____CurrentXP_23] = ____self_Player_22[____CurrentXP_23] + monster.XPReward
+    local dropChance = monster.DropChance * self.enemyDropChanceMult
     if IsPctRolled(dropChance) then
-        Log("Generating loot")
         self:GenerateDrop(monster)
     end
-    Log("Add ttl timer loot")
     self:AddTTLTimer(
         monsterGO:id(),
-        10
+        1
     )
+    Log(((("OnMonsterKilled END. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
 end
 function MonsterWorld.prototype.GenerateDrop(self, monster)
     Log("GenerateDrop")
@@ -5193,9 +5269,7 @@ function MonsterWorld.prototype.GenerateDrop(self, monster)
     end
     if sgo ~= nil then
         Log((("Spawned " .. sgo:section_name()) .. ":") .. tostring(sgo.id))
-        Log("Highlight")
         self:HighlightDroppedItem(sgo.id, ____type, quality)
-        Log("TTL")
         self:AddTTLTimer(sgo.id, 300)
     else
         Log("Drop generation failed")
@@ -5234,7 +5308,10 @@ function MonsterWorld.prototype.GenerateWeaponDrop(self, monster)
     Log("Spawning " .. tostring(selectedVariant))
     local sgo = alife_create_item(
         selectedVariant,
-        CreateWorldPositionAtGO(monster.GO)
+        CreateWorldPositionAtPosWithGO(
+            CreateVector(0, 0.2, 0),
+            monster.GO
+        )
     )
     if not sgo then
         Log("GenerateWeaponDrop spawn failed")
@@ -5248,7 +5325,10 @@ function MonsterWorld.prototype.GenerateStimpackDrop(self, monster)
     Log("Spawning " .. stimpackSection)
     local sgo = alife_create_item(
         stimpackSection,
-        CreateWorldPositionAtGO(monster.GO)
+        CreateWorldPositionAtPosWithGO(
+            CreateVector(0, 0.2, 0),
+            monster.GO
+        )
     )
     if not sgo then
         Log("GenerateStimpackDrop spawn failed")
@@ -5257,11 +5337,10 @@ function MonsterWorld.prototype.GenerateStimpackDrop(self, monster)
     return sgo, quality
 end
 function MonsterWorld.prototype.HighlightDroppedItem(self, id, ____type, quality)
-    Log("add highligh: " .. tostring(id))
     local particles = particles_object(cfg.GetDropParticles(____type, quality))
     self.highlightParticles[id] = particles
-    local obj = alife():object(id)
-    if not obj then
+    local obj = alife_object(id)
+    if obj == nil then
         return
     end
     local pos = obj.position
@@ -5269,11 +5348,10 @@ function MonsterWorld.prototype.HighlightDroppedItem(self, id, ____type, quality
     particles:play_at_pos(pos)
 end
 function MonsterWorld.prototype.RemoveHighlight(self, id)
-    Log("remove highligh: " .. tostring(id))
     local particles = self.highlightParticles[id]
-    local ____particles_stop_result_19 = particles
-    if ____particles_stop_result_19 ~= nil then
-        ____particles_stop_result_19 = ____particles_stop_result_19:stop()
+    local ____particles_stop_result_24 = particles
+    if ____particles_stop_result_24 ~= nil then
+        ____particles_stop_result_24 = ____particles_stop_result_24:stop()
     end
     self.highlightParticles[id] = nil
 end
@@ -5285,10 +5363,9 @@ function MonsterWorld.prototype.GetHighlighBone(self, go)
     return bone
 end
 function MonsterWorld.prototype.AddTTLTimer(self, id, time)
-    Log("add ttl: " .. tostring(id))
     CreateTimeEvent(
-        id,
-        "mw_ttl",
+        tostring(id) .. "_ttl",
+        "ttl",
         time,
         function(id)
             local toRelease = alife():object(id)
@@ -5301,8 +5378,10 @@ function MonsterWorld.prototype.AddTTLTimer(self, id, time)
     )
 end
 function MonsterWorld.prototype.RemoveTTLTimer(self, id)
-    Log("remove ttl: " .. tostring(id))
-    RemoveTimeEvent(id, "mw_ttl")
+    RemoveTimeEvent(
+        tostring(id) .. "_ttl",
+        "ttl"
+    )
 end
 return ____exports
  end,
@@ -5388,7 +5467,7 @@ __TS__SetDescriptor(
             )
             self:Save("HP", newHp)
             if self.GO ~= nil then
-                self.GO:set_health_ex(newHp / math.max(1, self.MaxHP))
+                self.GO:set_health_ex(newHp / self.MaxHP)
             end
             if self.IsDead then
                 self:OnDeath()
@@ -5401,7 +5480,10 @@ __TS__SetDescriptor(
     BaseMWObject.prototype,
     "MaxHP",
     {get = function(self)
-        return self:GetStat(2)
+        return math.max(
+            1,
+            self:GetStat(2)
+        )
     end},
     true
 )
