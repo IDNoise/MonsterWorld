@@ -141,6 +141,9 @@ export const enum StatType{
     SprintSpeed,
     MaxHP,
     HPRegen,
+    Damage,
+    ReloadSpeedIncreasePct,
+    CritChancePct
 }
 
 export const enum StatBonusType{

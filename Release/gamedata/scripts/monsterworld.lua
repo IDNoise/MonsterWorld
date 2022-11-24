@@ -3384,7 +3384,7 @@ function ____exports.GetDifficultyDamageMult()
     return 1 + 0.5 * (alife_storage_manager.get_state().diff_game.type - 1)
 end
 function ____exports.GetDifficultyDropChanceMult()
-    return 0.5 + 0.5 / alife_storage_manager.get_state().diff_eco.type
+    return 1 / alife_storage_manager.get_state().diff_eco.type
 end
 ____exports.PlayerHPBase = 100
 ____exports.PlayerHPPerLevel = 10
@@ -4020,27 +4020,22 @@ __TS__SetDescriptor(
 __TS__SetDescriptor(
     MWWeapon.prototype,
     "DamagePerHit",
-    {
-        get = function(self)
-            return self:Load("DamagePerHit")
-        end,
-        set = function(self, damage)
-            self:Save("DamagePerHit", damage)
-        end
-    },
+    {get = function(self)
+        return self:GetStat(4)
+    end},
     true
 )
 __TS__SetDescriptor(
     MWWeapon.prototype,
     "CritChance",
     {get = function(self)
-        return self.Bonuses.crit_chance or 0
+        return self:GetStat(6)
     end},
     true
 )
 __TS__SetDescriptor(
     MWWeapon.prototype,
-    "Bonuses",
+    "DescriptionBonuses",
     {
         get = function(self)
             return self:Load("GeneratedBonuses")
@@ -4066,9 +4061,9 @@ function MWWeapon.prototype.Initialize(self)
         cfg.MinQuality,
         math.min(cfg.MaxQuality, spawnCfg.quality)
     )
-    self.Bonuses = {}
+    self.DescriptionBonuses = {}
     if (string.find(self.Section, "knife", nil, true) or 0) - 1 >= 0 then
-        self.DamagePerHit = cfg.WeaponDPSBase * 5
+        self:SetStatBase(4, cfg.WeaponDPSBase * 5)
         return
     end
     self:GenerateWeaponStats()
@@ -4076,7 +4071,7 @@ end
 function MWWeapon.prototype.GetBonusDescription(self)
     local result = ""
     for ____, ____type in ipairs(____exports.BonusParams.ParamsForSelection) do
-        local value = self.Bonuses[____type] or 0
+        local value = self.DescriptionBonuses[____type] or 0
         if value ~= 0 then
             result = result .. ____exports.BonusParams.GetBonusDescription(____type, value) .. " \\n"
         end
@@ -4090,7 +4085,7 @@ function MWWeapon.prototype.OnWeaponPickedUp(self)
 end
 function MWWeapon.prototype.OnReloadStart(self, anim_table)
     Log("OnReloadStart")
-    local bonus = self.Bonuses.reload_speed or 0
+    local bonus = self:GetStat(5)
     anim_table.anm_speed = anim_table.anm_speed * (1 + bonus / 100)
 end
 function MWWeapon.prototype.GetUpgradesByType(self, ____type)
@@ -4102,6 +4097,9 @@ end
 function MWWeapon.prototype.GenerateWeaponStats(self)
     Log("GenerateWeaponStats")
     local baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, self.Level - 1)
+    local fireRate = 60 / ini_sys:r_float_ex(self.Section, "rpm", 1)
+    local damagePerHit = baseDPS * fireRate
+    self:SetStatBase(4, damagePerHit)
     local weaponUpgradesByBonusType = {}
     do
         local i = 0
@@ -4148,8 +4146,6 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
         Log("selectedUpgradeTypes " .. "fire_mode")
     end
     local damageBonusPct = 0
-    local reloadSpeedBonusPct = 0
-    local critChanceBonusPct = 0
     local allSelectedUpgrades = {}
     do
         local i = 0
@@ -4157,15 +4153,13 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
             local upgradesPerTypeToSelect = 1 + self.Level / 10 + (self.Quality - 1) / 2
             local t = selectedUpgradeTypes[i + 1]
             if t == "damage" then
-                local bonus = 0
                 do
                     local j = 0
                     while j < upgradesPerTypeToSelect do
-                        bonus = bonus + math.random(1, 5 + self.Quality)
+                        damageBonusPct = damageBonusPct + math.random(1, 5 + self.Quality)
                         j = j + 1
                     end
                 end
-                damageBonusPct = bonus
             elseif t == "reload_speed" then
                 local bonus = 0
                 do
@@ -4175,12 +4169,15 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
                         j = j + 1
                     end
                 end
-                reloadSpeedBonusPct = bonus
+                self.DescriptionBonuses.reload_speed = bonus
+                self:AddStatFlatBonus(5, bonus, "generation")
             elseif t == "crit_chance" then
-                critChanceBonusPct = math.random(1, self.Quality / 2 + upgradesPerTypeToSelect)
+                local bonus = math.random(1, self.Quality / 2 + upgradesPerTypeToSelect)
+                self.DescriptionBonuses.crit_chance = bonus
+                self:AddStatFlatBonus(6, bonus, "generation")
             elseif t == "fire_mode" then
                 allSelectedUpgrades[#allSelectedUpgrades + 1] = weaponUpgradesByBonusType[t][1]
-                self.Bonuses.fire_mode = 1
+                self.DescriptionBonuses.fire_mode = 1
             else
                 local upgrades = weaponUpgradesByBonusType[t]
                 if self.Quality < 3 and #upgrades >= self.Quality + 3 then
@@ -4216,26 +4213,22 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
                         Log((((((("Bonus " .. t) .. ": ") .. tostring(bonusValue)) .. ", base: ") .. tostring(defaultValue)) .. ". %: ") .. tostring(bonusValue / defaultValue * 100))
                         bonusValue = bonusValue / defaultValue * 100
                     end
-                    self.Bonuses[t] = math.abs(bonusValue)
+                    self.DescriptionBonuses[t] = math.abs(bonusValue)
                 end
             end
             i = i + 1
         end
     end
-    Log("Setting bonuses for damage/reload/crit")
-    self.Bonuses.reload_speed = reloadSpeedBonusPct
-    self.Bonuses.crit_chance = critChanceBonusPct
     damageBonusPct = damageBonusPct + cfg.WeaponDPSPctPerQuality * (self.Quality - 1)
-    if damageBonusPct >= cfg.WeaponDPSDeltaPct then
-        damageBonusPct = damageBonusPct + math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct)
+    damageBonusPct = math.max(
+        0,
+        damageBonusPct + math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct)
+    )
+    if damageBonusPct > 0 then
+        self.DescriptionBonuses.damage = damageBonusPct
+        self:AddStatPctBonus(4, damageBonusPct, "generation")
     end
-    self.Bonuses.damage = damageBonusPct
-    local dps = baseDPS
-    dps = dps * (1 + damageBonusPct / 100)
-    local rpm = ini_sys:r_float_ex(self.Section, "rpm", 1)
-    local fireRate = 60 / rpm
-    self.DamagePerHit = dps * fireRate
-    Log((((((("Base DPS: " .. tostring(baseDPS)) .. " DPS: ") .. tostring(dps)) .. ". Damage per hit: ") .. tostring(self.DamagePerHit)) .. ". Fire rate: ") .. tostring(fireRate))
+    Log((((((("Base DPS: " .. tostring(baseDPS)) .. " DPS: ") .. tostring(self.DPS)) .. ". Damage per hit: ") .. tostring(damagePerHit)) .. ". Fire rate: ") .. tostring(fireRate))
     do
         local i = 0
         while i < #allSelectedUpgrades do
