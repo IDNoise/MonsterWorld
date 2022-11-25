@@ -146,6 +146,11 @@ export class StalkerModBase {
         //Log(`OnHudAnimationPlay ${obj.section()}:${obj.id()}`);
     }
 
+    //Input 
+    protected OnKeyRelease(key: DIK_keys){
+        Log(`OnKeyRelease ${key}`);
+    }
+
     protected RegisterCallbacks():void{
         Log("Register callbacks");
 
@@ -178,7 +183,6 @@ export class StalkerModBase {
         // actor_on_weapon_zoom_out	            = {}, -- Params: (<game_object>)
         // actor_on_item_take_from_box             = {}, -- Params: (<game_object>,<game_object>)
         // actor_on_item_put_in_box 	            = {}, -- Params: (<game_object>,<game_object>)
-        // actor_on_item_use			            = {}, -- Params: (<game_object>,<string>)
         // actor_on_item_before_use			    = {}, -- Params: (<game_object>,<table>)
         // actor_on_item_before_pickup				= {}, -- Params: (<game_object>,<table>)
         // actor_item_to_belt			            = {}, -- Params: (<game_object>)
@@ -324,7 +328,7 @@ export class StalkerModBase {
         //
         // on_game_load				            = {}, -- Params: (<binder>)
         // on_key_press				            = {}, -- Params: (<number>)
-        // on_key_release				            = {}, -- Params: (<number>)
+        RegisterScriptCallback("on_key_release", (key) => this.OnKeyRelease(key));
         // on_key_hold					            = {}, -- Params: (<number>)
         // on_before_key_press						= {}, -- Params: (<number>,<number>,<boolean>,<table>)
         // on_option_change                        = {}, -- Params: ()

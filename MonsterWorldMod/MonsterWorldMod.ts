@@ -178,13 +178,20 @@ export class MonsterWorldMod extends StalkerModBase {
         this.OnMonsterDeath(npc, killer)
     }
 
-    protected override OnMonsterDeath(monster: game_object, killer: game_object): void {
-        super.OnMonsterDeath(monster, killer)
-        if (killer.id() != 0)
-            return;
-
-        this.World.OnMonsterKilled(monster)
+    protected override OnKeyRelease(key: DIK_keys): void {
+        super.OnKeyRelease(key)
+        if (key == DIK_keys.DIK_DELETE) {
+            this.World.Player.SkillPoints++;
+        }
     }
+
+    // protected override OnMonsterDeath(monster: game_object, killer: game_object): void {
+    //     super.OnMonsterDeath(monster, killer)
+    //     if (killer.id() != 0)
+    //         return;
+
+    //     this.World.OnMonsterKilled(monster)
+    // }
 
     CanHitPlayer(attackerId: Id): boolean {
         if (this.playerHitsThisFrame.has(attackerId))

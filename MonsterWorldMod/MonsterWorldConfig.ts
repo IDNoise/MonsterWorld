@@ -1,4 +1,9 @@
 import { GetByWeightFromArray, RandomFromArray } from '../StalkerAPI/extensions/basic';
+import { MWMonster } from './MWMonster';
+import { MonsterWorld } from './MonsterWorld';
+import { MWPlayer } from './MWPlayer';
+import { BaseMWObject } from './BaseMWObject';
+import { Log } from '../StalkerModBase';
 
 export enum LevelType { 
     None = 0,
@@ -506,6 +511,7 @@ export let PlayerHPPerLevel = 10;
 export let PlayerHPRegenBase = 0.2;
 export let PlayerHPRegenPctPerLevel = 10;
 export let PlayerRunSpeedPctPerLevel = 2;
+export let PlayerDefaultCritDamagePct = 250;
 
 export let PlayerRunSpeedCoeff = 2.4;
 export let PlayerRunBackSpeedCoeff = 1.4;
@@ -523,9 +529,9 @@ export let EnemyHPExpPerLevel = 1.15;
 export let EnemyHPPctPerLevel = 75;
 export let EnemyHpDeltaPct = 10;
 
-export let EnemyDamageBase = PlayerHPBase / 20;
+export let EnemyDamageBase = PlayerHPBase / 25;
 export let EnemyDamageExpPerLevel = 1.025; //1.1;
-export let EnemyDamagePctPerLevel = 15;
+export let EnemyDamagePctPerLevel = 10;
 
 export let EnemyXpRewardBase = PlayerXPForFirstLevel / 20;
 export let EnemyXpRewardExpPerLevel = 1.25;
@@ -542,7 +548,7 @@ export let EnemyDropLevelIncreaseChanceByRank: number[] = [1, 20, 50];
 export let EnemyDropQualityIncreaseChanceByRank: number[] = [1, 20, 50];
 
 //Weapons
-export let WeaponDPSBase = EnemyHPBase / 0.3;
+export let WeaponDPSBase = EnemyHPBase / 0.5;
 export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel - 0.005;
 export let WeaponDPSDeltaPct = 10;
 export let WeaponDPSPctPerQuality = 25;
@@ -561,10 +567,10 @@ export let MaxQuality = 5;
 export let HigherLevelDropChancePct = 5;
 
 export let QualityDropChance: [chance: number, level: number][] = [
-    [25, 2],
-    [13, 3],
-    [6, 4],
-    [2, 5],
+    [20, 2],
+    [10, 3],
+    [5, 4],
+    [1, 5],
 ];
 
 export let Qualities: {[key: number]: string} = {
@@ -604,7 +610,7 @@ export type DropConfig = {
 }
 export let DropConfigs: DropConfig[] = [
     {type: DropType.Weapon, weight: 50},
-    {type: DropType.Stimpack, weight: 15},
+    {type: DropType.Stimpack, weight: 10},
 ]
 
 export function GetDropType(): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.weight).type; }
@@ -719,4 +725,195 @@ export function GetBonusDescription(type: WeaponBonusParamType, bonus: number = 
     return `%c[255,56,166,209]${valueStr.padEnd(6, " ")}${EndColorTag} ${BonusDescriptions[type]}`
 }
 
+export abstract class Skill {
+    private level: number = 0;
+
+    public World: MonsterWorld;
+
+    constructor(public Id: string, public Owner: BaseMWObject, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
+        this.World = this.Owner.World;
+    }
+
+    get Level(): number { return this.level; }
+    set Level(level: number) { 
+        let oldLevel = this.Level;
+        this.level = level; 
+        if (level > oldLevel){
+            this.OnLevelUp(oldLevel, level);
+        }
+    }
+
+    Upgrade(): void{
+        if (!this.CanBeUpgraded) return;
+
+        let player = this.World.Player;
+        let price = this.UpgradePrice;
+        
+        if (player.SkillPoints >= price){
+            player.SkillPoints -= price;
+            this.Level++;
+        }
+    }
+
+    OnLevelUp(oldLevel: number, newLevel: number): void {
+        this.UpdateUI();
+    }
+
+    UpdateUI(): void {
+        this.DescriptionText?.SetText(this.Description)
+        this.LevelText?.SetText(`L. ${this.Level}`)
+        this.UpdateUpgradeButton();
+    }
+
+    get CanBeUpgraded(): boolean { return !this.IsMaxLevelReached && this.PlayerHasMoney; }
+
+    get PlayerHasMoney(): boolean { return this.UpgradePrice <= this.World.Player.SkillPoints; }
+
+    get IsMaxLevelReached(): boolean { return this.MaxLevel != -1 && this.Level >= this.MaxLevel; }
+
+    UpdateUpgradeButton(){
+        this.UpgradeButton.Enable(this.CanBeUpgraded)
+        this.UpgradeButton?.TextControl().SetText(!this.IsMaxLevelReached ? `${this.UpgradePrice} SP` : "MAX")
+    }
+
+    abstract get Description():string;
+    get UpgradePrice(): number { return this.PriceFormula != undefined ? this.PriceFormula(this.Level + 1) : 0; }
+
+    //UI stuff
+    public DescriptionText: CUITextWnd;
+    public LevelText: CUITextWnd;
+    public UpgradeButton: CUI3tButton;
+
+    //Event handlers
+    Update(deltaTime: number){}
+    OnMonsterHit(monster: MWMonster, isCrit: boolean): void{}
+    OnMonsterKill(monster: MWMonster, isCrit: boolean ): void{}
+}
+
+ export class SkillPassiveStatBonus extends Skill {
+    constructor(public Id: string, public Owner: BaseMWObject, public Stat: StatType, public BonusType: StatBonusType,  
+        public ValuePerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
+        super(Id, Owner, PriceFormula, MaxLevel);
+    }
+
+    override OnLevelUp(oldLevel: number, newLevel: number): void {
+        super.OnLevelUp(oldLevel, newLevel)
+        this.World.Player.AddStatBonus(this.Stat, this.BonusType, this.Value, this.Id)
+    }
+
+    get Description(): string { 
+        let value = this.Value;
+        let statTitle = StatTitles[this.Stat];
+        if (this.BonusType == StatBonusType.Flat){
+            return `${statTitle} ${value > 0 ? "+": ""}${value}${PctStats.includes(this.Stat) ? "%" : ""}` 
+        }
+        else if (this.BonusType == StatBonusType.Pct){
+            return `${statTitle} ${value > 0 ? "+": ""}${value}%` 
+        }
+        return `${statTitle} x${value}` 
+    }
+
+    get Value(): number {return this.ValuePerLevel(this.Level); }
+}
+
+export class SkillHealPlayerOnKill extends Skill {
+    constructor(public Id: string, public Owner: BaseMWObject, public HpPerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
+        super(Id, Owner, PriceFormula, MaxLevel);
+    }
+
+    
+    get Description(): string { return `+${this.HPOnKill} HP on kill` }
+
+    OnMonsterKill(monster: MWMonster, isCrit: boolean): void {
+        this.World.Player.HP += this.HPOnKill;
+    }
+
+    get HPOnKill(): number { return this.HpPerLevel(this.Level); }
+}
+
+export class SkillAuraOfDeath extends Skill{
+    constructor(public Id: string, public Owner: BaseMWObject, public DpsPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number, 
+        public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
+        super(Id, Owner, PriceFormula, MaxLevel);
+    }
+
+    get Description(): string { return `Every second damage all enemies in ${this.Range}m range for ${this.DpsPct}% of DPS`}
+
+    get Range(): number { return this.RangePerLevel(this.Level); }
+    get DpsPct(): number { return this.DpsPctPerLevel(this.Level); }
+
+    timePassed: number = 0;
+    interval: number = 1;
+    Update(deltaTime: number): void {
+        Log(`Update aura of death`)
+        super.Update(deltaTime)
+        this.timePassed += deltaTime;
+        if (this.timePassed < this.interval)
+            return;
+
+        let weapon = this.World.Player.Weapon;
+        if (weapon == undefined) 
+            return;
+        
+        this.timePassed -= this.interval;
+        let playerPos = this.World.Player.GO.position()
+        let rangeSqr = this.Range * this.Range;
+        let damage = weapon.DPS * this.DpsPct / 100;
+
+        Log(`Dealing AOE. Range: ${this.Range}. Damage: ${damage}. Monsters: ${this.World.Monsters.length}`)
+
+        for(let [_, monster] of this.World.Monsters){
+            if (monster.GO == undefined || monster.IsDead)
+                continue;
+            Log(`Trying to attack ${monster.Name}`)
+            let distanceSqr = monster.GO.position().distance_to_sqr(playerPos)
+            if (distanceSqr <= rangeSqr){
+                Log(`Attack ${monster.Name}`)
+                this.World.DamageMonster(monster, damage, false)
+            }
+        }
+    }
+}
+
+export function PriceFormulaConstant(price: number) {
+    return (_level: number) => price;
+}
+
+export let PriceFormulaLevel = (level: number) => level;
+
+export const enum StatType{
+    RunSpeed = 0, //Player only
+    SprintSpeed, //Player only
+    MaxHP, //Player only
+    HPRegen, //Player only
+
+    DamagePerHit, //Weapon only
+
+    ReloadSpeedBonusPct, //Player + Weapon
+    CritDamagePct, //Player + Weapon
+    CritChancePct, //Player + Weapon
+    DamageToStalkersBonusPct, //Player + Weapon
+    DamageToMutantssBonusPct, //Player + Weapon
+}
+
+export let StatTitles: {[key in StatType]: string} = {
+    [StatType.RunSpeed]: "Run Speed",
+    [StatType.SprintSpeed]: "Sprint Speed",
+    [StatType.MaxHP]: "Max HP",
+    [StatType.HPRegen]: "HP Regen",
+    [StatType.DamagePerHit]: "Damage per Hit",
+    [StatType.ReloadSpeedBonusPct]: "Reload Speed",
+    [StatType.CritDamagePct]: "Crit Damage",
+    [StatType.CritChancePct]: "Crit Chance",
+    [StatType.DamageToStalkersBonusPct]: "Damage to Stalkers",
+    [StatType.DamageToMutantssBonusPct]: "Damage to Mutants",
+}
+
+export let PctStats: StatType[] = [StatType.CritDamagePct, StatType.CritChancePct, StatType.DamageToStalkersBonusPct, StatType.DamageToMutantssBonusPct, StatType.ReloadSpeedBonusPct]
+
+export const enum StatBonusType{
+    Flat = 0,
+    Pct,
+    Mult
+}
 //Funny mess - anomaly2\\body_tear_00

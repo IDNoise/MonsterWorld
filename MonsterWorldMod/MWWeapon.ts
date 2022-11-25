@@ -1,14 +1,14 @@
 import { TakeRandomFromArray, IsPctRolled } from '../StalkerAPI/extensions/basic';
 import { Log } from '../StalkerModBase';
-import { BaseMWObject, StatType } from './BaseMWObject';
+import { BaseMWObject } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
-import { WeaponSpawnParams } from './MonsterWorldConfig';
+import { WeaponSpawnParams, StatType, WeaponBonusParamType, StatBonusType} from './MonsterWorldConfig';
 
 export class MWWeapon extends BaseMWObject {
     
-    constructor(public mw: MonsterWorld, public id: Id) {
-        super(mw, id);
+    constructor(public World: MonsterWorld, public id: Id) {
+        super(World, id);
     }
 
     override Initialize(): void {
@@ -19,7 +19,7 @@ export class MWWeapon extends BaseMWObject {
         this.DescriptionBonuses = new LuaTable();
 
         if (this.Section.indexOf("knife") >= 0){
-            this.SetStatBase(StatType.Damage, cfg.WeaponDPSBase * 5)
+            this.SetStatBase(StatType.DamagePerHit, cfg.WeaponDPSBase * 5)
             //DO smth with knife or fuck it?
             return;
         }
@@ -30,12 +30,10 @@ export class MWWeapon extends BaseMWObject {
     get Quality(): number { return this.Load("Quality"); }
     set Quality(quality: number) { this.Save("Quality", quality); }
 
-    get DamagePerHit(): number { return this.GetStat(StatType.Damage); }
+    get DamagePerHit(): number { return this.GetStat(StatType.DamagePerHit); }
 
-    get CritChance(): number { return this.GetStat(StatType.CritChancePct) }
-
-    get DescriptionBonuses(): LuaTable<cfg.WeaponBonusParamType, number> { return this.Load("GeneratedBonuses"); }
-    set DescriptionBonuses(bonuses: LuaTable<cfg.WeaponBonusParamType, number>) { this.Save("GeneratedBonuses", bonuses); }
+    get DescriptionBonuses(): LuaTable<WeaponBonusParamType, number> { return this.Load("GeneratedBonuses"); }
+    set DescriptionBonuses(bonuses: LuaTable<WeaponBonusParamType, number>) { this.Save("GeneratedBonuses", bonuses); }
 
     get RPM(): number { return math.max(0.0001, this.GO?.cast_Weapon()?.RPM()) }
     get DPS(): number { return this.DamagePerHit  * (1 / this.RPM) }
@@ -59,12 +57,12 @@ export class MWWeapon extends BaseMWObject {
     }
 
     OnReloadStart(anim_table: AnimationTable) {
-        //Log(`OnReloadStart`)
-        let bonus = this.GetStat(StatType.ReloadSpeedIncreasePct);
-        anim_table.anm_speed *= (1 + bonus / 100)
+        let mult = 1 + this.World.GetStat(StatType.ReloadSpeedBonusPct, this, this.World.Player) / 100;
+        Log(`OnReloadStart. Bonus: x${mult}`)
+        anim_table.anm_speed *= mult
     }
 
-    private GetUpgradesByType(type: cfg.WeaponBonusParamType): string[] {
+    private GetUpgradesByType(type: WeaponBonusParamType): string[] {
         if (ini_sys.r_string_ex(this.Section, type + "_upgrades", "") != "") {
             return ini_sys.r_list(this.Section, type + "_upgrades", []);
         }
@@ -77,9 +75,9 @@ export class MWWeapon extends BaseMWObject {
 
         const fireRate = 60 / ini_sys.r_float_ex(this.Section, "rpm", 1);
         let damagePerHit = baseDPS * fireRate;
-        this.SetStatBase(StatType.Damage, damagePerHit)
+        this.SetStatBase(StatType.DamagePerHit, damagePerHit)
 
-        let weaponUpgradesByBonusType: LuaTable<cfg.WeaponBonusParamType, string[]> = new LuaTable();
+        let weaponUpgradesByBonusType: LuaTable<WeaponBonusParamType, string[]> = new LuaTable();
 
         for (let i = 0; i < cfg.ParamsWithWeaponUpgradesSelection.length; i++) {
             let uType = cfg.ParamsWithWeaponUpgradesSelection[i];
@@ -89,8 +87,8 @@ export class MWWeapon extends BaseMWObject {
                 weaponUpgradesByBonusType.set(uType, upgrades);
         }
 
-        let selectedUpgradeTypes: cfg.WeaponBonusParamType[] = [];
-        let availableBonuses: cfg.WeaponBonusParamType[] = [];
+        let selectedUpgradeTypes: WeaponBonusParamType[] = [];
+        let availableBonuses: WeaponBonusParamType[] = [];
         for(let i = 0; i < cfg.ParamsForSelection.length; i++){
             let type = cfg.ParamsForSelection[i];
             if (!cfg.ParamsWithWeaponUpgradesSelection.includes(type) || weaponUpgradesByBonusType.has(type)){
@@ -99,7 +97,7 @@ export class MWWeapon extends BaseMWObject {
             }
         }        
 
-        let upgradeTypesToAdd = 1 + this.Quality;
+        let upgradeTypesToAdd = 1 + this.Quality + math.floor(this.Level / 5);
         const upgradeTypesToSelect = math.min(availableBonuses.length, upgradeTypesToAdd);
         for (let i = 0; i < upgradeTypesToSelect; i++) {
             const type = TakeRandomFromArray(availableBonuses);
@@ -107,13 +105,13 @@ export class MWWeapon extends BaseMWObject {
             //Log(`selectedUpgradeTypes ${type}`)
         }
 
-        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(cfg.WeaponBonusParamType.BulletSpeed)){ //Bullet speed is additional bonus
-            selectedUpgradeTypes.push(cfg.WeaponBonusParamType.BulletSpeed);
+        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(WeaponBonusParamType.BulletSpeed)){ //Bullet speed is additional bonus
+            selectedUpgradeTypes.push(WeaponBonusParamType.BulletSpeed);
             //Log(`selectedUpgradeTypes ${BonusParams.Type.BulletSpeed}`)
         }
 
-        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(cfg.WeaponBonusParamType.FireMode)){ //Bullet speed is additional bonus
-            selectedUpgradeTypes.push(cfg.WeaponBonusParamType.FireMode);
+        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(WeaponBonusParamType.FireMode)){ //Bullet speed is additional bonus
+            selectedUpgradeTypes.push(WeaponBonusParamType.FireMode);
             //Log(`selectedUpgradeTypes ${BonusParams.Type.FireMode}`)
         }
 
@@ -126,22 +124,22 @@ export class MWWeapon extends BaseMWObject {
         for (let upgradeTypeIndex = 0; upgradeTypeIndex < selectedUpgradeTypes.length; upgradeTypeIndex++) {
             let upgradesToSelect = math.random(minUpgradesToSelect, maxUpgradesToSelect)
             let t = selectedUpgradeTypes[upgradeTypeIndex];
-            if (t == cfg.WeaponBonusParamType.Damage) {
+            if (t == WeaponBonusParamType.Damage) {
                 damageBonusPct += upgradesToSelect * cfg.WeaponDamageBonusPctPerUpgrade;
             }
-            else if (t == cfg.WeaponBonusParamType.ReloadSpeed) {
+            else if (t == WeaponBonusParamType.ReloadSpeed) {
                 let reloadSpeedBonus = upgradesToSelect * cfg.WeaponReloadSpeedBonusPctPerUpgrade;
-                this.DescriptionBonuses.set(cfg.WeaponBonusParamType.ReloadSpeed, reloadSpeedBonus)
-                this.AddStatFlatBonus(StatType.ReloadSpeedIncreasePct, reloadSpeedBonus, "generation")
+                this.DescriptionBonuses.set(WeaponBonusParamType.ReloadSpeed, reloadSpeedBonus)
+                this.AddStatBonus(StatType.ReloadSpeedBonusPct, StatBonusType.Flat, reloadSpeedBonus, "generation")
             }
-            else if (t == cfg.WeaponBonusParamType.CritChance) {
+            else if (t == WeaponBonusParamType.CritChance) {
                 let critChanceBonus = 1 + upgradesToSelect * cfg.WeaponCritChanceBonusPctPerUpgrade;
-                this.DescriptionBonuses.set(cfg.WeaponBonusParamType.CritChance, critChanceBonus)
-                this.AddStatFlatBonus(StatType.CritChancePct, critChanceBonus, "generation")
+                this.DescriptionBonuses.set(WeaponBonusParamType.CritChance, critChanceBonus)
+                this.AddStatBonus(StatType.CritChancePct, StatBonusType.Flat, critChanceBonus, "generation")
             }
-            else if (t == cfg.WeaponBonusParamType.FireMode) {
+            else if (t == WeaponBonusParamType.FireMode) {
                 allSelectedUpgrades.push(weaponUpgradesByBonusType.get(t)[0]);
-                this.DescriptionBonuses.set(cfg.WeaponBonusParamType.FireMode, 1);
+                this.DescriptionBonuses.set(WeaponBonusParamType.FireMode, 1);
             }
             else {
                 let upgrades = weaponUpgradesByBonusType.get(t);
@@ -169,8 +167,8 @@ export class MWWeapon extends BaseMWObject {
         damageBonusPct += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
         damageBonusPct  = math.max(0, damageBonusPct + math.random(-cfg.WeaponDPSDeltaPct, cfg.WeaponDPSDeltaPct));
         if (damageBonusPct > 0){
-            this.DescriptionBonuses.set(cfg.WeaponBonusParamType.Damage, damageBonusPct);
-            this.AddStatPctBonus(StatType.Damage, damageBonusPct, "generation")
+            this.DescriptionBonuses.set(WeaponBonusParamType.Damage, damageBonusPct);
+            this.AddStatBonus(StatType.DamagePerHit, StatBonusType.Pct, damageBonusPct, "generation")
         }
 
         //Log(`Base DPS: ${baseDPS} DPS: ${this.DPS}. Damage per hit: ${damagePerHit}. Fire rate: ${fireRate}`)

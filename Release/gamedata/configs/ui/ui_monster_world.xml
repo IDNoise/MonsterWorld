@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <window>
-    <enemy_health x="392" y="80" width="260" height="25">
+    <enemy_health x="392" y="80" width="260" height="35">
         <name x="0" y="0" width="260" height="10" stretch="1">
             <text font="graffiti22" align="c" vert_align="c"/>
         </name>
@@ -16,6 +16,9 @@
                 <texture r="225" g="40" b="40">ui_inGame2_white_rect</texture>
             </progress>
         </value_progress>
+        <out_of_distance x="0" y="33" width="260" height="10" stretch="1">
+            <text r="180" g="40" b="40" font="graffiti22" align="c" vert_align="c">!!! Out of reach !!!</text>
+        </out_of_distance>
     </enemy_health>
 
     <damage_numbers x="487" y="365" width="50" height="20">
@@ -74,4 +77,32 @@
         <text r="96" g="244" b="255" font="graffiti32" align="c" vert_align="c"/>
     </level_up>
     
+    <player_skills x="0" y="0" width="378" height="758" >
+        <background x="-5" y="-5" width="385" height="800" stretch="1">>
+            <texture>ui_item_picker_background</texture>
+        </background>
+        <total_sp y="3" width="370" height="15" stretch="1">
+            <text r="250" g="250" b="250" font="graffiti22" align="c" vert_align="c"></text>
+        </total_sp>
+        <list y="16" width="372" height="746" right_ident="3" left_ident="3" top_indent ="1" bottom_indent="1" vert_interval="6" always_show_scroll="1"/>
+        <skill x="0" y="0" width="356" height="40">
+            <background_frame x="-1" y="-1" width="358" height="42" stretch="1">>
+               <texture a="255" r="220" g="220" b="220">ui_inGame2_white_rect</texture>
+            </background_frame>
+            <background width="356" height="40" stretch="1">>
+               <texture a="255" r="30" g="30" b="30">ui_inGame2_white_rect</texture>
+            </background>
+            <info x="3" y="1" width="300" height="40" stretch="1">
+                <text r="250" g="250" b="250" font="letterica16" align="l" vert_align="t">SOME LONG DESCRIPTION</text>
+            </info>
+            <level x="313" y="1" width="40" height="20" stretch="1">
+                <text r="50" g="250" b="50" font="letterica18" align="c" vert_align="c">L. 1</text>
+            </level>
+            <upgrade_button x="313" y="19" width="40" height="20" stretch="1">
+                <window_name>upgrade_button</window_name>
+				<texture stretch="1">ui_checkbox_TabLED</texture>
+                <text r="20" g="180" b="180" font="letterica18" align="c" vert_align="c">1 SP</text>
+			</upgrade_button>
+        </skill>
+    </player_skills>
 </window>

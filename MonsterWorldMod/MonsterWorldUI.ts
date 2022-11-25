@@ -25,6 +25,7 @@ export class MonsterWorldUI {
     private enemyHP: CUIStatic;
     private enemyHPBarName: CUITextWnd;
     private enemyHPBarValue: CUITextWnd;
+    private enemyHPOutOfDistanceNotice: CUITextWnd;
     private enemyHPBarProgress: CUIProgressBar;
     
     private playerStatus: CUIStatic;
@@ -36,7 +37,7 @@ export class MonsterWorldUI {
 
     private lastEnemyHpShowTime: number = 0;
 
-    constructor(public world: MonsterWorld) {
+    constructor(public World: MonsterWorld) {
         const oldPrepareStatsTable = utils_ui.prepare_stats_table;
         utils_ui.prepare_stats_table = () => this.PrepareUIItemStatsTable(oldPrepareStatsTable);
 
@@ -67,7 +68,7 @@ export class MonsterWorldUI {
             if (!res || !obj) 
                 return res;
 
-            let weapon = this.world.GetWeapon(obj);
+            let weapon = this.World.GetWeapon(obj);
             if (!weapon)
                 return res;
 
@@ -94,7 +95,7 @@ export class MonsterWorldUI {
             if (!obj) 
                 return;
 
-            let weapon = this.world.GetWeapon(obj);
+            let weapon = this.World.GetWeapon(obj);
             if (!weapon)
                 return;
             
@@ -106,8 +107,8 @@ export class MonsterWorldUI {
         utils_ui.sort_by_sizekind = (t, a, b) => { //Sorting by DPS > level > quality
             let objA = t.get(a);
             let objB = t.get(b);
-            let weaponA = this.world.GetWeapon(objA)
-            let weaponB = this.world.GetWeapon(objB)
+            let weaponA = this.World.GetWeapon(objA)
+            let weaponB = this.World.GetWeapon(objB)
             if (weaponA != null && weaponB != null && weaponA != weaponB){
                 if (weaponA.DPS != weaponB.DPS)
                     return weaponA.DPS > weaponB.DPS;
@@ -119,6 +120,12 @@ export class MonsterWorldUI {
                     return weaponA.id > weaponB.id;
             }
             return oldUISortBySizeKind(t, a, b);
+        }
+
+        const oldUIInventoryInitControls = ui_inventory.UIInventory.InitControls;
+        ui_inventory.UIInventory.InitControls = (s: any) => {
+            oldUIInventoryInitControls(s);
+            this.OnInitInventoryControls(s)
         }
     }
 
@@ -139,6 +146,7 @@ export class MonsterWorldUI {
         this.UpdateXpRewardNumbers();
         this.UpdatePlayerLevelBar();
         this.UpdateLevelUpMessage();
+        this.UpdateSkills();
     }
 
     public ShowLevelUpMessage(newLevel: number) {
@@ -232,6 +240,8 @@ export class MonsterWorldUI {
             this.enemyHPBarProgress = xml.InitProgressBar("enemy_health:value_progress", this.enemyHP)
             this.enemyHPBarName = xml.InitTextWnd("enemy_health:name", this.enemyHP)
             this.enemyHPBarValue = xml.InitTextWnd("enemy_health:value", this.enemyHP)
+            this.enemyHPOutOfDistanceNotice = xml.InitTextWnd("enemy_health:out_of_distance", this.enemyHP)
+            this.enemyHPOutOfDistanceNotice.Show(false)
 
             Log(`Initializing player status panel`)
             this.playerStatus = xml.InitStatic("player_status", cs.wnd());
@@ -259,7 +269,7 @@ export class MonsterWorldUI {
         }
 
         let targetDist = level.get_target_dist();
-        let monster = this.world.GetMonster(targetObj.id())
+        let monster = this.World.GetMonster(targetObj.id())
         if (targetDist < 300 && monster && monster.HP > 0){
             this.ShowEnemyHealthUI(monster);
         }
@@ -275,14 +285,18 @@ export class MonsterWorldUI {
     }
     
     private ShowEnemyHealthUI(monster: MWMonster) {
-        //Log(`ShowEnemyHealthUI start`)
         this.lastEnemyHpShowTime = time_global();
         this.enemyHP.Show(true);
         this.enemyHPBarProgress.SetProgressPos(clamp(monster.HP / monster.MaxHP, 0, 1) * 100);
         this.enemyHPBarName.SetText(monster.Name);
         this.enemyHPBarName.SetTextColor(cfg.MonsterRankColors[monster.Rank]);
         this.enemyHPBarValue.SetText(`${math.floor(monster.HP)} / ${math.floor(monster.MaxHP)}`);
-        //Log(`ShowEnemyHealthUI end`)
+        
+        let player = this.World.Player
+        let playerPos = player.GO.position();
+        let playerWeapon = player.Weapon;
+        let distance = playerWeapon?.GO.cast_Weapon().GetFireDistance() || 100000;
+        this.enemyHPOutOfDistanceNotice.Show(monster.GO.position().distance_to(playerPos) >= distance)
     }
 
     private UpdateDamageNumbers(){
@@ -329,10 +343,10 @@ export class MonsterWorldUI {
     }
 
     private UpdatePlayerLevelBar(){
-        let player = this.world.Player;
+        let player = this.World.Player;
         let levelInfo =`Level: ${player.Level}`;
-        if (player.StatPoints > 0){
-            levelInfo += ` (SP: ${player.StatPoints})`
+        if (player.SkillPoints > 0){
+            levelInfo += ` (SP: ${player.SkillPoints})`
         }
         this.playerStatusLevelValue.SetText(levelInfo)
 
@@ -345,6 +359,54 @@ export class MonsterWorldUI {
         let maxHP = player.MaxHP;
         this.playerStatusHPBarValue.SetText(`${math.floor(currentHP)} / ${math.floor(maxHP)}`)
         this.playerStatusHPBar.SetProgressPos(clamp(currentHP / maxHP, 0, 1) * 100)
+    }
+
+    private playerSkills: CUIStatic
+    private playerSkillTotalSP: CUITextWnd;
+    private playerSkillsScrollView: CUIScrollView
+    private OnInitInventoryControls(s: any){
+        let xml = new CScriptXmlInit()
+        xml.ParseFile("ui_monster_world.xml")
+
+        this.playerSkills = xml.InitStatic("player_skills", s)
+        this.playerSkills.Show(true)
+        xml.InitStatic("player_skills:background", this.playerSkills)
+        this.playerSkillsScrollView = xml.InitScrollView("player_skills:list", this.playerSkills)
+        this.playerSkillTotalSP = xml.InitTextWnd("player_skills:total_sp", this.playerSkills)
+
+        for(let [skillId, skill] of this.World.Player.Skills){
+            let skillEntry = xml.InitStatic("player_skills:skill", undefined);
+            xml.InitStatic("player_skills:skill:background_frame", skillEntry)
+            xml.InitStatic("player_skills:skill:background", skillEntry)
+            skill.DescriptionText = xml.InitTextWnd("player_skills:skill:info", skillEntry)
+            skill.LevelText = xml.InitTextWnd("player_skills:skill:level", skillEntry)
+            skill.UpgradeButton = xml.Init3tButton("player_skills:skill:upgrade_button", skillEntry)
+            let actionId = `upgrade_${skillId}`;
+            s.Register(skill.UpgradeButton, actionId)
+            let currentSkillId = skillId;
+            s.AddCallback(actionId, ui_events.BUTTON_CLICKED, (id: string) => this.OnSkillUpgrade(id), currentSkillId)
+
+            skill.UpdateUI();
+
+            this.playerSkillsScrollView.AddWindow(skillEntry, true)
+            skillEntry.SetAutoDelete(true)   
+        }
+    }
+
+    OnSkillUpgrade(skillId: string): void{
+        Log(`On skill upgrade ${skillId}`)
+        let player = this.World.Player;
+        let skill = player.Skills.get(skillId)
+        skill?.Upgrade();
+    }
+
+    UpdateSkills(){
+        if (!this.playerSkills || !this.playerSkills.IsShown()) return;
+
+        this.playerSkillTotalSP.SetText(`Available SP: ${this.World.Player.SkillPoints}`)
+        for(let [_, skill] of this.World.Player.Skills){
+            skill.UpdateUpgradeButton();
+        }
     }
 
     PrepareUIItemStatsTable(oldPrepareStatsTable: () => utils_ui.StatsTable): utils_ui.StatsTable {
@@ -377,6 +439,9 @@ export class MonsterWorldUI {
         weaponStats[utils_ui.StatType.AmmoMagSize].icon_p = "";
         weaponStats[utils_ui.StatType.AmmoMagSize].value_functor = (obj: game_object, sec: Section) => this.UIGetWeaponAmmoMagSize(obj);
 
+        let fireDistance: utils_ui.StatConfig = { index: 13, name: "Distance", value_functor: (obj: game_object, sec: Section) => this.UIGetWeaponFireDistance(obj), typ: "float", icon_p: "", track: false, magnitude: 1, unit: "m", compare: false, sign: false, show_always: true};
+        weaponStats["fire_distance"] = fireDistance;
+
         weaponStats[utils_ui.StatType.Accuracy].index = 100;
         weaponStats[utils_ui.StatType.Accuracy].icon_p = "";
         weaponStats[utils_ui.StatType.Handling].index = 101;
@@ -386,7 +451,7 @@ export class MonsterWorldUI {
     }
 
     UIGetItemName(obj: game_object, current: string): string{
-        let weapon = this.world.GetWeapon(obj);
+        let weapon = this.World.GetWeapon(obj);
         if (weapon == undefined)
             return "";
 
@@ -395,7 +460,7 @@ export class MonsterWorldUI {
     }
 
     UIGetItemDescription(obj: game_object, current: string): string{
-        let weapon = this.world.GetWeapon(obj);
+        let weapon = this.World.GetWeapon(obj);
         if (weapon == undefined)
             return "";
 
@@ -403,40 +468,53 @@ export class MonsterWorldUI {
     }
 
     UIGetItemLevel(obj: game_object): number { 
-        let weapon = this.world.GetWeapon(obj);
+        let weapon = this.World.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
         return weapon.Level; 
     }
+
     UIGetWeaponDPS(obj: game_object): number { 
-        let weapon = this.world.GetWeapon(obj);
+        let weapon = this.World.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
         return weapon.DPS; 
     }
+
     UIGetWeaponDamagePerHit(obj: game_object): number { 
-        let weapon = this.world.GetWeapon(obj);
+        let weapon = this.World.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
         return weapon.DamagePerHit; 
     }
+
     UIGetWeaponRPM(obj: game_object): number { 
-        let weapon = this.world.GetWeapon(obj);
+        let weapon = this.World.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
         return 60 / weapon.RPM; 
     }
+
     UIGetWeaponAmmoMagSize(obj: game_object): number { 
-        let weapon = this.world.GetWeapon(obj);
+        let weapon = this.World.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
         return math.max(1, obj?.cast_Weapon()?.GetAmmoMagSize() || 0); 
     }
+
+    UIGetWeaponFireDistance(obj: game_object): number { 
+        let weapon = this.World.GetWeapon(obj);
+        if (weapon == undefined)
+            return 0;
+
+        return math.max(1, obj?.cast_Weapon()?.GetFireDistance() || 0); 
+    }
+    
 }
 
 

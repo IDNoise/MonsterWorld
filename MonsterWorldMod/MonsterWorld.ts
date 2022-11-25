@@ -5,24 +5,25 @@ import { MonsterWorldMod } from './MonsterWorldMod';
 import { MWMonster } from './MWMonster';
 import { MWPlayer } from './MWPlayer';
 import { MWWeapon } from './MWWeapon';
-import { MonsterConfig, LevelType, MonsterType, MonsterRank } from './MonsterWorldConfig';
+import { MonsterConfig, LevelType, MonsterType, MonsterRank, StatType } from './MonsterWorldConfig';
 import { MonsterWorldSpawns } from './MonsterWorldSpawns';
 import { MonsterWorldUI } from './MonsterWorldUI';
 import { CriticalBones } from './MonsterWorldBones';
+import { BaseMWObject } from './BaseMWObject';
 
 export class MonsterWorld {
-    private player?: MWPlayer;
-    private monsters: LuaTable<Id, MWMonster>
     private weapons: LuaTable<Id, MWWeapon>
     private enemyDamageMult: number = 1;
     private enemyDropChanceMult: number = 1;
+
+    public Monsters: LuaTable<Id, MWMonster>
 
     public SpawnManager: MonsterWorldSpawns;
     public UIManager: MonsterWorldUI;
     public DeltaTime: number;
 
     constructor(public mod: MonsterWorldMod){
-        this.monsters = new LuaTable();
+        this.Monsters = new LuaTable();
         this.weapons = new LuaTable();
 
         this.SpawnManager = new MonsterWorldSpawns(this);
@@ -50,6 +51,7 @@ export class MonsterWorld {
         };
     }
 
+    private player?: MWPlayer;
     get Player(): MWPlayer{
         if (this.player == undefined)
             this.player = new MWPlayer(this, 0);
@@ -76,12 +78,12 @@ export class MonsterWorld {
         if (se_obj == null || go == null || !(go.is_monster() || go.is_stalker()))
             return undefined;
 
-        if (!this.monsters.has(monsterId)){
+        if (!this.Monsters.has(monsterId)){
             //Log(`GetMonster crate new: ${monsterId}`)
-            this.monsters.set(monsterId, new MWMonster(this, monsterId));
+            this.Monsters.set(monsterId, new MWMonster(this, monsterId));
         }
         //Log(`GetMonster end: ${monsterId}`)
-        return this.monsters.get(monsterId);
+        return this.Monsters.get(monsterId);
     }
 
     public GetWeapon(itemOrId: Id | game_object): MWWeapon | undefined {
@@ -114,7 +116,7 @@ export class MonsterWorld {
 
     public DestroyObject(id:Id) {
         this.CleanupItemData(id);
-        this.monsters.delete(id);
+        this.Monsters.delete(id);
         this.weapons.delete(id);
     }
 
@@ -173,9 +175,10 @@ export class MonsterWorld {
     public Update(deltaTime: number) {
         this.DeltaTime = deltaTime;
         this.UIManager?.Update();
-        this.Player.RegenHP(deltaTime)
-        for(let [_, monster] of this.monsters){
-            monster.RegenHP(deltaTime)
+        this.Player.Update(deltaTime);
+        this.Player.IterateSkills((s) => s.Update(deltaTime))
+        for(let [_, monster] of this.Monsters){
+            monster.Update(deltaTime)
         }
     }
 
@@ -203,6 +206,7 @@ export class MonsterWorld {
 
     public OnMonstersHit(monsterHitsThisFrame: Map<Id, HitInfo>) {
         Log(`OnMonstersHit`)
+
         let hitsByWeapon = new Map<MWWeapon, [MWMonster, boolean][]>();
         for(const [_, hitInfo] of monsterHitsThisFrame){
             let hits = hitsByWeapon.get(hitInfo.weapon) || [];
@@ -212,28 +216,53 @@ export class MonsterWorld {
         }
         
         for(const [weapon, hits] of hitsByWeapon){
-            let isCritByWeapon = IsPctRolled(weapon.CritChance)
+            let isCritByWeapon = IsPctRolled(this.GetStat(StatType.CritChancePct, weapon, this.Player))
             let weaponDamage = weapon.DamagePerHit / hits.length;
 
             for(let i = 0; i < hits.length; i++){
                 const [monster, isCritPartHit] = hits[i];
+                if (monster.IsDead) continue;
+
                 let monsterDamage = weaponDamage;
-                if (isCritPartHit || isCritByWeapon){
-                    monsterDamage *= 2.5; //TODO move to player stats
+                if (monster.GO.is_stalker()){
+                    monsterDamage *= 1 + this.GetStat(StatType.DamageToStalkersBonusPct, weapon, this.Player) / 100;
+                }
+                else if (monster.GO.is_monster()){
+                    monsterDamage *= 1 + this.GetStat(StatType.DamageToMutantssBonusPct, weapon, this.Player) / 100;
                 }
 
-                let realDamage = math.min(monster.HP, monsterDamage)
-                monster.HP -= realDamage;
-                this.UIManager?.ShowDamage(realDamage, isCritPartHit, monster.IsDead)
+                let isCrit = isCritPartHit || isCritByWeapon;
+                if (isCrit){
+                    let critDamageMult = 1 + this.GetStat(StatType.CritDamagePct, weapon, this.Player) / 100;
+                    monsterDamage *= critDamageMult
+                }
+
+                let realDamage = this.DamageMonster(monster, monsterDamage, isCrit);
+                this.UIManager?.ShowDamage(realDamage, isCrit, monster.IsDead)
+                this.Player.IterateSkills((s) => s.OnMonsterHit(monster, isCrit))
             }
         }
     }
 
-    public OnMonsterKilled(monsterGO: game_object) {
-        let monster = this.GetMonster(monsterGO.id());
-        if (monster == undefined) 
-            return;
+    DamageMonster(monster: MWMonster, damage: number, isCrit: boolean): number{
+        let realDamage = math.min(monster.HP, damage)
+        monster.HP -= realDamage;
+        
+        if (monster.IsDead){
+            this.OnMonsterKilled(monster, isCrit)
+        }
+        return realDamage;
+    }
 
+    GetStat(stat: StatType, ...sources: BaseMWObject[]){
+        let value = 0;
+        for(let i = 0; i < sources.length; i++){
+            value += sources[i].GetStat(stat);
+        }
+        return value;
+    }
+
+    public OnMonsterKilled(monster: MWMonster, isCrit: boolean) {
         Log(`OnMonsterKilled. ${monster.Name} (${monster.SectionId})`)
 
         this.UIManager?.ShowXPReward(monster.XPReward)
@@ -244,7 +273,9 @@ export class MonsterWorld {
             this.GenerateDrop(monster)
         }
 
-        this.AddTTLTimer(monsterGO.id(), 3);
+        this.Player.IterateSkills((s) => s.OnMonsterKill(monster, isCrit))
+
+        this.AddTTLTimer(monster.id, 3);
 
         Log(`OnMonsterKilled END. ${monster.Name} (${monster.SectionId})`)
     }

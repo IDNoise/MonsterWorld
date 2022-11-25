@@ -2,18 +2,18 @@
 declare class CUIGameCustom{
     GetCustomStatic(name: string): SDrawStaticStruct;
     AddCustomStatic(name: string, doAdd: boolean): void;
+    RemoveCustomStatic(name: string): void;
 
-    // function HidePdaMenu()
-    // function HideActorMenu()
-    // function AddDialogToRender(CUIWindow*)
-    // function RemoveDialogToRender(CUIWindow*)
-    // function show_messages()
-    // function hide_messages()
-    // function RemoveCustomStatic(string)
-	// function UpdateActorMenu
-	// function CurrentItemAtCell
-	// function update_fake_indicators
-	// function enable_fake_indicators
+    HidePdaMenu(): void;
+    HideActorMenu(): void;
+    AddDialogToRender(dialog: CUIWindow): void;
+    RemoveDialogToRender(dialog: CUIWindow): void;
+    show_messages(): void;
+    hide_messages(): void;
+	// UpdateActorMenu
+	// CurrentItemAtCell
+	// update_fake_indicators
+	// enable_fake_indicators
 }
 
 /** @customConstructor SDrawStaticStruct */
@@ -21,23 +21,27 @@ declare class SDrawStaticStruct {
     wnd(): CUIStatic;
 }
 
+declare class FRect{
+
+}
+
 /** @customConstructor CUIStatic */
 declare class CUIStatic extends CUIWindow {
     constructor();
 
     TextControl(): CUITextWnd;
-    // function GetTextureRect()
-    // function SetStretchTexture(boolean)
-    // function SetTextureRect(Frect*)
-    // function InitTexture(string)
-	// function GetTextureColor()
-	// function SetTextureColor(number)
+    GetTextureRect(): FRect;
+    SetStretchTexture(stretch: boolean): void;
+    SetTextureRect(rect: FRect): void
+    InitTexture(path: string): void;
+	GetTextureColor(): ARGBColor;
+	SetTextureColor(color: ARGBColor): void;
 	// -- Tronex: rotation
-	// function EnableHeading(boolean)
-	// function GetHeading()
-	// function SetHeading(number)
-	// function GetConstHeading()
-	// function SetConstHeading(boolean)
+	// EnableHeading(boolean)
+	// GetHeading()
+	// SetHeading(number)
+	// GetConstHeading()
+	// SetConstHeading(boolean)
 }
 
 
@@ -47,10 +51,10 @@ declare class CUIWindow {
 	
     Enable(doEnable: boolean): void;
     IsEnabled(): boolean;
-    // function AttachChild(CUIWindow*)
-    // function DetachChild(CUIWindow*)
+    AttachChild(child: CUIWindow): void;
+    DetachChild(child: CUIWindow): void;
     
-    // function SetPPMode()
+    SetPPMode(): void;
     ResetPPMode(): void;
     
     SetWindowName(name: string): void;
@@ -58,7 +62,7 @@ declare class CUIWindow {
     
     Show(doShow: boolean): void;
     IsShown(): boolean;
-    // function SetWndRect(Frect)
+    SetWndRect(rect: FRect): void;
     SetWndPos(pos: vector2): void;
     GetWndPos(): vector2;
     SetWndSize(size: vector2): void;
@@ -83,7 +87,6 @@ declare class CUIProgressBar extends CUIWindow {
     // function SetMiddleColor(number)
     // function SetMaxColor(number)
 }
-
 
 declare const enum EHTextAligment{
     alLeft = 0,
@@ -118,13 +121,29 @@ declare class CUITextWnd extends CUIWindow {
     
 }
 
+/** @customConstructor CUIScrollView */
+declare class  CUIScrollView extends CUIWindow {
+    constructor ()
+	
+    AddWindow(child: CUIWindow, dunno: boolean): void;
+    RemoveWindow(child: CUIWindow): void;
+    // function SetScrollPos(number)
+    // function ScrollToBegin()
+	// function SetFixedScrollBar(boolean)
+    // function GetCurrentScrollPos()
+    // function GetMaxScrollPos()
+    // function GetMinScrollPos()
+    // function ScrollToEnd()
+    // function Clear()
+}
+
 /** @customConstructor CScriptXmlInit */
 declare class CScriptXmlInit {
     constructor();
 	
     // function InitSpinText(string, CUIWindow*)
     // function InitTab(string, CUIWindow*)
-    InitStatic(path: string, owner: CUIWindow) : CUIStatic;
+    InitStatic(path: string, owner: CUIWindow | undefined) : CUIStatic;
     // function InitSleepStatic(string, CUIWindow*)
     InitTextWnd(path: string, owner: CUIWindow): CUITextWnd;
     // function InitSpinFlt(string, CUIWindow*)
@@ -139,14 +158,26 @@ declare class CScriptXmlInit {
     // function InitWindow(string, number, CUIWindow*)
     // function InitEditBox(string, CUIWindow*)
     // function InitCheck(string, CUIWindow*)
-    // function InitScrollView(string, CUIWindow*)
+    InitScrollView(path: string, owner: CUIWindow): CUIScrollView
     // function InitMPPlayerName(string, CUIWindow*)
     // function InitTrackBar(string, CUIWindow*)
     // function InitMapInfo(string, CUIWindow*)
     // function InitServerList(string, CUIWindow*)
     // function InitComboBox(string, CUIWindow*)
     // function InitFrameLine(string, CUIWindow*)
-    // function Init3tButton(string, CUIWindow*)
+    Init3tButton(path: string, owner: CUIWindow): CUI3tButton;
     // function InitAnimStatic(string, CUIWindow*)
     // function InitFrame(string, CUIWindow*)
+}
+
+/** @customConstructor CUIButton */
+declare class CUIButton extends CUIStatic {
+    constructor ()
+	
+    TextControl(): CUITextWnd;
+}
+
+/** @customConstructor CUI3tButton */
+declare class CUI3tButton extends CUIButton {
+    constructor ()
 }

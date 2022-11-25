@@ -131,6 +131,16 @@ public class WeaponsGenerator : BaseGenerator
         });
     }
     
+    Dictionary<WeaponType, int> weaponFireDistanceByType = new Dictionary<WeaponType, int>()
+    {
+        { WeaponType.Shotgun, 25},
+        { WeaponType.Pistol, 40},
+        { WeaponType.SMG, 50},
+        { WeaponType.AssaultRifle, 75},
+        { WeaponType.MachineGun, 75},
+        { WeaponType.SniperRifle, 100},
+    };
+    
     void GenerateWeapons()
     {
         var weaponsByType = new Dictionary<WeaponType, List<Section>>();
@@ -165,7 +175,8 @@ public class WeaponsGenerator : BaseGenerator
                 bullet_speed_upgrades = string.Join(",", upgradesByType[UpgradeType.BulletSpeed].Select(s => s.Name)),
                 mag_size_upgrades = string.Join(",", upgradesByType[UpgradeType.MagSize].Select(s => s.Name)),
                 rpm = (int)Math.Min(900, baseWeapon.GetInt("rpm")),
-                ammo_class = ammoConfigs[type].SectionName
+                ammo_class = ammoConfigs[type].SectionName,
+                fire_distance = weaponFireDistanceByType[type]
             };
 
             foreach (var variantWeapon in variants)
@@ -240,27 +251,35 @@ public class WeaponsGenerator : BaseGenerator
             }
         }
         
-        
         {
             var bulletSpeed = weapon.GetInt("bullet_speed");
-            int valuePerStep = (int)GetValuePerStep(bulletSpeed, 5, 1);
+            var fireDistance = weaponFireDistanceByType[MonsterWorldHelpers.GetWeaponType(weapon)];
+            int valuePerStepBulletSpeed = (int)GetValuePerStep(bulletSpeed, 5, 1);
+            int valuePerStepFireDistance = (int)GetValuePerStep(fireDistance, 5, 1);
             for (int i = 0; i < steps; i++) {
                 result[UpgradeType.BulletSpeed].Add(GenerateUpgrade(new {
-                    bullet_speed = ToUpgradeValue(valuePerStep),
-                    fire_distance = ToUpgradeValue(valuePerStep)
+                    bullet_speed = ToUpgradeValue(valuePerStepBulletSpeed),
+                    fire_distance = ToUpgradeValue(valuePerStepFireDistance)
                 }));
             }
         }
+        
         {
             var camDispersion = weapon.GetFloat("cam_dispersion"); // Recoil
+            var cam_step_angle_horz = weapon.GetFloat("cam_step_angle_horz"); // Recoil
+            var zoom_cam_dispersion = weapon.GetFloat("zoom_cam_dispersion"); // Recoil
+            var zoom_cam_step_angle_horz = weapon.GetFloat("zoom_cam_step_angle_horz"); // Recoil
             if (camDispersion > 0.2f) {
-                float valuePerStep = -GetValuePerStep(camDispersion, 5);
+                float valuePerStep_camDispersion = -GetValuePerStep(camDispersion, 5);
+                float valuePerStep_cam_step_angle_horz = -GetValuePerStep(cam_step_angle_horz, 5);
+                float valuePerStep_zoom_cam_dispersion = -GetValuePerStep(zoom_cam_dispersion, 5);
+                float valuePerStep_zoom_cam_step_angle_horz = -GetValuePerStep(zoom_cam_step_angle_horz, 5);
                 for (int i = 0; i < steps; i++) {
                     result[UpgradeType.Recoil].Add(GenerateUpgrade(new {
-                        cam_dispersion = ToUpgradeValue(valuePerStep),
-                        cam_step_angle_horz = ToUpgradeValue(valuePerStep * 0.75f),
-                        zoom_cam_dispersion = ToUpgradeValue(valuePerStep * 0.9f),
-                        zoom_cam_step_angle_horz = ToUpgradeValue(valuePerStep * 0.5f),
+                        cam_dispersion = ToUpgradeValue(valuePerStep_camDispersion),
+                        cam_step_angle_horz = ToUpgradeValue(valuePerStep_cam_step_angle_horz),
+                        zoom_cam_dispersion = ToUpgradeValue(valuePerStep_zoom_cam_dispersion),
+                        zoom_cam_step_angle_horz = ToUpgradeValue(valuePerStep_zoom_cam_step_angle_horz),
                     }));
                 }
             }
@@ -268,17 +287,23 @@ public class WeaponsGenerator : BaseGenerator
 
         {
             var crosshairInertion = weapon.GetFloat("crosshair_inertion"); // Inertion
+            var PDM_disp_base = weapon.GetFloat("PDM_disp_base"); 
+            var PDM_disp_vel_factor = weapon.GetFloat("PDM_disp_vel_factor"); 
+            var PDM_disp_accel_factor = weapon.GetFloat("PDM_disp_accel_factor"); 
             if (crosshairInertion > 0.1)
             {
-                float valuePerStep = -GetValuePerStep(crosshairInertion, 5);
+                float valuePerStep_crosshairInertion = -GetValuePerStep(crosshairInertion, 5);
+                float valuePerStep_PDM_disp_base = -GetValuePerStep(PDM_disp_base, 5);
+                float valuePerStep_PDM_disp_vel_factor = -GetValuePerStep(PDM_disp_vel_factor, 5);
+                float valuePerStep_PDM_disp_accel_factor = -GetValuePerStep(PDM_disp_accel_factor, 5);
                 for (int i = 0; i < steps; i++)
                 {
                     result[UpgradeType.Inertion].Add(GenerateUpgrade(new
                     {
-                        crosshair_inertion = ToUpgradeValue(valuePerStep),
-                        PDM_disp_base = ToUpgradeValue(valuePerStep * 0.1f),
-                        PDM_disp_vel_factor = ToUpgradeValue(valuePerStep * 0.5f),
-                        PDM_disp_accel_factor = ToUpgradeValue(valuePerStep * 0.5f),
+                        crosshair_inertion = ToUpgradeValue(valuePerStep_crosshairInertion),
+                        PDM_disp_base = ToUpgradeValue(valuePerStep_PDM_disp_base),
+                        PDM_disp_vel_factor = ToUpgradeValue(valuePerStep_PDM_disp_vel_factor),
+                        PDM_disp_accel_factor = ToUpgradeValue(valuePerStep_PDM_disp_accel_factor),
                     }));
                 }
             }
@@ -396,74 +421,3 @@ public class WeaponsGenerator : BaseGenerator
     string ToUpgradeValue(int value) => (value > 0 ? "+" : "") + value;
 
 }
-
-
-
-    // void GenerateUpgrades()
-    // {
-    //     
-    //
-    //     for (var rpm = 1; rpm <= 300; rpm += 3)
-    //     {
-    //         if (rpm == 0)  continue;
-    //         rpmUpgrades.Add(rpm, GenerateUpgrade(new { rpm = ToUpgradeValue(rpm) }));
-    //     }
-    //     
-    //     fireModeUpgrades.Add(FireModeUpgradeType.OneThree, GenerateUpgrade(new { fire_modes = "1, 3" }));
-    //     fireModeUpgrades.Add(FireModeUpgradeType.OneAuto, GenerateUpgrade(new { fire_modes = "1, -1" }));
-    //     fireModeUpgrades.Add(FireModeUpgradeType.OneThreeAuto, GenerateUpgrade(new { fire_modes = "1, 3, -1" }));
-    //     fireModeUpgrades.Add(FireModeUpgradeType.ThreeAuto, GenerateUpgrade(new { fire_modes = "3, -1" }));
-    //
-    //     for (var dispersion = -1f; dispersion <= 0f; dispersion += 0.05f)
-    //     {
-    //         if (dispersion == 0)  continue;
-    //         dispersionUpgrades.Add(dispersion, GenerateUpgrade(new { fire_dispersion_base = ToUpgradeValue(dispersion) }));
-    //     }
-    //
-    //     for (var bulletSpeed = 0; bulletSpeed <= 300; bulletSpeed += 25)
-    //     {
-    //         if (bulletSpeed == 0)  continue;
-    //         
-    //         bulletSpeedUpgrades.Add(bulletSpeed, GenerateUpgrade(new
-    //         {
-    //             bullet_speed = ToUpgradeValue(bulletSpeed),
-    //             fire_distance = ToUpgradeValue(bulletSpeed)
-    //         }));
-    //     }
-    //     
-    //     for (var inertion = -10f; inertion <= 0f; inertion += 0.5f)
-    //     {
-    //         if (inertion == 0)  continue;
-    //         
-    //         inertionUpgrades.Add(inertion, GenerateUpgrade(new
-    //         {
-    //             crosshair_inertion                       = ToUpgradeValue(inertion),
-    //             PDM_disp_base                            = ToUpgradeValue(inertion * 0.1f),
-    //             PDM_disp_vel_factor                      = ToUpgradeValue(inertion * 0.5f),
-    //             PDM_disp_accel_factor                    = ToUpgradeValue(inertion * 0.5f),
-    //             //fire_dispersion_base = ToUpgradeValue(intertion)
-    //         }));
-    //     }
-    //     
-    //     for (var recoil = -4f; recoil <= 1f; recoil += 0.1f)
-    //     {
-    //         if (recoil == 0)  continue;
-    //         
-    //         recoilUpgrades.Add(recoil, GenerateUpgrade(new
-    //         {
-    //             cam_dispersion                           = ToUpgradeValue(recoil),
-    //             //cam_dispersion_inc                       = 0.0,
-    //             cam_step_angle_horz                      = ToUpgradeValue(recoil * 0.75f), 
-    //             zoom_cam_dispersion                      = ToUpgradeValue(recoil * 0.9f),
-    //             //zoom_cam_dispersion_inc                  = 0.0,
-    //             zoom_cam_step_angle_horz                 = ToUpgradeValue(recoil * 0.5f),
-    //             //fire_dispersion_base = ToUpgradeValue(recoil)
-    //         }));
-    //     }
-    //     
-    //     for (var magSize = 0; magSize <= 100; magSize += 5)
-    //     {
-    //         if (magSize == 0)  continue;
-    //         magSizeUpgrades.Add(magSize, GenerateUpgrade(new { ammo_mag_size = ToUpgradeValue(magSize) }));
-    //     }
-    // }

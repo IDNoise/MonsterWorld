@@ -1,12 +1,12 @@
 import { IsPctRolled, Save } from '../StalkerAPI/extensions/basic';
-import { BaseMWObject, StatType } from './BaseMWObject';
+import { BaseMWObject } from './BaseMWObject';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
-import { MonsterSpawnParams, MonsterRank, MonsterType, MonsterConfigs } from './MonsterWorldConfig';
+import { MonsterSpawnParams, MonsterRank, MonsterType, MonsterConfigs, StatType } from './MonsterWorldConfig';
 
 export class MWMonster extends BaseMWObject{
-    constructor(public mw: MonsterWorld, public id: Id) {
-        super(mw, id);
+    constructor(public World: MonsterWorld, public id: Id) {
+        super(World, id);
     }
 
     override Initialize(): void {
@@ -44,7 +44,9 @@ export class MWMonster extends BaseMWObject{
     }
 
     GetDamage(level: number) {
-        return cfg.EnemyDamageBase * math.pow(cfg.EnemyDamageExpPerLevel, level - 1);
+        let pctMult = 1 + cfg.EnemyDamagePctPerLevel * level / 100;
+        let expMult = math.pow(cfg.EnemyDamageExpPerLevel, level - 1)
+        return cfg.EnemyDamageBase * pctMult * expMult;
     }
 
     get Name(): string {

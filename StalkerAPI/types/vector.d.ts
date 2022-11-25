@@ -47,9 +47,9 @@ declare class vector {
     // function min(const vector&)
     // function min(const vector&, const vector&)
     // function similar(const vector&, number) const
-    // function distance_to(const vector&) const
     // function lerp(const vector&, const vector&, number)
-    // function distance_to_sqr(const vector&) const
+    distance_to(vec: vector): number;
+    distance_to_sqr(vec: vector): number;
     // function mul(number)
     // function mul(const vector&)
     // function mul(const vector&, const vector&)

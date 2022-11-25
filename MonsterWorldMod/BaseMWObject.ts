@@ -1,9 +1,10 @@
 import { Load, Save } from '../StalkerAPI/extensions/basic';
 import { Log } from '../StalkerModBase';
 import { MonsterWorld } from './MonsterWorld';
+import { PctStats, StatBonusType, StatType } from './MonsterWorldConfig';
 
 export abstract class BaseMWObject {
-    constructor(public mw: MonsterWorld, public id: Id) {
+    constructor(public World: MonsterWorld, public id: Id) {
         //Log(`Construct ${id}`)
         if (!this.Initialized){
             //Log(`Initialize ${id}`)
@@ -41,6 +42,10 @@ export abstract class BaseMWObject {
 
     get HPRegen(): number { return this.GetStat(StatType.HPRegen); }
 
+    Update(deltaTime: number){
+        this.RegenHP(deltaTime)
+    }
+
     RegenHP(deltaTime: number){
         //Log(`HP Regen start ${this.id}`)
         this.HP = math.min(this.MaxHP, this.HP + this.HPRegen * deltaTime);
@@ -55,36 +60,19 @@ export abstract class BaseMWObject {
     get Section(): string { return this.ServerGO.section_name(); }
 
     GetStat(stat: StatType): number{ return this.Load<number>(GetStatTotalField(stat), 0); }
+
     SetStatBase(stat: StatType, baseValue: number): void{ 
         this.Save<number>(GetStatBaseField(stat), baseValue); 
         this.RecalculateStatTotal(stat);
     }
 
-    AddStatPctBonus(stat: StatType, bonus: number, source: string): void {
-        this.AddStatBonus(stat, bonus, source, StatBonusType.Pct);
-    }
+    public AddStatBonus(stat: StatType, bonusType: StatBonusType, bonus: number, source: string): void{
 
-    RemoveStatPctBonus(stat: StatType, source: string): void {
-        this.RemoveStatBonus(stat, source, StatBonusType.Pct);
-    }
+        if (PctStats.includes(stat) && bonusType != StatBonusType.Flat){
+            Log(`ERROR: Adding non flat bonus to % stat: ${stat} from ${source}`)
+            return;
+        }
 
-    AddStatFlatBonus(stat: StatType, bonus: number, source: string): void {
-        this.AddStatBonus(stat, bonus, source, StatBonusType.Flat);
-    }
-
-    RemoveStatFlatBonus(stat: StatType, source: string): void {
-        this.RemoveStatBonus(stat, source, StatBonusType.Flat);
-    }
-
-    AddStatMultBonus(stat: StatType, bonus: number, source: string): void {
-        this.AddStatBonus(stat, bonus, source, StatBonusType.Mult);
-    }
-
-    RemoveStatMultBonus(stat: StatType, source: string): void {
-        this.RemoveStatBonus(stat, source, StatBonusType.Mult);
-    }
-
-    private AddStatBonus(stat: StatType, bonus: number, source: string, bonusType: StatBonusType): void{
         let field = GetStatBonusField(stat, bonusType);
         let bonuses = this.Load<LuaTable<string, number>>(field, new LuaTable());
         bonuses.set(source, bonus);
@@ -92,14 +80,13 @@ export abstract class BaseMWObject {
         this.RecalculateStatTotal(stat); 
     }
 
-    private RemoveStatBonus(stat: StatType, source: string, bonusType: StatBonusType): void{
+    public RemoveStatBonus(stat: StatType, bonusType: StatBonusType, source: string): void{
         let field = GetStatBonusField(stat, bonusType);
         let bonuses = this.Load<LuaTable<string, number>>(field, new LuaTable());
         bonuses.delete(source);
         this.Save<LuaTable<string, number>>(field, bonuses);
         this.RecalculateStatTotal(stat); 
     }
-
    
     RecalculateStatTotal(stat: StatType){
         let base = this.Load<number>(GetStatBaseField(stat), 0); 
@@ -144,18 +131,3 @@ function GetStatBaseField(stat: StatType): string { return `${stat}_base`; }
 function GetStatTotalField(stat: StatType): string { return `${stat}_total`; }
 
 
-export const enum StatType{
-    RunSpeed = 0,
-    SprintSpeed,
-    MaxHP,
-    HPRegen,
-    Damage,
-    ReloadSpeedIncreasePct,
-    CritChancePct
-}
-
-export const enum StatBonusType{
-    Flat = 0,
-    Pct,
-    Mult
-}
