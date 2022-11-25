@@ -181,7 +181,7 @@ export class MonsterWorldMod extends StalkerModBase {
     protected override OnKeyRelease(key: DIK_keys): void {
         super.OnKeyRelease(key)
         if (key == DIK_keys.DIK_DELETE) {
-            this.World.Player.SkillPoints++;
+            this.World.Player.SkillPoints += 100;
         }
     }
 

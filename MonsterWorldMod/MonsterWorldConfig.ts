@@ -843,18 +843,17 @@ export class SkillAuraOfDeath extends Skill{
     get DpsPct(): number { return this.DpsPctPerLevel(this.Level); }
 
     timePassed: number = 0;
-    interval: number = 1;
     Update(deltaTime: number): void {
         super.Update(deltaTime)
         this.timePassed += deltaTime;
-        if (this.timePassed < this.interval)
+        if (this.timePassed < this.Interval)
             return;
 
         let weapon = this.World.Player.Weapon;
         if (weapon == undefined) 
             return;
         
-        this.timePassed -= this.interval;
+        this.timePassed -= this.Interval;
         let playerPos = this.World.Player.GO.position()
         let rangeSqr = this.Range * this.Range;
         let damage = weapon.DPS * this.DpsPct / 100;

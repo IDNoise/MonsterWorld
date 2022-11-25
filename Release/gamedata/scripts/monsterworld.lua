@@ -4391,7 +4391,6 @@ function SkillAuraOfDeath.prototype.____constructor(self, Id, Owner, Interval, D
     self.PriceFormula = PriceFormula
     self.MaxLevel = MaxLevel
     self.timePassed = 0
-    self.interval = 1
 end
 __TS__SetDescriptor(
     SkillAuraOfDeath.prototype,
@@ -4420,14 +4419,14 @@ __TS__SetDescriptor(
 function SkillAuraOfDeath.prototype.Update(self, deltaTime)
     SkillAuraOfDeath.____super.prototype.Update(self, deltaTime)
     self.timePassed = self.timePassed + deltaTime
-    if self.timePassed < self.interval then
+    if self.timePassed < self.Interval then
         return
     end
     local weapon = self.World.Player.Weapon
     if weapon == nil then
         return
     end
-    self.timePassed = self.timePassed - self.interval
+    self.timePassed = self.timePassed - self.Interval
     local playerPos = self.World.Player.GO:position()
     local rangeSqr = self.Range * self.Range
     local damage = weapon.DPS * self.DpsPct / 100
@@ -4733,7 +4732,7 @@ function MonsterWorldMod.prototype.OnKeyRelease(self, key)
     StalkerModBase.prototype.OnKeyRelease(self, key)
     if key == DIK_keys.DIK_DELETE then
         local ____self_World_Player_4, ____SkillPoints_5 = self.World.Player, "SkillPoints"
-        ____self_World_Player_4[____SkillPoints_5] = ____self_World_Player_4[____SkillPoints_5] + 1
+        ____self_World_Player_4[____SkillPoints_5] = ____self_World_Player_4[____SkillPoints_5] + 100
     end
 end
 function MonsterWorldMod.prototype.CanHitPlayer(self, attackerId)
