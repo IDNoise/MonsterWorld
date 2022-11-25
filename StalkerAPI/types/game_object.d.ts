@@ -90,7 +90,7 @@ declare interface game_object {
   set_actor_runback_coef(coef: number): void;
 
   // -- NPCs
-  // function rank()
+  rank(): Rank;
   // function relation(game_object*)
   // function goodwill(game_object*)
   // function sympathy()
@@ -104,15 +104,15 @@ declare interface game_object {
   // function see(const game_object*)
   // function see(string)
   // function max_health() const
-  // function alive() const
+  alive(): boolean;
   // function wounded() const
   // function wounded(boolean)
   // function critically_wounded()
   // function kill(game_object*): void;
   // function best_danger()
   // function best_enemy()
-  // function get_enemy() const
-  // function set_enemy(game_object*): void;
+  get_enemy(): game_object;
+  set_enemy(enemy: game_object): void;
   // function mental_state() const
   // function set_enemy_callback()
   // function set_enemy_callback(const function<boolean>&)
