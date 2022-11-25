@@ -322,13 +322,7 @@ export class MonsterWorld {
             dropLevel++;
         }
             
-        let qualityLevel = 1;
-        for(let i = 0; i < cfg.QualityDropChance.length; i++){
-            if (IsPctRolled(cfg.QualityDropChance[i][0])){
-                qualityLevel = cfg.QualityDropChance[i][1]
-                break;
-            }
-        }
+        let qualityLevel = cfg.GetDropQuality();
     
         if (IsPctRolled(cfg.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
         if (IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
@@ -339,6 +333,9 @@ export class MonsterWorld {
             Log(`GenerateWeaponDrop spawn failed`)
             return $multi(undefined, 1);
         }
+
+        qualityLevel = math.min(qualityLevel, cfg.MaxQuality)
+
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
         return $multi(sgo, qualityLevel);
     }

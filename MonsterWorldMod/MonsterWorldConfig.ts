@@ -566,12 +566,17 @@ export let MaxQuality = 5;
 
 export let HigherLevelDropChancePct = 5;
 
-export let QualityDropChance: [chance: number, level: number][] = [
-    [20, 2],
-    [10, 3],
-    [5, 4],
-    [1, 5],
+export let QualityWeights = [
+    {quality: 1, weight: 100},
+    {quality: 2, weight: 20},
+    {quality: 3, weight: 10},
+    {quality: 4, weight: 5},
+    {quality: 5, weight: 1},
 ];
+
+export function GetDropQuality(): number {
+    return GetByWeightFromArray(QualityWeights, (el) => el.weight).quality
+}
 
 export let Qualities: {[key: number]: string} = {
     1: "Common",
