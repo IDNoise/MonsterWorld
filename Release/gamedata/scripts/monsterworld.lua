@@ -2645,6 +2645,28 @@ end
 function StalkerModBase.prototype.OnItemFocusReceive(self, item)
 end
 function StalkerModBase.prototype.OnHudAnimationPlay(self, obj, anim_table)
+    local ____exports_Log_4 = ____exports.Log
+    local ____obj_section_result_0 = obj
+    if ____obj_section_result_0 ~= nil then
+        ____obj_section_result_0 = ____obj_section_result_0:section()
+    end
+    local ____obj_id_result_2 = obj
+    if ____obj_id_result_2 ~= nil then
+        ____obj_id_result_2 = ____obj_id_result_2:id()
+    end
+    ____exports_Log_4((("OnHudAnimationPlay " .. ____obj_section_result_0) .. ":") .. tostring(____obj_id_result_2))
+end
+function StalkerModBase.prototype.OnHudAnimationEnd(self, item, section, motion, state, slot)
+    local ____exports_Log_9 = ____exports.Log
+    local ____item_section_result_5 = item
+    if ____item_section_result_5 ~= nil then
+        ____item_section_result_5 = ____item_section_result_5:section()
+    end
+    local ____item_id_result_7 = item
+    if ____item_id_result_7 ~= nil then
+        ____item_id_result_7 = ____item_id_result_7:id()
+    end
+    ____exports_Log_9((((((((((("OnHudAnimationPlay " .. ____item_section_result_5) .. ":") .. tostring(____item_id_result_7)) .. " section:") .. section) .. " motion:") .. tostring(motion)) .. " state: ") .. tostring(state)) .. " slot:") .. tostring(slot))
 end
 function StalkerModBase.prototype.OnKeyRelease(self, key)
     ____exports.Log("OnKeyRelease " .. tostring(key))
@@ -2703,7 +2725,17 @@ function StalkerModBase.prototype.RegisterCallbacks(self)
     )
     RegisterScriptCallback(
         "actor_on_hud_animation_play",
-        function(anim_table, obj) return self:OnHudAnimationPlay(obj, anim_table) end
+        function(anim_table, item) return self:OnHudAnimationPlay(item, anim_table) end
+    )
+    RegisterScriptCallback(
+        "actor_on_hud_animation_end",
+        function(item, section, motion, state, slot) return self:OnHudAnimationEnd(
+            item,
+            section,
+            motion,
+            state,
+            slot
+        ) end
     )
     RegisterScriptCallback(
         "monster_on_net_spawn",
@@ -5194,6 +5226,7 @@ function MonsterWorldUI.prototype.InitHud(self)
             "enemy_health",
             cs:wnd()
         )
+        xml:InitStatic("enemy_health:background", self.enemyHP)
         self.enemyHP:Show(false)
         self.enemyHPBarProgress = xml:InitProgressBar("enemy_health:value_progress", self.enemyHP)
         self.enemyHPBarName = xml:InitTextWnd("enemy_health:name", self.enemyHP)
@@ -6048,8 +6081,8 @@ __TS__SetDescriptor(
                 math.min(newHp, self.MaxHP)
             )
             self:Save("HP", newHp)
-            if self.GO ~= nil then
-                self.GO:set_health_ex(newHp / self.MaxHP)
+            if self.GO ~= nil and newHp <= 0 then
+                self.GO:set_health_ex(newHp)
             end
             if self.IsDead then
                 self:OnDeath()

@@ -117,7 +117,6 @@ export class MWWeapon extends BaseMWObject {
 
         let minUpgradesToSelect = 1 + 2 * (this.Quality - 1)
         let maxUpgradesToSelect = 4 * this.Quality;
-        
 
         let damageBonusPct = 0;
         let allSelectedUpgrades: string[] = [];

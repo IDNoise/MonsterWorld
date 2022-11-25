@@ -236,6 +236,7 @@ export class MonsterWorldUI {
             
             Log(`Initializing enemy_health`)
             this.enemyHP = xml.InitStatic("enemy_health", cs.wnd());
+            xml.InitStatic("enemy_health:background", this.enemyHP)
             this.enemyHP.Show(false);
             this.enemyHPBarProgress = xml.InitProgressBar("enemy_health:value_progress", this.enemyHP)
             this.enemyHPBarName = xml.InitTextWnd("enemy_health:name", this.enemyHP)

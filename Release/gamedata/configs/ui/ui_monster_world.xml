@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <window>
-    <enemy_health x="392" y="80" width="260" height="35">
+    <enemy_health x="392" y="60" width="260" height="45">
+        <background x="-4" y="-4" width="268" height="54" stretch="1">
+            <texture a="150" r="30" g="30" b="30">ui_inGame2_white_rect</texture>
+        </background>
         <name x="0" y="0" width="260" height="10" stretch="1">
             <text font="graffiti22" align="c" vert_align="c"/>
         </name>
@@ -16,8 +19,8 @@
                 <texture r="225" g="40" b="40">ui_inGame2_white_rect</texture>
             </progress>
         </value_progress>
-        <out_of_distance x="0" y="33" width="260" height="10" stretch="1">
-            <text r="180" g="40" b="40" font="graffiti22" align="c" vert_align="c">!!! Out of reach !!!</text>
+        <out_of_distance x="0" y="34" width="260" height="10" stretch="1">
+            <text r="240" g="150" b="40" font="graffiti22" align="c" vert_align="c">!!! Out of reach !!!</text>
         </out_of_distance>
     </enemy_health>
 

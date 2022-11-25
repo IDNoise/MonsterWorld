@@ -143,7 +143,11 @@ export class StalkerModBase {
     }
 
     protected OnHudAnimationPlay(obj: game_object, anim_table: AnimationTable): void {
-        //Log(`OnHudAnimationPlay ${obj.section()}:${obj.id()}`);
+        Log(`OnHudAnimationPlay ${obj?.section()}:${obj?.id()}`);
+    }
+
+    protected OnHudAnimationEnd(item: game_object, section: Section, motion: any, state: any, slot: any): void {
+        Log(`OnHudAnimationPlay ${item?.section()}:${item?.id()} section:${section} motion:${motion} state: ${state} slot:${slot}`);
     }
 
     //Input 
@@ -171,7 +175,8 @@ export class StalkerModBase {
         RegisterScriptCallback("actor_on_item_drop",  (item) => this.OnItemDrop(item));
         RegisterScriptCallback("actor_on_item_use",  (item, sec) => this.OnItemUse(item));
         RegisterScriptCallback("actor_on_weapon_fired",  (obj, wpn, ammo_elapsed,grenade_elapsed,ammo_type,grenade_type) => this.OnWeaponFired(obj, wpn, ammo_elapsed));
-        RegisterScriptCallback("actor_on_hud_animation_play",  (anim_table: AnimationTable, obj: game_object) => this.OnHudAnimationPlay(obj, anim_table));
+        RegisterScriptCallback("actor_on_hud_animation_play",  (anim_table, item) => this.OnHudAnimationPlay(item, anim_table));
+        RegisterScriptCallback("actor_on_hud_animation_end",  (item, section, motion, state, slot) => this.OnHudAnimationEnd(item, section, motion, state, slot));
         // actor_on_before_death		            = {}, -- Params: (<number>,<table>)
         // actor_on_weapon_fired		            = {}, -- Params: (<game_object>,<game_object>,<number>,<number>,<number>,<number>)
         // actor_on_weapon_jammed		            = {}, -- Params: (<game_object>)
@@ -195,8 +200,6 @@ export class StalkerModBase {
         // actor_on_attach_vehicle		            = {}, -- Params: (<game_object>)
         // actor_on_detach_vehicle		            = {}, -- Params: (<game_object>)
         // actor_on_use_vehicle		            = {}, -- Params: (<game_object>)
-        // actor_on_hud_animation_play				= {}, -- Params: (<table>,<game_object>)
-        // actor_on_hud_animation_end              = {}, -- Params: (<game_object>,<string>,<?>,<?>,<number>)
         // actor_on_hud_animation_mark				= {}, -- Params: (<number>,<string>)
         // actor_on_sleep				            = {}, -- Params: (<number>)
         // actor_on_foot_step			            = {}, -- Params: (<game_object>,<number>,<?>,<?>,<?>)
