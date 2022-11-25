@@ -3178,7 +3178,7 @@ function MWWeapon.prototype.Initialize(self)
     )
     self.DescriptionBonuses = {}
     if (string.find(self.Section, "knife", nil, true) or 0) - 1 >= 0 then
-        self:SetStatBase(4, cfg.WeaponDPSBase * 5)
+        self:SetStatBase(4, cfg.WeaponDPSBase)
         return
     end
     self:GenerateWeaponStats()
@@ -3498,6 +3498,7 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillAuraOfDeath,
         "aura_of_death",
         self,
+        3,
         function(level) return 1 * level end,
         function(level) return 5 + 1 * level end,
         cfg.PriceFormulaConstant(2),
@@ -3532,8 +3533,6 @@ local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local ____exports = {}
 local ____basic = require("StalkerAPI.extensions.basic")
 local GetByWeightFromArray = ____basic.GetByWeightFromArray
-local ____StalkerModBase = require("StalkerModBase")
-local Log = ____StalkerModBase.Log
 ____exports.LevelType = LevelType or ({})
 ____exports.LevelType.None = 0
 ____exports.LevelType[____exports.LevelType.None] = "None"
@@ -4373,7 +4372,7 @@ ____exports.SkillAuraOfDeath = __TS__Class()
 local SkillAuraOfDeath = ____exports.SkillAuraOfDeath
 SkillAuraOfDeath.name = "SkillAuraOfDeath"
 __TS__ClassExtends(SkillAuraOfDeath, ____exports.Skill)
-function SkillAuraOfDeath.prototype.____constructor(self, Id, Owner, DpsPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
+function SkillAuraOfDeath.prototype.____constructor(self, Id, Owner, Interval, DpsPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
     if MaxLevel == nil then
         MaxLevel = -1
     end
@@ -4386,6 +4385,7 @@ function SkillAuraOfDeath.prototype.____constructor(self, Id, Owner, DpsPctPerLe
     )
     self.Id = Id
     self.Owner = Owner
+    self.Interval = Interval
     self.DpsPctPerLevel = DpsPctPerLevel
     self.RangePerLevel = RangePerLevel
     self.PriceFormula = PriceFormula
@@ -4397,7 +4397,7 @@ __TS__SetDescriptor(
     SkillAuraOfDeath.prototype,
     "Description",
     {get = function(self)
-        return ((("Every second damage all enemies in " .. tostring(self.Range)) .. "m range for ") .. tostring(self.DpsPct)) .. "% of DPS"
+        return ((((((("Every " .. tostring(self.Interval)) .. " ") .. (self.Interval == 1 and "second" or "seconds")) .. " damage all enemies in ") .. tostring(self.Range)) .. "m range for ") .. tostring(self.DpsPct)) .. "% of DPS"
     end},
     true
 )
@@ -4418,7 +4418,6 @@ __TS__SetDescriptor(
     true
 )
 function SkillAuraOfDeath.prototype.Update(self, deltaTime)
-    Log("Update aura of death")
     SkillAuraOfDeath.____super.prototype.Update(self, deltaTime)
     self.timePassed = self.timePassed + deltaTime
     if self.timePassed < self.interval then
@@ -4432,16 +4431,13 @@ function SkillAuraOfDeath.prototype.Update(self, deltaTime)
     local playerPos = self.World.Player.GO:position()
     local rangeSqr = self.Range * self.Range
     local damage = weapon.DPS * self.DpsPct / 100
-    Log((((("Dealing AOE. Range: " .. tostring(self.Range)) .. ". Damage: ") .. tostring(damage)) .. ". Monsters: ") .. tostring(self.World.Monsters.length))
     for _, monster in pairs(self.World.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
                 goto __continue48
             end
-            Log("Trying to attack " .. monster.Name)
             local distanceSqr = monster.GO:position():distance_to_sqr(playerPos)
             if distanceSqr <= rangeSqr then
-                Log("Attack " .. monster.Name)
                 self.World:DamageMonster(monster, damage, false)
             end
         end

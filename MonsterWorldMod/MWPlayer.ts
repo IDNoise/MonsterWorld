@@ -85,7 +85,7 @@ export class MWPlayer extends BaseMWObject {
         this.AddSkill(new SkillPassiveStatBonus(`sprint_speed`, this, StatType.SprintSpeed, StatBonusType.Pct, (level: number) => 5 * level, (l) => l * 2, 10))
         this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 5 * level, cfg.PriceFormulaLevel, 10))
         this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 10 * level, cfg.PriceFormulaConstant(1), 10))
-        this.AddSkill(new SkillAuraOfDeath(`aura_of_death`, this, (level: number) => 1 * level, (level: number) => 5 + 1 * level, cfg.PriceFormulaConstant(2), 10))
+        this.AddSkill(new SkillAuraOfDeath(`aura_of_death`, this, 3, (level: number) => 1 * level, (level: number) => 5 + 1 * level, cfg.PriceFormulaConstant(2), 10))
     }
 
     AddSkill(skill: Skill){

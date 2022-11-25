@@ -832,12 +832,12 @@ export class SkillHealPlayerOnKill extends Skill {
 }
 
 export class SkillAuraOfDeath extends Skill{
-    constructor(public Id: string, public Owner: BaseMWObject, public DpsPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number, 
+    constructor(public Id: string, public Owner: BaseMWObject, public Interval: number, public DpsPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number, 
         public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
         super(Id, Owner, PriceFormula, MaxLevel);
     }
 
-    get Description(): string { return `Every second damage all enemies in ${this.Range}m range for ${this.DpsPct}% of DPS`}
+    get Description(): string { return `Every ${this.Interval} ${this.Interval == 1 ? "second" : "seconds"} damage all enemies in ${this.Range}m range for ${this.DpsPct}% of DPS`}
 
     get Range(): number { return this.RangePerLevel(this.Level); }
     get DpsPct(): number { return this.DpsPctPerLevel(this.Level); }
@@ -845,7 +845,6 @@ export class SkillAuraOfDeath extends Skill{
     timePassed: number = 0;
     interval: number = 1;
     Update(deltaTime: number): void {
-        Log(`Update aura of death`)
         super.Update(deltaTime)
         this.timePassed += deltaTime;
         if (this.timePassed < this.interval)
@@ -860,15 +859,11 @@ export class SkillAuraOfDeath extends Skill{
         let rangeSqr = this.Range * this.Range;
         let damage = weapon.DPS * this.DpsPct / 100;
 
-        Log(`Dealing AOE. Range: ${this.Range}. Damage: ${damage}. Monsters: ${this.World.Monsters.length}`)
-
         for(let [_, monster] of this.World.Monsters){
             if (monster.GO == undefined || monster.IsDead)
                 continue;
-            Log(`Trying to attack ${monster.Name}`)
             let distanceSqr = monster.GO.position().distance_to_sqr(playerPos)
             if (distanceSqr <= rangeSqr){
-                Log(`Attack ${monster.Name}`)
                 this.World.DamageMonster(monster, damage, false)
             }
         }

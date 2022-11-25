@@ -19,7 +19,7 @@ export class MWWeapon extends BaseMWObject {
         this.DescriptionBonuses = new LuaTable();
 
         if (this.Section.indexOf("knife") >= 0){
-            this.SetStatBase(StatType.DamagePerHit, cfg.WeaponDPSBase * 5)
+            this.SetStatBase(StatType.DamagePerHit, cfg.WeaponDPSBase)
             //DO smth with knife or fuck it?
             return;
         }
