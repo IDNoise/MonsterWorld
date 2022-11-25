@@ -113,8 +113,7 @@ export class MonsterWorld {
     }
 
     public DestroyObject(id:Id) {
-        this.RemoveTTLTimer(id)
-        this.RemoveHighlight(id)
+        this.CleanupItemData(id);
         this.monsters.delete(id);
         this.weapons.delete(id);
     }
@@ -123,9 +122,15 @@ export class MonsterWorld {
         //Log(`OnTakeItem: ${item.id()}`)
         let weapon = this.GetWeapon(item)
         weapon?.OnWeaponPickedUp();
+        this.CleanupItemData(item.id());
+    }
 
-        this.RemoveHighlight(item.id());
-        this.RemoveTTLTimer(item.id())
+    private CleanupItemData(id: Id){
+        this.RemoveTTLTimer(id)
+        this.RemoveHighlight(id)
+        level.map_remove_object_spot(id, SpotType.Body);
+        level.map_remove_object_spot(id, SpotType.Friend)
+        level.map_remove_object_spot(id, SpotType.Treasure)
     }
 
     public OnItemUse(item: game_object) {
@@ -331,6 +336,19 @@ export class MonsterWorld {
             let pos = obj.position()
             pos.y -= 0.1;
             particles.play_at_pos(pos)
+
+            let spotType = SpotType.Body;
+            if (type == cfg.DropType.Stimpack){
+                level.map_add_object_spot_ser(id, SpotType.Friend, "")
+            }
+            else if (type == cfg.DropType.Weapon){
+                if (quality == 3 || quality == 4)
+                    spotType = SpotType.Friend;
+                if (quality == 5)
+                    spotType = SpotType.Treasure;
+            }
+            level.map_add_object_spot_ser(id, spotType, "")
+
             return true;
         })
     }

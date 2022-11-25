@@ -1,6 +1,6 @@
 import { GetByWeightFromArray, RandomFromArray } from '../StalkerAPI/extensions/basic';
 
-export enum LevelType { //if ((types & EnemyLevelType.Open) === EnemyLevelType.Open) {
+export enum LevelType { 
     None = 0,
     Open = 1 << 0,
     Underground = 1 << 1,
@@ -217,6 +217,9 @@ MonsterConfigs.set(MonsterType.Bandit, {
     level_start: 1,
     level_end: 8,
     level_type: LevelType.NonLab,
+    hp_mult: 1.5,
+    xp_mult: 1.1,
+    damage_mult: 1.25,
     squad_size_min: 8,
     squad_size_max: 16,
     common_section: "sim_default_bandit_2",
@@ -271,7 +274,7 @@ MonsterConfigs.set(MonsterType.Zombified, {
     level_start: 2,
     hp_mult: 1.5,
     xp_mult: 1,
-    damage_mult: 0.75,
+    damage_mult: 1.25,
     squad_size_min: 10,
     squad_size_max: 24,
     common_section: "sim_default_zombied_2",
@@ -297,6 +300,9 @@ MonsterConfigs.set(MonsterType.Army, {
     type: MonsterType.Army,
     level_start: 4,
     level_type: LevelType.NonLab,
+    hp_mult: 1.75,
+    xp_mult: 1.25,
+    damage_mult: 1.5,
     squad_size_min: 8,
     squad_size_max: 16,
     common_section: "sim_default_military_1",
@@ -404,6 +410,9 @@ MonsterConfigs.set(MonsterType.Sin, {
     type: MonsterType.Sin,
     level_start: 8,
     level_type: LevelType.NonLab,
+    hp_mult: 2.1,
+    xp_mult: 1.5,
+    damage_mult: 1.6,
     squad_size_min: 8,
     squad_size_max: 16,
     common_section: "sim_default_greh_2",
@@ -444,6 +453,9 @@ MonsterConfigs.set(MonsterType.Mercenary, {
     type: MonsterType.Mercenary,
     level_start: 12,
     level_type: LevelType.NonLab,
+    hp_mult: 2.25,
+    xp_mult: 1.5,
+    damage_mult: 1.75,
     squad_size_min: 8,
     squad_size_max: 16,
     common_section: "sim_default_killer_2",
@@ -472,7 +484,7 @@ MonsterConfigs.set(MonsterType.MonolithSoldier, {
     level_type: LevelType.All,
     hp_mult: 2.5,
     xp_mult: 1.75,
-    damage_mult: 1.5,
+    damage_mult: 2,
     squad_size_min: 10,
     squad_size_max: 20,
     common_section: "sim_default_monolith_2",
@@ -621,6 +633,90 @@ export function GetDropParticles(type: DropType, quality: number): string {
     }
 
     return "_samples_particles_\\holo_lines";
+}
+
+
+export enum WeaponBonusParamType{
+    Damage = "damage",
+    Rpm = "rpm",
+    MagSize = "mag_size",
+    FireMode = "fire_mode",
+    Dispersion = "dispersion",
+    Inertion = "inertion",
+    Recoil = "recoil",
+    ReloadSpeed = "reload_speed",
+    BulletSpeed = "bullet_speed",
+    CritChance = "crit_chance",
+}
+
+export let ParamsForSelection = [
+    WeaponBonusParamType.Damage, 
+    WeaponBonusParamType.Rpm, 
+    WeaponBonusParamType.MagSize, 
+    WeaponBonusParamType.Dispersion, 
+    WeaponBonusParamType.Inertion, 
+    WeaponBonusParamType.Recoil, 
+    WeaponBonusParamType.ReloadSpeed, 
+    WeaponBonusParamType.CritChance
+]; 
+export let ParamsWithWeaponUpgradesSelection = [
+    WeaponBonusParamType.Rpm, 
+    WeaponBonusParamType.MagSize, 
+    WeaponBonusParamType.Dispersion, 
+    WeaponBonusParamType.Inertion, 
+    WeaponBonusParamType.Recoil, 
+    WeaponBonusParamType.BulletSpeed, 
+    WeaponBonusParamType.FireMode
+]; 
+
+let NegativeBonuses = [WeaponBonusParamType.Recoil];
+let HasNoValue = [WeaponBonusParamType.FireMode];
+
+export let PctBonuses = [
+    WeaponBonusParamType.Damage, 
+    WeaponBonusParamType.Rpm, 
+    WeaponBonusParamType.Dispersion, 
+    WeaponBonusParamType.Inertion, 
+    WeaponBonusParamType.Recoil, 
+    WeaponBonusParamType.BulletSpeed, 
+    WeaponBonusParamType.ReloadSpeed, 
+    WeaponBonusParamType.CritChance
+];
+
+export let SectionFields : {[key in WeaponBonusParamType]: string} = {
+    damage: "_NotUsed",
+    reload_speed: "_NotUsed",
+    crit_chance: "_NotUsed",
+    rpm: "rpm",
+    mag_size: "ammo_mag_size",
+    dispersion: "fire_dispersion_base",
+    inertion: "crosshair_inertion",
+    recoil: "cam_dispersion",
+    bullet_speed: "bullet_speed",
+    fire_mode: "fire_mode",
+}
+
+let BonusDescriptions : {[key in WeaponBonusParamType]: string} = {
+    damage: "Damage",
+    rpm: "Fire Rate",
+    mag_size: "Mag size",
+    fire_mode: "AUTO fire mode enabled",
+    dispersion: "Accuracy",
+    inertion: "Handling",
+    recoil: "Recoil",
+    reload_speed: "Reload speed",
+    crit_chance: "Crit chance",
+    bullet_speed: "Flatness"
+}
+
+export function GetBonusDescription(type: WeaponBonusParamType, bonus: number = 0): string{
+    if (HasNoValue.includes(type))
+        return `%c[255,255,255,0]${BonusDescriptions[type]}${EndColorTag}`;
+        //return BonusDescriptions[type];
+    
+    const valueStr = `${NegativeBonuses.includes(type) ? "-" : "+"}${math.floor(bonus)}${PctBonuses.includes(type) ? "\%" : ""}`;
+    //return `${BonusDescriptions[type]} ${valueStr}`
+    return `%c[255,56,166,209]${valueStr.padEnd(6, " ")}${EndColorTag} ${BonusDescriptions[type]}`
 }
 
 //Funny mess - anomaly2\\body_tear_00

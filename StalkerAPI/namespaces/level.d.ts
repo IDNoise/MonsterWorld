@@ -45,24 +45,24 @@ declare namespace level {
 //   function set_weather(string, boolean)
 //   function show_indicators()
     function get_game_difficulty(): game_difficulty;
-//   function map_remove_object_spot(number, string)
-//   function remove_dialog_to_render(CUIDialogWnd*)
-//   function stop_weather_fx()
-//   function patrol_path_exists(string)
-//   function vertex_position(number)
-//   function show_weapon(boolean)
-//   function get_wfx_time()
-//   function disable_input()
-//   function map_add_object_spot(number, string, string)
-//   function get_time_minutes()
-//   function get_time_factor()
-//   function map_add_object_spot_ser(number, string, string)
+    //   function remove_dialog_to_render(CUIDialogWnd*)
+    //   function stop_weather_fx()
+    //   function patrol_path_exists(string)
+    //   function vertex_position(number)
+    //   function show_weapon(boolean)
+    //   function get_wfx_time()
+    //   function disable_input()
+    //   function map_add_object_spot(number, string, string)
+    //   function get_time_minutes()
+    //   function get_time_factor()
+    function map_remove_object_spot(id: Id, spotType: SpotType): void;
+    function map_add_object_spot_ser(id: Id, spotType: SpotType, info: string): void;
+    function map_has_object_spot(id: Id, spotType: SpotType): boolean;
 //   function set_game_difficulty(enum ESingleGameDifficulty)
 //   function low_cover_in_direction(number, const vector&)
 //   function is_wfx_playing()
 //   function set_time_factor(number)
 //   function client_spawn_manager()
-//   function map_has_object_spot(number, string)
 //   function add_dialog_to_render(CUIDialogWnd*)
 //   function start_weather_fx_from_time(string, number)
 //   function hide_indicators_safe()
@@ -77,4 +77,19 @@ declare namespace level {
 //   function hold_action(cmd)     -- REZY: init a key press event
 //   function get_env_rads() -- returns a float, HUD sensor value
 //   function iterate_nearest(const vector&, number, function<bool>) --(pos, radius, functor) -- functor passes game objects, returning true breaks the functor
+}
+
+declare const enum SpotType{
+    Treasure = "treasure",
+    Artefact = "artefact",
+    AnomZone = "anom_zone",
+    TreasureAll= "treasure_all",
+    TreasureAllOpened = "treasure_all_opened",
+    SecondaryTask = "secondary_task_location",
+    Bed = "ui_pda2_actor_sleep_location",
+    Mechanic = "ui_pda2_mechanic_location",
+    Body = "deadbody_location",
+    Neutral ="neutral_location",
+    Friend = "friend_location",
+    Enemy = "enemy_location",
 }
