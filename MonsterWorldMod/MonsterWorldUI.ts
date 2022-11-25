@@ -1,6 +1,7 @@
 import { Log } from '../StalkerModBase';
 import { MonsterWorld } from './MonsterWorld';
 import * as cfg from './MonsterWorldConfig';
+import { StatType } from './MonsterWorldConfig';
 import { MWMonster } from './MWMonster';
 
 type DamageNumberEntry = {
@@ -124,8 +125,8 @@ export class MonsterWorldUI {
 
         const oldUIInventoryInitControls = ui_inventory.UIInventory.InitControls;
         ui_inventory.UIInventory.InitControls = (s: any) => {
+            this.OnInitInventoryControls(s);
             oldUIInventoryInitControls(s);
-            this.OnInitInventoryControls(s)
         }
     }
 
@@ -505,7 +506,7 @@ export class MonsterWorldUI {
         if (weapon == undefined)
             return 0;
 
-        return math.max(1, obj?.cast_Weapon()?.GetAmmoMagSize() || 0); 
+        return weapon.MagSize;
     }
 
     UIGetWeaponFireDistance(obj: game_object): number { 
@@ -515,7 +516,6 @@ export class MonsterWorldUI {
 
         return math.max(1, obj?.cast_Weapon()?.GetFireDistance() || 0); 
     }
-    
 }
 
 

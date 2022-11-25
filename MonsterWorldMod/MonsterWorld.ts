@@ -287,10 +287,10 @@ export class MonsterWorld {
         let sgo: cse_alife_object | undefined = undefined;
         let quality = 1;
         if (type == cfg.DropType.Weapon){
-            [sgo, quality] = this.GenerateWeaponDrop(monster);
+            [sgo, quality] = this.GenerateWeaponDropFromMonster(monster);
         }
         else if (type == cfg.DropType.Stimpack){
-            [sgo, quality] = this.GenerateStimpackDrop(monster);
+            [sgo, quality] = this.GenerateStimpackDropFromMonster(monster);
         }
 
         if (sgo != undefined){
@@ -307,7 +307,7 @@ export class MonsterWorld {
         }
     }
 
-    GenerateWeaponDrop(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
+    GenerateWeaponDrop(dropLevel: number, qualityLevel: number, pos: WorldPosition): cse_alife_object | undefined {
         let typedSections = ini_sys.r_list("mw_drops_by_weapon_type", "sections");
         let selectedTypeSection = RandomFromArray(typedSections);
         let weaponCount = ini_sys.line_count(selectedTypeSection);
@@ -317,38 +317,47 @@ export class MonsterWorld {
         let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
         let selectedVariant = RandomFromArray(weaponVariants)
         
-        let dropLevel = monster.Level;
         if (IsPctRolled(cfg.HigherLevelDropChancePct)){
             dropLevel++;
         }
-            
-        let qualityLevel = cfg.GetDropQuality();
-    
-        if (IsPctRolled(cfg.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
-        if (IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
-        
+
         Log(`Spawning ${selectedVariant}`)
-        let sgo = alife_create_item(selectedVariant, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO))// db.actor.position());
+        let sgo = alife_create_item(selectedVariant, pos)// db.actor.position());
         if (!sgo){
             Log(`GenerateWeaponDrop spawn failed`)
-            return $multi(undefined, 1);
+            return undefined;
         }
 
         qualityLevel = math.min(qualityLevel, cfg.MaxQuality)
 
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
-        return $multi(sgo, qualityLevel);
+        return sgo;
+        
     }
 
-    GenerateStimpackDrop(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
-        let [stimpackSection, quality] = cfg.GetStimpack();
-        Log(`Spawning ${stimpackSection}`)
-        let sgo = alife_create_item(stimpackSection, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO))
+    GenerateWeaponDropFromMonster(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
+        let dropLevel = monster.Level;
+        let qualityLevel = cfg.GetDropQuality();
+    
+        if (IsPctRolled(cfg.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
+        if (IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
+        return $multi(this.GenerateWeaponDrop(dropLevel, qualityLevel, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO)), qualityLevel)
+    }
+
+    GenerateStimpackDrop(section: Section, pos: WorldPosition): cse_alife_object | undefined {
+        let sgo = alife_create_item(section, pos)
         if (!sgo){
             Log(`GenerateStimpackDrop spawn failed`)
-            return $multi(undefined, 1);
+            return undefined;
         }
-        return $multi(sgo, quality);
+        return sgo;
+    }
+
+    GenerateStimpackDropFromMonster(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
+        let [stimpackSection, quality] = cfg.GetStimpack();
+        Log(`Spawning ${stimpackSection}`)
+        
+        return $multi(this.GenerateStimpackDrop(stimpackSection, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO)), quality);
     }
 
     highlightParticles: LuaTable<Id, particles_object> = new LuaTable()

@@ -1,9 +1,10 @@
-import { EnableMutantLootingWithoutKnife } from '../StalkerAPI/extensions/basic';
+import { EnableMutantLootingWithoutKnife, CreateWorldPositionAtGO } from '../StalkerAPI/extensions/basic';
 import { Log, StalkerModBase } from '../StalkerModBase';
 import { HitInfo, MonsterWorld } from './MonsterWorld';
 import { CriticalBones } from './MonsterWorldBones';
 import { MWMonster } from './MWMonster';
 import { ReloadAnims } from './MonsterWorldAnims';
+import { GetStimpack } from './MonsterWorldConfig';
 
 export class MonsterWorldMod extends StalkerModBase {
     public World: MonsterWorld;
@@ -70,15 +71,40 @@ export class MonsterWorldMod extends StalkerModBase {
         }
     }
 
-    protected override OnHudAnimationPlay(obj: game_object, anim_table: AnimationTable): void {
-        super.OnHudAnimationPlay(obj, anim_table);
+    protected override OnHudAnimationPlay(item: game_object, anim_table: AnimationTable): void {
+        super.OnHudAnimationPlay(item, anim_table);
 
-        let weapon = this.World.GetWeapon(obj)
+        let weapon = this.World.GetWeapon(item)
         if (weapon == undefined)
             return;
 
         if (ReloadAnims.includes(anim_table.anm_name))
             weapon.OnReloadStart(anim_table)
+    }
+
+    protected override OnHudAnimationEnd(item: game_object, section: string, motion: any, state: any, slot: any): void {
+        super.OnHudAnimationEnd(item, section, motion, state, slot)
+
+        let weapon = this.World.GetWeapon(item)
+        if (weapon == undefined)
+            return;
+
+        if (ReloadAnims.includes(motion)){
+            weapon.OnReloadEnd()
+        }
+    }
+
+    protected override OnBeforeKeyPress(key: DIK_keys, bind: key_bindings, dis: boolean): boolean {
+        if (bind == key_bindings.kWPN_RELOAD){
+            let weapon = this.World.Player.Weapon;
+            let weaponGO = weapon?.GO.cast_Weapon();
+            if (weaponGO != undefined && weaponGO.GetAmmoElapsed() < (weapon?.MagSize || 1)){
+                weaponGO.SetAmmoElapsed(0);
+                return true;
+            }
+        }
+
+        return super.OnBeforeKeyPress(key, bind, dis)
     }
 
     // protected override OnItemFocusReceive(item: game_object): void {
@@ -181,7 +207,13 @@ export class MonsterWorldMod extends StalkerModBase {
     protected override OnKeyRelease(key: DIK_keys): void {
         super.OnKeyRelease(key)
         if (key == DIK_keys.DIK_DELETE) {
-            this.World.Player.SkillPoints += 100;
+            this.World.Player.SkillPoints += 1000;
+        }
+        if (key == DIK_keys.DIK_UP) {
+            this.World.GenerateWeaponDrop(math.random(1, 30), math.random(1, 5), CreateWorldPositionAtGO(db.actor));
+        }
+        if (key == DIK_keys.DIK_DOWN) {
+            this.World.GenerateStimpackDrop(GetStimpack()[0], CreateWorldPositionAtGO(db.actor));
         }
     }
 

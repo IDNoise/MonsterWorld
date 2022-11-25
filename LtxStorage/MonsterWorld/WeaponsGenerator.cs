@@ -173,8 +173,6 @@ public class WeaponsGenerator : BaseGenerator
                 recoil_upgrades = string.Join(",", upgradesByType[UpgradeType.Recoil].Select(s => s.Name)),
                 fire_mode_upgrades = string.Join(",", upgradesByType[UpgradeType.FireMode].Select(s => s.Name)),
                 bullet_speed_upgrades = string.Join(",", upgradesByType[UpgradeType.BulletSpeed].Select(s => s.Name)),
-                mag_size_upgrades = string.Join(",", upgradesByType[UpgradeType.MagSize].Select(s => s.Name)),
-                rpm = (int)Math.Min(900, baseWeapon.GetInt("rpm")),
                 ammo_class = ammoConfigs[type].SectionName,
                 fire_distance = weaponFireDistanceByType[type]
             };
@@ -222,7 +220,6 @@ public class WeaponsGenerator : BaseGenerator
         result.Add(UpgradeType.Rpm, new List<Section>());
         result.Add(UpgradeType.BulletSpeed, new List<Section>());
         result.Add(UpgradeType.FireMode, new List<Section>());
-        result.Add(UpgradeType.MagSize, new List<Section>());
         
         float GetValuePerStep(float currentValue, int pctPerStep, float minValuePerStep = 0) 
         {
@@ -240,14 +237,6 @@ public class WeaponsGenerator : BaseGenerator
             int valuePerStep = (int)GetValuePerStep(rpm, 5, rpm <= 100 ? 2 : 1);
             for (int i = 0; i < steps; i++) {
                 result[UpgradeType.Rpm].Add(GenerateUpgrade(new { rpm = ToUpgradeValue(valuePerStep) }));
-            }
-        }
-        
-        {
-            var magSize = weapon.GetInt("ammo_mag_size");
-            int valuePerStep = (int)GetValuePerStep(magSize, 10, 1);
-            for (int i = 0; i < steps; i++) {
-                result[UpgradeType.MagSize].Add(GenerateUpgrade(new { ammo_mag_size = ToUpgradeValue(valuePerStep) }));
             }
         }
         
@@ -411,8 +400,7 @@ public class WeaponsGenerator : BaseGenerator
         Inertion,
         Recoil,
         FireMode,
-        BulletSpeed,
-        MagSize
+        BulletSpeed
     }
 
     private Dictionary<FireModeUpgradeType, Section> fireModeUpgrades = new();

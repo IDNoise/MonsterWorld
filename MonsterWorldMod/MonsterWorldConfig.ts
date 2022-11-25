@@ -550,12 +550,7 @@ export let EnemyDropQualityIncreaseChanceByRank: number[] = [1, 20, 50];
 //Weapons
 export let WeaponDPSBase = EnemyHPBase / 0.5;
 export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel - 0.005;
-export let WeaponDPSDeltaPct = 10;
-export let WeaponDPSPctPerQuality = 25;
-
-export let WeaponDamageBonusPctPerUpgrade = 5;
-export let WeaponReloadSpeedBonusPctPerUpgrade = 5;
-export let WeaponCritChanceBonusPctPerUpgrade = 0.225;
+export let WeaponDPSPctPerQuality = 10;
 
 //Drops
 export let EnemyDropChance = 15;
@@ -672,7 +667,6 @@ export let ParamsForSelection = [
 ]; 
 export let ParamsWithWeaponUpgradesSelection = [
     WeaponBonusParamType.Rpm, 
-    WeaponBonusParamType.MagSize, 
     WeaponBonusParamType.Dispersion, 
     WeaponBonusParamType.Inertion, 
     WeaponBonusParamType.Recoil, 
@@ -686,6 +680,7 @@ let HasNoValue = [WeaponBonusParamType.FireMode];
 export let PctBonuses = [
     WeaponBonusParamType.Damage, 
     WeaponBonusParamType.Rpm, 
+    WeaponBonusParamType.MagSize, 
     WeaponBonusParamType.Dispersion, 
     WeaponBonusParamType.Inertion, 
     WeaponBonusParamType.Recoil, 
@@ -698,8 +693,8 @@ export let SectionFields : {[key in WeaponBonusParamType]: string} = {
     damage: "_NotUsed",
     reload_speed: "_NotUsed",
     crit_chance: "_NotUsed",
+    mag_size: "_NotUsed",
     rpm: "rpm",
-    mag_size: "ammo_mag_size",
     dispersion: "fire_dispersion_base",
     inertion: "crosshair_inertion",
     recoil: "cam_dispersion",
@@ -893,6 +888,7 @@ export const enum StatType{
     CritChancePct, //Player + Weapon
     DamageToStalkersBonusPct, //Player + Weapon
     DamageToMutantssBonusPct, //Player + Weapon
+    MagSize, //Player + Weapon
 }
 
 export let StatTitles: {[key in StatType]: string} = {
@@ -906,6 +902,7 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.CritChancePct]: "Crit Chance",
     [StatType.DamageToStalkersBonusPct]: "Damage to Stalkers",
     [StatType.DamageToMutantssBonusPct]: "Damage to Mutants",
+    [StatType.MagSize]: "Ammo",
 }
 
 export let PctStats: StatType[] = [StatType.CritDamagePct, StatType.CritChancePct, StatType.DamageToStalkersBonusPct, StatType.DamageToMutantssBonusPct, StatType.ReloadSpeedBonusPct]

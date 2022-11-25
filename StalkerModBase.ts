@@ -155,6 +155,15 @@ export class StalkerModBase {
         Log(`OnKeyRelease ${key}`);
     }
 
+    protected OnKeyHold(key: DIK_keys){
+        Log(`OnKeyHold ${key}`);
+    }
+
+    protected OnBeforeKeyPress(key: DIK_keys, bind: key_bindings, dis: boolean): boolean{
+        Log(`OnKeyRelease ${key}`);
+        return true;
+    }
+
     protected RegisterCallbacks():void{
         Log("Register callbacks");
 
@@ -332,6 +341,8 @@ export class StalkerModBase {
         // on_game_load				            = {}, -- Params: (<binder>)
         // on_key_press				            = {}, -- Params: (<number>)
         RegisterScriptCallback("on_key_release", (key) => this.OnKeyRelease(key));
+        RegisterScriptCallback("on_key_hold", (key) => this.OnKeyHold(key));
+        RegisterScriptCallback("on_before_key_press", (key, bind, dis, flags: CallbackReturnFlags) => {flags.ret_value = this.OnBeforeKeyPress(key, bind, dis) });
         // on_key_hold					            = {}, -- Params: (<number>)
         // on_before_key_press						= {}, -- Params: (<number>,<number>,<boolean>,<table>)
         // on_option_change                        = {}, -- Params: ()

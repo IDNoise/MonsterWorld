@@ -70,7 +70,7 @@ declare function copy_table(source: LTable, target: LTable): void;
 // declare function cast_planner(action_base*)
 // declare function IsGameTypeSingle()
 // declare function game_graph()
-// declare function dik_to_bind(number)
+declare function dik_to_bind(key: DIK_keys): key_bindings;
 // declare function render_get_dx_level()
 // declare function sell_condition(ini_file*, string)
 // declare function sell_condition(number, number)
