@@ -11,7 +11,7 @@ export class MWWeapon extends BaseMWObject {
         super(World, id);
     }
 
-    override Initialize(): void {
+    override OnFirstTimeInitialize(): void {
         let spawnCfg = this.Load<WeaponSpawnParams>("SpawnParams", {level: 1, quality: 1})
 
         this.Level = spawnCfg.level;

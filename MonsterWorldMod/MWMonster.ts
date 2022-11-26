@@ -9,7 +9,7 @@ export class MWMonster extends BaseMWObject{
         super(World, id);
     }
 
-    override Initialize(): void {
+    override OnFirstTimeInitialize(): void {
         let spawnConfig = this.Load<MonsterSpawnParams>("SpawnParams")
 
         this.Type = spawnConfig.type;

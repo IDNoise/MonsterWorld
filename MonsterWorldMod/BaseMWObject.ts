@@ -2,20 +2,22 @@ import { Load, Save } from '../StalkerAPI/extensions/basic';
 import { Log } from '../StalkerModBase';
 import { MonsterWorld } from './MonsterWorld';
 import { PctStats, StatBonusType, StatType } from './MonsterWorldConfig';
+import { Skill } from './Skills/Skill';
 
 export abstract class BaseMWObject {
+    Skills: Map<string, Skill> = new Map();
+
     constructor(public World: MonsterWorld, public id: Id) {
-        if (!this.Initialized){
-            this.Initialize();
-            this.Initialized = true;
-        }
-        else {
-            this.Reinit()
-        }
+        
     }
 
-    get Initialized(): boolean { return this.Load("Initialized"); }
-    set Initialized(initialized: boolean) { this.Save("Initialized", initialized); }
+    Initialize(): void{
+        if (!this.WasInitializedForFirstTime){
+            this.OnFirstTimeInitialize();
+            this.WasInitializedForFirstTime = true;
+        }
+        this.OnInitialize()
+    }
 
     get ServerGO(): cse_alife_object { return alife().object(this.id); }
     get GO(): game_object { return level.object_by_id(this.id); }
@@ -109,11 +111,33 @@ export abstract class BaseMWObject {
         }
     }
 
+    SetSkillLevel(skillId: string, level: number): void{ this.Save(`SkillLevel_${skillId}`, level); }
+    GetSkillLevel(skillId: string): number{ return this.Load(`SkillLevel_${skillId}`, 0);}
+
+    protected SetupSkills() {
+    }
+
+    protected AddSkill(skill: Skill){
+        skill.Init();
+        this.Skills.set(skill.Id, skill)
+    }
+
+    IterateSkills(iterator: (s: Skill) => void, onlyWithLevel: boolean = true){
+        for(const [_, skill] of this.Skills){
+            if (!onlyWithLevel || skill.Level > 0)
+                iterator(skill);
+        }
+    }
+
     protected Save<T>(varname: string, val: T): void { Save(this.id, "MW_" + varname, val); };
     protected Load<T>(varname: string, def?: T): T { return Load(this.id, "MW_" + varname, def); }
     
-    protected abstract Initialize(): void;
-    protected Reinit(): void {}
+    private get WasInitializedForFirstTime(): boolean { return this.Load("Initialized"); }
+    private set WasInitializedForFirstTime(initialized: boolean) { this.Save("Initialized", initialized); }
+    protected OnFirstTimeInitialize(): void {}
+    protected OnInitialize(): void {
+        this.SetupSkills();
+    }
 
     protected OnDeath(): void {}
 }

@@ -1,8 +1,5 @@
 import { GetByWeightFromArray, RandomFromArray } from '../StalkerAPI/extensions/basic';
-import { MWMonster } from './MWMonster';
-import { MonsterWorld } from './MonsterWorld';
 import { MWPlayer } from './MWPlayer';
-import { BaseMWObject } from './BaseMWObject';
 import { Log } from '../StalkerModBase';
 
 export enum LevelType { 
@@ -543,7 +540,7 @@ export let EnemyBossChance = 5;
 
 export let EnemyHpMultsByRank: number[] = [1, 3, 10];
 export let EnemyXpMultsByRank: number[] = [1, 3, 10];
-export let EnemyDamageMultsByRank: number[] = [1, 2, 5];
+export let EnemyDamageMultsByRank: number[] = [1, 1.5, 3];
 export let EnemyDropLevelIncreaseChanceByRank: number[] = [1, 20, 50];
 export let EnemyDropQualityIncreaseChanceByRank: number[] = [1, 20, 50];
 
@@ -720,156 +717,6 @@ export function GetBonusDescription(type: WeaponBonusParamType, bonus: number = 
     //return `${BonusDescriptions[type]} ${valueStr}`
     return `%c[255,56,166,209]${valueStr.padEnd(6, " ")}${EndColorTag} ${BonusDescriptions[type]}`
 }
-
-export abstract class Skill {
-    private level: number = 0;
-
-    public World: MonsterWorld;
-
-    constructor(public Id: string, public Owner: BaseMWObject, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
-        this.World = this.Owner.World;
-    }
-
-    get Level(): number { return this.level; }
-    set Level(level: number) { 
-        let oldLevel = this.Level;
-        this.level = level; 
-        if (level > oldLevel){
-            this.OnLevelUp(oldLevel, level);
-        }
-    }
-
-    Upgrade(): void{
-        if (!this.CanBeUpgraded) return;
-
-        let player = this.World.Player;
-        let price = this.UpgradePrice;
-        
-        if (player.SkillPoints >= price){
-            player.SkillPoints -= price;
-            this.Level++;
-        }
-    }
-
-    OnLevelUp(oldLevel: number, newLevel: number): void {
-        this.UpdateUI();
-    }
-
-    UpdateUI(): void {
-        this.DescriptionText?.SetText(this.Description)
-        this.LevelText?.SetText(`L. ${this.Level}`)
-        this.UpdateUpgradeButton();
-    }
-
-    get CanBeUpgraded(): boolean { return !this.IsMaxLevelReached && this.PlayerHasMoney; }
-
-    get PlayerHasMoney(): boolean { return this.UpgradePrice <= this.World.Player.SkillPoints; }
-
-    get IsMaxLevelReached(): boolean { return this.MaxLevel != -1 && this.Level >= this.MaxLevel; }
-
-    UpdateUpgradeButton(){
-        this.UpgradeButton.Enable(this.CanBeUpgraded)
-        this.UpgradeButton?.TextControl().SetText(!this.IsMaxLevelReached ? `${this.UpgradePrice} SP` : "MAX")
-    }
-
-    abstract get Description():string;
-    get UpgradePrice(): number { return this.PriceFormula != undefined ? this.PriceFormula(this.Level + 1) : 0; }
-
-    //UI stuff
-    public DescriptionText: CUITextWnd;
-    public LevelText: CUITextWnd;
-    public UpgradeButton: CUI3tButton;
-
-    //Event handlers
-    Update(deltaTime: number){}
-    OnMonsterHit(monster: MWMonster, isCrit: boolean): void{}
-    OnMonsterKill(monster: MWMonster, isCrit: boolean ): void{}
-}
-
- export class SkillPassiveStatBonus extends Skill {
-    constructor(public Id: string, public Owner: BaseMWObject, public Stat: StatType, public BonusType: StatBonusType,  
-        public ValuePerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
-        super(Id, Owner, PriceFormula, MaxLevel);
-    }
-
-    override OnLevelUp(oldLevel: number, newLevel: number): void {
-        super.OnLevelUp(oldLevel, newLevel)
-        this.World.Player.AddStatBonus(this.Stat, this.BonusType, this.Value, this.Id)
-    }
-
-    get Description(): string { 
-        let value = this.Value;
-        let statTitle = StatTitles[this.Stat];
-        if (this.BonusType == StatBonusType.Flat){
-            return `${statTitle} ${value > 0 ? "+": ""}${value}${PctStats.includes(this.Stat) ? "%" : ""}` 
-        }
-        else if (this.BonusType == StatBonusType.Pct){
-            return `${statTitle} ${value > 0 ? "+": ""}${value}%` 
-        }
-        return `${statTitle} x${value}` 
-    }
-
-    get Value(): number {return this.ValuePerLevel(this.Level); }
-}
-
-export class SkillHealPlayerOnKill extends Skill {
-    constructor(public Id: string, public Owner: BaseMWObject, public HpPerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
-        super(Id, Owner, PriceFormula, MaxLevel);
-    }
-
-    
-    get Description(): string { return `+${this.HPOnKill} HP on kill` }
-
-    OnMonsterKill(monster: MWMonster, isCrit: boolean): void {
-        this.World.Player.HP += this.HPOnKill;
-    }
-
-    get HPOnKill(): number { return this.HpPerLevel(this.Level); }
-}
-
-export class SkillAuraOfDeath extends Skill{
-    constructor(public Id: string, public Owner: BaseMWObject, public Interval: number, public DpsPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number, 
-        public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
-        super(Id, Owner, PriceFormula, MaxLevel);
-    }
-
-    get Description(): string { return `Every ${this.Interval} ${this.Interval == 1 ? "second" : "seconds"} damage all enemies in ${this.Range}m range for ${this.DpsPct}% of DPS`}
-
-    get Range(): number { return this.RangePerLevel(this.Level); }
-    get DpsPct(): number { return this.DpsPctPerLevel(this.Level); }
-
-    timePassed: number = 0;
-    Update(deltaTime: number): void {
-        super.Update(deltaTime)
-        this.timePassed += deltaTime;
-        if (this.timePassed < this.Interval)
-            return;
-
-        let weapon = this.World.Player.Weapon;
-        if (weapon == undefined) 
-            return;
-        
-        this.timePassed -= this.Interval;
-        let playerPos = this.World.Player.GO.position()
-        let rangeSqr = this.Range * this.Range;
-        let damage = weapon.DPS * this.DpsPct / 100;
-
-        for(let [_, monster] of this.World.Monsters){
-            if (monster.GO == undefined || monster.IsDead)
-                continue;
-            let distanceSqr = monster.GO.position().distance_to_sqr(playerPos)
-            if (distanceSqr <= rangeSqr){
-                this.World.DamageMonster(monster, damage, false)
-            }
-        }
-    }
-}
-
-export function PriceFormulaConstant(price: number) {
-    return (_level: number) => price;
-}
-
-export let PriceFormulaLevel = (level: number) => level;
 
 export const enum StatType{
     RunSpeed = 0, //Player only

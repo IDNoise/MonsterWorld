@@ -143,24 +143,24 @@ export class StalkerModBase {
     }
 
     protected OnHudAnimationPlay(obj: game_object, anim_table: AnimationTable): void {
-        Log(`OnHudAnimationPlay ${obj?.section()}:${obj?.id()}`);
+        //Log(`OnHudAnimationPlay ${obj?.section()}:${obj?.id()}`);
     }
 
     protected OnHudAnimationEnd(item: game_object, section: Section, motion: any, state: any, slot: any): void {
-        Log(`OnHudAnimationPlay ${item?.section()}:${item?.id()} section:${section} motion:${motion} state: ${state} slot:${slot}`);
+        //Log(`OnHudAnimationPlay ${item?.section()}:${item?.id()} section:${section} motion:${motion} state: ${state} slot:${slot}`);
     }
 
     //Input 
     protected OnKeyRelease(key: DIK_keys){
-        Log(`OnKeyRelease ${key}`);
+        //Log(`OnKeyRelease ${key}`);
     }
 
     protected OnKeyHold(key: DIK_keys){
-        Log(`OnKeyHold ${key}`);
+        //Log(`OnKeyHold ${key}`);
     }
 
     protected OnBeforeKeyPress(key: DIK_keys, bind: key_bindings, dis: boolean): boolean{
-        Log(`OnKeyRelease ${key}`);
+        //Log(`OnKeyRelease ${key}`);
         return true;
     }
 

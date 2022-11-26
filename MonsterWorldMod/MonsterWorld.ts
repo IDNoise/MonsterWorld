@@ -53,8 +53,10 @@ export class MonsterWorld {
 
     private player?: MWPlayer;
     get Player(): MWPlayer{
-        if (this.player == undefined)
+        if (this.player == undefined){
             this.player = new MWPlayer(this, 0);
+            this.player.Initialize();
+        }
         return this.player;
     }
 
@@ -80,7 +82,9 @@ export class MonsterWorld {
 
         if (!this.Monsters.has(monsterId)){
             //Log(`GetMonster crate new: ${monsterId}`)
-            this.Monsters.set(monsterId, new MWMonster(this, monsterId));
+            let monster = new MWMonster(this, monsterId);
+            monster.Initialize();
+            this.Monsters.set(monsterId, monster);
         }
         //Log(`GetMonster end: ${monsterId}`)
         return this.Monsters.get(monsterId);
@@ -107,7 +111,9 @@ export class MonsterWorld {
 
         if (!this.weapons.has(itemId)){    
             //Log(`GetWeapon crate new: ${itemId}`)
-            this.weapons.set(itemId, new MWWeapon(this, itemId));
+            let weapon = new MWWeapon(this, itemId);
+            weapon.Initialize();
+            this.weapons.set(itemId, weapon);
         }
 
         //Log(`GetWeapon end: ${itemId}`)
@@ -195,10 +201,10 @@ export class MonsterWorld {
         if (attackerGO.is_stalker() && shit.weapon_id != 0 && shit.weapon_id != attackerGO.id()){
             let weapon = level.object_by_id(shit.weapon_id);
             if (weapon?.is_weapon())
-                damage *= weapon.cast_Weapon().RPM() * 1.5; //small increase for ranged attacks
+                damage *= clamp(weapon.cast_Weapon().RPM(), 0.3, 2); //limit on damage multiplier
         }
 
-        damage = math.max(2, damage) * this.enemyDamageMult;
+        damage = math.max(1, damage) * this.enemyDamageMult;
         this.Player.HP -= damage;
 
         Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage}) in ${boneId}`)

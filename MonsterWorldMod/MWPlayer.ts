@@ -1,18 +1,15 @@
 import { BaseMWObject } from './BaseMWObject';
-import { MonsterWorld } from './MonsterWorld';
-import * as cfg from './MonsterWorldConfig';
-import { Skill, SkillHealPlayerOnKill, SkillPassiveStatBonus, StatType, StatBonusType, SkillAuraOfDeath } from './MonsterWorldConfig';
 import { MWWeapon } from './MWWeapon';
+import * as cfg from './MonsterWorldConfig';
+import { StatType, StatBonusType } from './MonsterWorldConfig';
+import { PriceFormulaConstant, PriceFormulaLevel, Skill } from "./Skills/Skill";
+import { SkillPassiveStatBonus } from "./Skills/SkillPassiveStatBonus";
+import { SkillAuraOfDeath } from "./Skills/SkillAuraOfDeath";
+import { SkillHealPlayerOnKill } from "./Skills/SkillHealPlayerOnKill";
+import { SkillCriticalDeath } from './Skills/SkillCriticalDeath';
 
 export class MWPlayer extends BaseMWObject {
-    Skills: Map<string, Skill> = new Map();
-
-    constructor(public World: MonsterWorld, public id: Id) {
-        super(World, id);
-        this.SetupSkills();
-    }
-
-    override Initialize(): void {
+    override OnFirstTimeInitialize(): void {
         this.Level = 0;
         this.CurrentXP = 0;
         this.SetStatBase(StatType.MaxHP, cfg.PlayerHPBase)
@@ -49,8 +46,8 @@ export class MWPlayer extends BaseMWObject {
         this.World.UIManager?.ShowLevelUpMessage(this.Level);
     }
 
-    protected override Reinit(): void {
-        super.Reinit();
+    protected override OnInitialize(): void {
+        super.OnInitialize();
         this.UpdateLevelBonuses();
     }
 
@@ -79,27 +76,14 @@ export class MWPlayer extends BaseMWObject {
         }
     }
 
-    SetupSkills() {
-        this.AddSkill(new SkillHealPlayerOnKill(`heal_on_kill`, this, (level) => 0.5 * level, cfg.PriceFormulaLevel, 10))
-        this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeed, StatBonusType.Pct, (level: number) => 5 * level, cfg.PriceFormulaLevel, 10))
-        this.AddSkill(new SkillPassiveStatBonus(`sprint_speed`, this, StatType.SprintSpeed, StatBonusType.Pct, (level: number) => 5 * level, (l) => l * 2, 10))
-        this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 5 * level, cfg.PriceFormulaLevel, 10))
-        this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 10 * level, cfg.PriceFormulaConstant(1), 10))
-        this.AddSkill(new SkillAuraOfDeath(`aura_of_death`, this, 3, (level: number) => 1 * level, (level: number) => 5 + 1 * level, cfg.PriceFormulaConstant(2), 10))
-    }
-
-    AddSkill(skill: Skill){
-        skill.Level = this.Load(`SkillLevel_${skill.Id}`, 0)
-        this.Skills.set(skill.Id, skill)
-    }
-
-    IterateSkills(iterator: (s: Skill) => void, onlyWithLevel: boolean = true){
-        for(const [_, skill] of this.Skills){
-            if (!onlyWithLevel || skill.Level > 0)
-                iterator(skill);
-        }
+    override SetupSkills() {
+        super.SetupSkills();
+        this.AddSkill(new SkillHealPlayerOnKill(`heal_on_kill`, this, (level) => 0.5 * level, PriceFormulaConstant(1), 10))
+        this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeed, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
+        this.AddSkill(new SkillPassiveStatBonus(`sprint_speed`, this, StatType.SprintSpeed, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
+        this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
+        this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 10 * level, PriceFormulaConstant(1), 10))
+        this.AddSkill(new SkillAuraOfDeath(`aura_of_death`, this, 3, (level: number) => 1 * level, (level: number) => 5 + 1 * level, PriceFormulaConstant(1), 10))
+        this.AddSkill(new SkillCriticalDeath(`crit_explosion`, this, (level: number) => 10 * level, (level: number) => 2.5 * level, (level: number) => 5 + 1 * level, PriceFormulaConstant(1), 5))
     }
 }
-
-
-//TODO: Сделать бонус к кол-ву патронов в пушке через статы и управлять кол-вом через SetElapsed!!!

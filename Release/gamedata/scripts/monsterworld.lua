@@ -2645,37 +2645,14 @@ end
 function StalkerModBase.prototype.OnItemFocusReceive(self, item)
 end
 function StalkerModBase.prototype.OnHudAnimationPlay(self, obj, anim_table)
-    local ____exports_Log_4 = ____exports.Log
-    local ____obj_section_result_0 = obj
-    if ____obj_section_result_0 ~= nil then
-        ____obj_section_result_0 = ____obj_section_result_0:section()
-    end
-    local ____obj_id_result_2 = obj
-    if ____obj_id_result_2 ~= nil then
-        ____obj_id_result_2 = ____obj_id_result_2:id()
-    end
-    ____exports_Log_4((("OnHudAnimationPlay " .. ____obj_section_result_0) .. ":") .. tostring(____obj_id_result_2))
 end
 function StalkerModBase.prototype.OnHudAnimationEnd(self, item, section, motion, state, slot)
-    local ____exports_Log_9 = ____exports.Log
-    local ____item_section_result_5 = item
-    if ____item_section_result_5 ~= nil then
-        ____item_section_result_5 = ____item_section_result_5:section()
-    end
-    local ____item_id_result_7 = item
-    if ____item_id_result_7 ~= nil then
-        ____item_id_result_7 = ____item_id_result_7:id()
-    end
-    ____exports_Log_9((((((((((("OnHudAnimationPlay " .. ____item_section_result_5) .. ":") .. tostring(____item_id_result_7)) .. " section:") .. section) .. " motion:") .. tostring(motion)) .. " state: ") .. tostring(state)) .. " slot:") .. tostring(slot))
 end
 function StalkerModBase.prototype.OnKeyRelease(self, key)
-    ____exports.Log("OnKeyRelease " .. tostring(key))
 end
 function StalkerModBase.prototype.OnKeyHold(self, key)
-    ____exports.Log("OnKeyHold " .. tostring(key))
 end
 function StalkerModBase.prototype.OnBeforeKeyPress(self, key, bind, dis)
-    ____exports.Log("OnKeyRelease " .. tostring(key))
     return true
 end
 function StalkerModBase.prototype.RegisterCallbacks(self)
@@ -2993,145 +2970,6 @@ function ____exports.GetByWeightFromTable(tbl, weightGetter)
 end
 return ____exports
  end,
-["MonsterWorldMod.MWMonster"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local __TS__ClassExtends = ____lualib.__TS__ClassExtends
-local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
-local ____exports = {}
-local ____BaseMWObject = require("MonsterWorldMod.BaseMWObject")
-local BaseMWObject = ____BaseMWObject.BaseMWObject
-local cfg = require("MonsterWorldMod.MonsterWorldConfig")
-local ____MonsterWorldConfig = require("MonsterWorldMod.MonsterWorldConfig")
-local MonsterRank = ____MonsterWorldConfig.MonsterRank
-local MonsterConfigs = ____MonsterWorldConfig.MonsterConfigs
-____exports.MWMonster = __TS__Class()
-local MWMonster = ____exports.MWMonster
-MWMonster.name = "MWMonster"
-__TS__ClassExtends(MWMonster, BaseMWObject)
-function MWMonster.prototype.____constructor(self, World, id)
-    BaseMWObject.prototype.____constructor(self, World, id)
-    self.World = World
-    self.id = id
-end
-__TS__SetDescriptor(
-    MWMonster.prototype,
-    "Name",
-    {get = function(self)
-        local nameInfo = (self.Type .. " L.") .. tostring(self.Level)
-        if self.Rank == MonsterRank.Boss then
-            nameInfo = "[Boss] " .. nameInfo
-        elseif self.Rank == MonsterRank.Elite then
-            nameInfo = "[Elite] " .. nameInfo
-        end
-        return nameInfo
-    end},
-    true
-)
-__TS__SetDescriptor(
-    MWMonster.prototype,
-    "DropChance",
-    {get = function(self)
-        if self.Rank == MonsterRank.Boss then
-            return cfg.EnemyBossDropChance
-        end
-        if self.Rank == MonsterRank.Elite then
-            return cfg.EnemyEliteDropChance
-        end
-        return cfg.EnemyDropChance
-    end},
-    true
-)
-__TS__SetDescriptor(
-    MWMonster.prototype,
-    "XPReward",
-    {
-        get = function(self)
-            return self:Load("XPReward")
-        end,
-        set = function(self, expReward)
-            self:Save("XPReward", expReward)
-        end
-    },
-    true
-)
-__TS__SetDescriptor(
-    MWMonster.prototype,
-    "Damage",
-    {
-        get = function(self)
-            return self:Load("DMG")
-        end,
-        set = function(self, damage)
-            self:Save("DMG", damage)
-        end
-    },
-    true
-)
-__TS__SetDescriptor(
-    MWMonster.prototype,
-    "Rank",
-    {
-        get = function(self)
-            return self:Load("Rank")
-        end,
-        set = function(self, rank)
-            self:Save("Rank", rank)
-        end
-    },
-    true
-)
-__TS__SetDescriptor(
-    MWMonster.prototype,
-    "Type",
-    {
-        get = function(self)
-            return self:Load("Type")
-        end,
-        set = function(self, ____type)
-            self:Save("Type", ____type)
-        end
-    },
-    true
-)
-function MWMonster.prototype.Initialize(self)
-    local spawnConfig = self:Load("SpawnParams")
-    self.Type = spawnConfig.type
-    self.Level = spawnConfig.level
-    self.Rank = spawnConfig.rank
-    local monsterCfg = MonsterConfigs[self.Type]
-    local enemyHP = self:GetMaxHP(self.Level) * (monsterCfg.hp_mult or 1) * cfg.EnemyHpMultsByRank[self.Rank + 1]
-    local xpReward = self:GetXPReward(self.Level) * (monsterCfg.xp_mult or 1) * cfg.EnemyXpMultsByRank[self.Rank + 1]
-    local enemyDamage = self:GetDamage(self.Level) * (monsterCfg.damage_mult or 1) * cfg.EnemyDamageMultsByRank[self.Rank + 1]
-    self:SetStatBase(2, enemyHP)
-    self.Damage = enemyDamage
-    self.XPReward = xpReward
-    se_save_var(
-        self.id,
-        self.GO:name(),
-        "looted",
-        true
-    )
-end
-function MWMonster.prototype.GetMaxHP(self, level)
-    local pctMult = 1 + cfg.EnemyHPPctPerLevel / 100 * (level - 1)
-    local expMult = math.pow(cfg.EnemyHPExpPerLevel, level - 1)
-    local deltaMult = 1 + math.random(-cfg.EnemyHpDeltaPct, cfg.EnemyHpDeltaPct) / 100
-    return cfg.EnemyHPBase * pctMult * expMult * deltaMult
-end
-function MWMonster.prototype.GetXPReward(self, level)
-    local pctMult = 1 + cfg.EnemyXpRewardPctPerLevel / 100 * (level - 1)
-    local expMult = math.pow(cfg.EnemyXpRewardExpPerLevel, level - 1)
-    local xp = cfg.EnemyXpRewardBase * pctMult * expMult
-    return math.floor(xp)
-end
-function MWMonster.prototype.GetDamage(self, level)
-    local pctMult = 1 + cfg.EnemyDamagePctPerLevel * level / 100
-    local expMult = math.pow(cfg.EnemyDamageExpPerLevel, level - 1)
-    return cfg.EnemyDamageBase * pctMult * expMult
-end
-return ____exports
- end,
 ["MonsterWorldMod.MWWeapon"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -3226,7 +3064,7 @@ __TS__SetDescriptor(
     end},
     true
 )
-function MWWeapon.prototype.Initialize(self)
+function MWWeapon.prototype.OnFirstTimeInitialize(self)
     local spawnCfg = self:Load("SpawnParams", {level = 1, quality = 1})
     self.Level = spawnCfg.level
     self.Quality = math.max(
@@ -3400,33 +3238,587 @@ function MWWeapon.prototype.RefillMagazine(self)
 end
 return ____exports
  end,
-["MonsterWorldMod.MWPlayer"] = function(...) 
+["MonsterWorldMod.MWMonster"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends
-local Map = ____lualib.Map
-local __TS__New = ____lualib.__TS__New
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
-local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local ____BaseMWObject = require("MonsterWorldMod.BaseMWObject")
 local BaseMWObject = ____BaseMWObject.BaseMWObject
 local cfg = require("MonsterWorldMod.MonsterWorldConfig")
 local ____MonsterWorldConfig = require("MonsterWorldMod.MonsterWorldConfig")
-local SkillHealPlayerOnKill = ____MonsterWorldConfig.SkillHealPlayerOnKill
-local SkillPassiveStatBonus = ____MonsterWorldConfig.SkillPassiveStatBonus
-local SkillAuraOfDeath = ____MonsterWorldConfig.SkillAuraOfDeath
+local MonsterRank = ____MonsterWorldConfig.MonsterRank
+local MonsterConfigs = ____MonsterWorldConfig.MonsterConfigs
+____exports.MWMonster = __TS__Class()
+local MWMonster = ____exports.MWMonster
+MWMonster.name = "MWMonster"
+__TS__ClassExtends(MWMonster, BaseMWObject)
+function MWMonster.prototype.____constructor(self, World, id)
+    BaseMWObject.prototype.____constructor(self, World, id)
+    self.World = World
+    self.id = id
+end
+__TS__SetDescriptor(
+    MWMonster.prototype,
+    "Name",
+    {get = function(self)
+        local nameInfo = (self.Type .. " L.") .. tostring(self.Level)
+        if self.Rank == MonsterRank.Boss then
+            nameInfo = "[Boss] " .. nameInfo
+        elseif self.Rank == MonsterRank.Elite then
+            nameInfo = "[Elite] " .. nameInfo
+        end
+        return nameInfo
+    end},
+    true
+)
+__TS__SetDescriptor(
+    MWMonster.prototype,
+    "DropChance",
+    {get = function(self)
+        return cfg.EnemyDropChanceByRank[self.Rank + 1]
+    end},
+    true
+)
+__TS__SetDescriptor(
+    MWMonster.prototype,
+    "XPReward",
+    {
+        get = function(self)
+            return self:Load("XPReward")
+        end,
+        set = function(self, expReward)
+            self:Save("XPReward", expReward)
+        end
+    },
+    true
+)
+__TS__SetDescriptor(
+    MWMonster.prototype,
+    "Damage",
+    {
+        get = function(self)
+            return self:Load("DMG")
+        end,
+        set = function(self, damage)
+            self:Save("DMG", damage)
+        end
+    },
+    true
+)
+__TS__SetDescriptor(
+    MWMonster.prototype,
+    "Rank",
+    {
+        get = function(self)
+            return self:Load("Rank")
+        end,
+        set = function(self, rank)
+            self:Save("Rank", rank)
+        end
+    },
+    true
+)
+__TS__SetDescriptor(
+    MWMonster.prototype,
+    "Type",
+    {
+        get = function(self)
+            return self:Load("Type")
+        end,
+        set = function(self, ____type)
+            self:Save("Type", ____type)
+        end
+    },
+    true
+)
+function MWMonster.prototype.OnFirstTimeInitialize(self)
+    local spawnConfig = self:Load("SpawnParams")
+    self.Type = spawnConfig.type
+    self.Level = spawnConfig.level
+    self.Rank = spawnConfig.rank
+    local monsterCfg = MonsterConfigs[self.Type]
+    local enemyHP = self:GetMaxHP(self.Level) * (monsterCfg.hp_mult or 1) * cfg.EnemyHpMultsByRank[self.Rank + 1]
+    local xpReward = self:GetXPReward(self.Level) * (monsterCfg.xp_mult or 1) * cfg.EnemyXpMultsByRank[self.Rank + 1]
+    local enemyDamage = self:GetDamage(self.Level) * (monsterCfg.damage_mult or 1) * cfg.EnemyDamageMultsByRank[self.Rank + 1]
+    self:SetStatBase(2, enemyHP)
+    self.Damage = enemyDamage
+    self.XPReward = xpReward
+    se_save_var(
+        self.id,
+        self.GO:name(),
+        "looted",
+        true
+    )
+end
+function MWMonster.prototype.GetMaxHP(self, level)
+    local pctMult = 1 + cfg.EnemyHPPctPerLevel / 100 * (level - 1)
+    local expMult = math.pow(cfg.EnemyHPExpPerLevel, level - 1)
+    local deltaMult = 1 + math.random(-cfg.EnemyHpDeltaPct, cfg.EnemyHpDeltaPct) / 100
+    return cfg.EnemyHPBase * pctMult * expMult * deltaMult
+end
+function MWMonster.prototype.GetXPReward(self, level)
+    local pctMult = 1 + cfg.EnemyXpRewardPctPerLevel / 100 * (level - 1)
+    local expMult = math.pow(cfg.EnemyXpRewardExpPerLevel, level - 1)
+    local xp = cfg.EnemyXpRewardBase * pctMult * expMult
+    return math.floor(xp)
+end
+function MWMonster.prototype.GetDamage(self, level)
+    local pctMult = 1 + cfg.EnemyDamagePctPerLevel * level / 100
+    local expMult = math.pow(cfg.EnemyDamageExpPerLevel, level - 1)
+    return cfg.EnemyDamageBase * pctMult * expMult
+end
+return ____exports
+ end,
+["MonsterWorldMod.Skills.Skill"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+____exports.Skill = __TS__Class()
+local Skill = ____exports.Skill
+Skill.name = "Skill"
+function Skill.prototype.____constructor(self, Id, Owner, PriceFormula, MaxLevel)
+    if MaxLevel == nil then
+        MaxLevel = -1
+    end
+    self.Id = Id
+    self.Owner = Owner
+    self.PriceFormula = PriceFormula
+    self.MaxLevel = MaxLevel
+    self.level = 0
+    self.OnLevelUpHandlers = {}
+    self.World = self.Owner.World
+end
+__TS__SetDescriptor(
+    Skill.prototype,
+    "Level",
+    {
+        get = function(self)
+            return self.level
+        end,
+        set = function(self, level)
+            local oldLevel = self.Level
+            self.level = level
+            if level > oldLevel then
+                self:OnLevelUp(oldLevel, level)
+            end
+            self.Owner:SetSkillLevel(self.Id, self.Level)
+        end
+    },
+    true
+)
+__TS__SetDescriptor(
+    Skill.prototype,
+    "CanBeUpgraded",
+    {get = function(self)
+        return not self.IsMaxLevelReached and self.PlayerHasMoney
+    end},
+    true
+)
+__TS__SetDescriptor(
+    Skill.prototype,
+    "PlayerHasMoney",
+    {get = function(self)
+        return self.UpgradePrice <= self.World.Player.SkillPoints
+    end},
+    true
+)
+__TS__SetDescriptor(
+    Skill.prototype,
+    "IsMaxLevelReached",
+    {get = function(self)
+        return self.MaxLevel ~= -1 and self.Level >= self.MaxLevel
+    end},
+    true
+)
+__TS__SetDescriptor(
+    Skill.prototype,
+    "Description",
+    {get = function(self)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    Skill.prototype,
+    "UpgradePrice",
+    {get = function(self)
+        return self.PriceFormula ~= nil and self.PriceFormula(self.Level + 1) or 0
+    end},
+    true
+)
+function Skill.prototype.Init(self)
+    self.level = self.Owner:GetSkillLevel(self.Id)
+    self:UpdateLevelBonuses()
+end
+function Skill.prototype.Upgrade(self)
+    if not self.CanBeUpgraded then
+        return
+    end
+    local player = self.World.Player
+    local price = self.UpgradePrice
+    if player.SkillPoints >= price then
+        player.SkillPoints = player.SkillPoints - price
+        self.Level = self.Level + 1
+    end
+end
+function Skill.prototype.OnLevelUp(self, oldLevel, newLevel)
+    self:UpdateUI()
+    self:UpdateLevelBonuses()
+end
+function Skill.prototype.UpdateLevelBonuses(self)
+end
+function Skill.prototype.UpdateUI(self)
+    local ____table_DescriptionText_SetText_result_0 = self.DescriptionText
+    if ____table_DescriptionText_SetText_result_0 ~= nil then
+        ____table_DescriptionText_SetText_result_0 = ____table_DescriptionText_SetText_result_0:SetText(self.Description)
+    end
+    local ____table_LevelText_SetText_result_2 = self.LevelText
+    if ____table_LevelText_SetText_result_2 ~= nil then
+        ____table_LevelText_SetText_result_2 = ____table_LevelText_SetText_result_2:SetText("L. " .. tostring(self.Level))
+    end
+    self:UpdateUpgradeButton()
+end
+function Skill.prototype.UpdateUpgradeButton(self)
+    local ____table_UpgradeButton_Enable_result_4 = self.UpgradeButton
+    if ____table_UpgradeButton_Enable_result_4 ~= nil then
+        ____table_UpgradeButton_Enable_result_4 = ____table_UpgradeButton_Enable_result_4:Enable(self.CanBeUpgraded)
+    end
+    local ____table_UpgradeButton_TextControl_result_SetText_result_6 = self.UpgradeButton
+    if ____table_UpgradeButton_TextControl_result_SetText_result_6 ~= nil then
+        ____table_UpgradeButton_TextControl_result_SetText_result_6 = ____table_UpgradeButton_TextControl_result_SetText_result_6:TextControl():SetText(not self.IsMaxLevelReached and tostring(self.UpgradePrice) .. " SP" or "MAX")
+    end
+end
+function Skill.prototype.Update(self, deltaTime)
+end
+function Skill.prototype.OnMonsterHit(self, monster, isCrit)
+end
+function Skill.prototype.OnMonsterKill(self, monster, isCrit)
+end
+function ____exports.PriceFormulaConstant(price)
+    return function(_level) return price end
+end
+function ____exports.PriceFormulaLevel()
+    return function(level) return level end
+end
+return ____exports
+ end,
+["MonsterWorldMod.Skills.SkillPassiveStatBonus"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+local ____MonsterWorldConfig = require("MonsterWorldMod.MonsterWorldConfig")
+local StatTitles = ____MonsterWorldConfig.StatTitles
+local PctStats = ____MonsterWorldConfig.PctStats
+local ____Skill = require("MonsterWorldMod.Skills.Skill")
+local Skill = ____Skill.Skill
+____exports.SkillPassiveStatBonus = __TS__Class()
+local SkillPassiveStatBonus = ____exports.SkillPassiveStatBonus
+SkillPassiveStatBonus.name = "SkillPassiveStatBonus"
+__TS__ClassExtends(SkillPassiveStatBonus, Skill)
+function SkillPassiveStatBonus.prototype.____constructor(self, Id, Owner, Stat, BonusType, ValuePerLevel, PriceFormula, MaxLevel)
+    if MaxLevel == nil then
+        MaxLevel = -1
+    end
+    Skill.prototype.____constructor(
+        self,
+        Id,
+        Owner,
+        PriceFormula,
+        MaxLevel
+    )
+    self.Id = Id
+    self.Owner = Owner
+    self.Stat = Stat
+    self.BonusType = BonusType
+    self.ValuePerLevel = ValuePerLevel
+    self.PriceFormula = PriceFormula
+    self.MaxLevel = MaxLevel
+end
+__TS__SetDescriptor(
+    SkillPassiveStatBonus.prototype,
+    "Description",
+    {get = function(self)
+        local value = self.Value
+        local statTitle = StatTitles[self.Stat]
+        if self.BonusType == 0 then
+            return (((statTitle .. " ") .. (value > 0 and "+" or "")) .. tostring(value)) .. (__TS__ArrayIncludes(PctStats, self.Stat) and "%" or "")
+        elseif self.BonusType == 1 then
+            return (((statTitle .. " ") .. (value > 0 and "+" or "")) .. tostring(value)) .. "%"
+        end
+        return (statTitle .. " x") .. tostring(value)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillPassiveStatBonus.prototype,
+    "Value",
+    {get = function(self)
+        return self.ValuePerLevel(self.Level)
+    end},
+    true
+)
+function SkillPassiveStatBonus.prototype.UpdateLevelBonuses(self)
+    Skill.prototype.UpdateLevelBonuses(self)
+    self.Owner:AddStatBonus(self.Stat, self.BonusType, self.Value, self.Id)
+end
+return ____exports
+ end,
+["MonsterWorldMod.Skills.SkillAuraOfDeath"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+local ____Skill = require("MonsterWorldMod.Skills.Skill")
+local Skill = ____Skill.Skill
+____exports.SkillAuraOfDeath = __TS__Class()
+local SkillAuraOfDeath = ____exports.SkillAuraOfDeath
+SkillAuraOfDeath.name = "SkillAuraOfDeath"
+__TS__ClassExtends(SkillAuraOfDeath, Skill)
+function SkillAuraOfDeath.prototype.____constructor(self, Id, Owner, Interval, DpsPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
+    if MaxLevel == nil then
+        MaxLevel = -1
+    end
+    Skill.prototype.____constructor(
+        self,
+        Id,
+        Owner,
+        PriceFormula,
+        MaxLevel
+    )
+    self.Id = Id
+    self.Owner = Owner
+    self.Interval = Interval
+    self.DpsPctPerLevel = DpsPctPerLevel
+    self.RangePerLevel = RangePerLevel
+    self.PriceFormula = PriceFormula
+    self.MaxLevel = MaxLevel
+    self.timePassed = 0
+end
+__TS__SetDescriptor(
+    SkillAuraOfDeath.prototype,
+    "Description",
+    {get = function(self)
+        return ((((((("Every " .. tostring(self.Interval)) .. " ") .. (self.Interval == 1 and "second" or "seconds")) .. " damage all enemies in ") .. tostring(self.Range)) .. "m range for ") .. tostring(self.DpsPct)) .. "% of DPS"
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillAuraOfDeath.prototype,
+    "Range",
+    {get = function(self)
+        return self.RangePerLevel(self.Level)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillAuraOfDeath.prototype,
+    "DpsPct",
+    {get = function(self)
+        return self.DpsPctPerLevel(self.Level)
+    end},
+    true
+)
+function SkillAuraOfDeath.prototype.Update(self, deltaTime)
+    Skill.prototype.Update(self, deltaTime)
+    self.timePassed = self.timePassed + deltaTime
+    if self.timePassed < self.Interval then
+        return
+    end
+    local weapon = self.World.Player.Weapon
+    if weapon == nil then
+        return
+    end
+    self.timePassed = self.timePassed - self.Interval
+    local playerPos = self.World.Player.GO:position()
+    local rangeSqr = self.Range * self.Range
+    local damage = weapon.DPS * self.DpsPct / 100
+    for _, monster in pairs(self.World.Monsters) do
+        do
+            if monster.GO == nil or monster.IsDead then
+                goto __continue9
+            end
+            local distanceSqr = monster.GO:position():distance_to_sqr(playerPos)
+            if distanceSqr <= rangeSqr then
+                self.World:DamageMonster(monster, damage, false)
+            end
+        end
+        ::__continue9::
+    end
+end
+return ____exports
+ end,
+["MonsterWorldMod.Skills.SkillHealPlayerOnKill"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+local ____Skill = require("MonsterWorldMod.Skills.Skill")
+local Skill = ____Skill.Skill
+____exports.SkillHealPlayerOnKill = __TS__Class()
+local SkillHealPlayerOnKill = ____exports.SkillHealPlayerOnKill
+SkillHealPlayerOnKill.name = "SkillHealPlayerOnKill"
+__TS__ClassExtends(SkillHealPlayerOnKill, Skill)
+function SkillHealPlayerOnKill.prototype.____constructor(self, Id, Owner, HpPerLevel, PriceFormula, MaxLevel)
+    if MaxLevel == nil then
+        MaxLevel = -1
+    end
+    Skill.prototype.____constructor(
+        self,
+        Id,
+        Owner,
+        PriceFormula,
+        MaxLevel
+    )
+    self.Id = Id
+    self.Owner = Owner
+    self.HpPerLevel = HpPerLevel
+    self.PriceFormula = PriceFormula
+    self.MaxLevel = MaxLevel
+end
+__TS__SetDescriptor(
+    SkillHealPlayerOnKill.prototype,
+    "Description",
+    {get = function(self)
+        return ("+" .. tostring(self.HPOnKill)) .. " HP on kill"
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillHealPlayerOnKill.prototype,
+    "HPOnKill",
+    {get = function(self)
+        return self.HpPerLevel(self.Level)
+    end},
+    true
+)
+function SkillHealPlayerOnKill.prototype.OnMonsterKill(self, monster, isCrit)
+    local ____self_World_Player_0, ____HP_1 = self.World.Player, "HP"
+    ____self_World_Player_0[____HP_1] = ____self_World_Player_0[____HP_1] + self.HPOnKill
+end
+return ____exports
+ end,
+["MonsterWorldMod.Skills.SkillCriticalDeath"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+local ____Skill = require("MonsterWorldMod.Skills.Skill")
+local Skill = ____Skill.Skill
+____exports.SkillCriticalDeath = __TS__Class()
+local SkillCriticalDeath = ____exports.SkillCriticalDeath
+SkillCriticalDeath.name = "SkillCriticalDeath"
+__TS__ClassExtends(SkillCriticalDeath, Skill)
+function SkillCriticalDeath.prototype.____constructor(self, Id, Owner, ChancePctPerLevel, HpPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
+    if MaxLevel == nil then
+        MaxLevel = -1
+    end
+    Skill.prototype.____constructor(
+        self,
+        Id,
+        Owner,
+        PriceFormula,
+        MaxLevel
+    )
+    self.Id = Id
+    self.Owner = Owner
+    self.ChancePctPerLevel = ChancePctPerLevel
+    self.HpPctPerLevel = HpPctPerLevel
+    self.RangePerLevel = RangePerLevel
+    self.PriceFormula = PriceFormula
+    self.MaxLevel = MaxLevel
+end
+__TS__SetDescriptor(
+    SkillCriticalDeath.prototype,
+    "Description",
+    {get = function(self)
+        return ((((tostring(self.Chance) .. "% chance on critical kill for enemy to explode and damage all enemies in ") .. tostring(self.Range)) .. "m radius for ") .. tostring(self.HpPct)) .. "% of HP"
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillCriticalDeath.prototype,
+    "Chance",
+    {get = function(self)
+        return self.ChancePctPerLevel(self.Level)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillCriticalDeath.prototype,
+    "HpPct",
+    {get = function(self)
+        return self.HpPctPerLevel(self.Level)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillCriticalDeath.prototype,
+    "Range",
+    {get = function(self)
+        return self.RangePerLevel(self.Level)
+    end},
+    true
+)
+function SkillCriticalDeath.prototype.OnMonsterKill(self, monster, isCrit)
+    if not isCrit then
+        return
+    end
+    local monsterPos = monster.GO:position()
+    local rangeSqr = self.Range * self.Range
+    local damage = monster.MaxHP * self.HpPct / 100
+    local hits = 0
+    for _, nearbyMonster in pairs(self.World.Monsters) do
+        do
+            if nearbyMonster == monster or nearbyMonster.GO == nil or nearbyMonster.IsDead then
+                goto __continue9
+            end
+            local distanceSqr = nearbyMonster.GO:position():distance_to_sqr(monsterPos)
+            if distanceSqr <= rangeSqr then
+                self.World:DamageMonster(nearbyMonster, damage, false)
+                hits = hits + 1
+            end
+        end
+        ::__continue9::
+    end
+    if hits > 0 then
+        local particles = particles_object("anomaly2\\body_tear_00")
+        particles:play_at_pos(monsterPos)
+    end
+end
+return ____exports
+ end,
+["MonsterWorldMod.MWPlayer"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local __TS__New = ____lualib.__TS__New
+local ____exports = {}
+local ____BaseMWObject = require("MonsterWorldMod.BaseMWObject")
+local BaseMWObject = ____BaseMWObject.BaseMWObject
+local cfg = require("MonsterWorldMod.MonsterWorldConfig")
+local ____Skill = require("MonsterWorldMod.Skills.Skill")
+local PriceFormulaConstant = ____Skill.PriceFormulaConstant
+local ____SkillPassiveStatBonus = require("MonsterWorldMod.Skills.SkillPassiveStatBonus")
+local SkillPassiveStatBonus = ____SkillPassiveStatBonus.SkillPassiveStatBonus
+local ____SkillAuraOfDeath = require("MonsterWorldMod.Skills.SkillAuraOfDeath")
+local SkillAuraOfDeath = ____SkillAuraOfDeath.SkillAuraOfDeath
+local ____SkillHealPlayerOnKill = require("MonsterWorldMod.Skills.SkillHealPlayerOnKill")
+local SkillHealPlayerOnKill = ____SkillHealPlayerOnKill.SkillHealPlayerOnKill
+local ____SkillCriticalDeath = require("MonsterWorldMod.Skills.SkillCriticalDeath")
+local SkillCriticalDeath = ____SkillCriticalDeath.SkillCriticalDeath
 ____exports.MWPlayer = __TS__Class()
 local MWPlayer = ____exports.MWPlayer
 MWPlayer.name = "MWPlayer"
 __TS__ClassExtends(MWPlayer, BaseMWObject)
-function MWPlayer.prototype.____constructor(self, World, id)
-    BaseMWObject.prototype.____constructor(self, World, id)
-    self.World = World
-    self.id = id
-    self.Skills = __TS__New(Map)
-    self:SetupSkills()
-end
 __TS__SetDescriptor(
     MWPlayer.prototype,
     "RequeiredXP",
@@ -3479,7 +3871,7 @@ __TS__SetDescriptor(
     },
     true
 )
-function MWPlayer.prototype.Initialize(self)
+function MWPlayer.prototype.OnFirstTimeInitialize(self)
     self.Level = 0
     self.CurrentXP = 0
     self:SetStatBase(2, cfg.PlayerHPBase)
@@ -3498,8 +3890,8 @@ function MWPlayer.prototype.LevelUp(self)
         ____table_World_UIManager_ShowLevelUpMessage_result_0 = ____table_World_UIManager_ShowLevelUpMessage_result_0:ShowLevelUpMessage(self.Level)
     end
 end
-function MWPlayer.prototype.Reinit(self)
-    BaseMWObject.prototype.Reinit(self)
+function MWPlayer.prototype.OnInitialize(self)
+    BaseMWObject.prototype.OnInitialize(self)
     self:UpdateLevelBonuses()
 end
 function MWPlayer.prototype.Update(self, deltaTime)
@@ -3521,12 +3913,13 @@ function MWPlayer.prototype.OnStatChanged(self, stat, total)
     end
 end
 function MWPlayer.prototype.SetupSkills(self)
+    BaseMWObject.prototype.SetupSkills(self)
     self:AddSkill(__TS__New(
         SkillHealPlayerOnKill,
         "heal_on_kill",
         self,
         function(level) return 0.5 * level end,
-        cfg.PriceFormulaLevel,
+        PriceFormulaConstant(1),
         10
     ))
     self:AddSkill(__TS__New(
@@ -3536,7 +3929,7 @@ function MWPlayer.prototype.SetupSkills(self)
         0,
         1,
         function(level) return 5 * level end,
-        cfg.PriceFormulaLevel,
+        PriceFormulaConstant(1),
         10
     ))
     self:AddSkill(__TS__New(
@@ -3546,7 +3939,7 @@ function MWPlayer.prototype.SetupSkills(self)
         1,
         1,
         function(level) return 5 * level end,
-        function(l) return l * 2 end,
+        PriceFormulaConstant(1),
         10
     ))
     self:AddSkill(__TS__New(
@@ -3556,7 +3949,7 @@ function MWPlayer.prototype.SetupSkills(self)
         5,
         0,
         function(level) return 5 * level end,
-        cfg.PriceFormulaLevel,
+        PriceFormulaConstant(1),
         10
     ))
     self:AddSkill(__TS__New(
@@ -3566,7 +3959,7 @@ function MWPlayer.prototype.SetupSkills(self)
         6,
         0,
         function(level) return 10 * level end,
-        cfg.PriceFormulaConstant(1),
+        PriceFormulaConstant(1),
         10
     ))
     self:AddSkill(__TS__New(
@@ -3576,25 +3969,19 @@ function MWPlayer.prototype.SetupSkills(self)
         3,
         function(level) return 1 * level end,
         function(level) return 5 + 1 * level end,
-        cfg.PriceFormulaConstant(2),
+        PriceFormulaConstant(1),
         10
     ))
-end
-function MWPlayer.prototype.AddSkill(self, skill)
-    skill.Level = self:Load("SkillLevel_" .. skill.Id, 0)
-    self.Skills:set(skill.Id, skill)
-end
-function MWPlayer.prototype.IterateSkills(self, iterator, onlyWithLevel)
-    if onlyWithLevel == nil then
-        onlyWithLevel = true
-    end
-    for ____, ____value in __TS__Iterator(self.Skills) do
-        local _ = ____value[1]
-        local skill = ____value[2]
-        if not onlyWithLevel or skill.Level > 0 then
-            iterator(skill)
-        end
-    end
+    self:AddSkill(__TS__New(
+        SkillCriticalDeath,
+        "crit_explosion",
+        self,
+        function(level) return 10 * level end,
+        function(level) return 2.5 * level end,
+        function(level) return 5 + 1 * level end,
+        PriceFormulaConstant(1),
+        5
+    ))
 end
 return ____exports
  end,
@@ -3602,9 +3989,6 @@ return ____exports
 local ____lualib = require("lualib_bundle")
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__StringPadEnd = ____lualib.__TS__StringPadEnd
-local __TS__Class = ____lualib.__TS__Class
-local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
-local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local ____exports = {}
 local ____basic = require("StalkerAPI.extensions.basic")
 local GetByWeightFromArray = ____basic.GetByWeightFromArray
@@ -4098,15 +4482,13 @@ ____exports.EnemyEliteChance = 15
 ____exports.EnemyBossChance = 5
 ____exports.EnemyHpMultsByRank = {1, 3, 10}
 ____exports.EnemyXpMultsByRank = {1, 3, 10}
-____exports.EnemyDamageMultsByRank = {1, 2, 5}
+____exports.EnemyDamageMultsByRank = {1, 1.5, 3}
 ____exports.EnemyDropLevelIncreaseChanceByRank = {1, 20, 50}
 ____exports.EnemyDropQualityIncreaseChanceByRank = {1, 20, 50}
 ____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.5
 ____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel - 0.005
 ____exports.WeaponDPSPctPerQuality = 10
-____exports.EnemyDropChance = 15
-____exports.EnemyBossDropChance = 100
-____exports.EnemyEliteDropChance = 25
+____exports.EnemyDropChanceByRank = {15, 100, 35}
 ____exports.MinQuality = 1
 ____exports.MaxQuality = 5
 ____exports.HigherLevelDropChancePct = 5
@@ -4143,7 +4525,6 @@ ____exports.MonsterRankColors = {
     [2] = GetARGB(255, 240, 20, 20)
 }
 ____exports.EndColorTag = "%c[default]"
-____exports.LevelColor = "%c[255,104,210,26]"
 ____exports.DropType = DropType or ({})
 ____exports.DropType.Weapon = 0
 ____exports.DropType[____exports.DropType.Weapon] = "Weapon"
@@ -4252,284 +4633,6 @@ function ____exports.GetBonusDescription(____type, bonus)
     local valueStr = ((__TS__ArrayIncludes(NegativeBonuses, ____type) and "-" or "+") .. tostring(math.floor(bonus))) .. (__TS__ArrayIncludes(____exports.PctBonuses, ____type) and "%" or "")
     return ((("%c[255,56,166,209]" .. __TS__StringPadEnd(valueStr, 6, " ")) .. ____exports.EndColorTag) .. " ") .. BonusDescriptions[____type]
 end
-____exports.Skill = __TS__Class()
-local Skill = ____exports.Skill
-Skill.name = "Skill"
-function Skill.prototype.____constructor(self, Id, Owner, PriceFormula, MaxLevel)
-    if MaxLevel == nil then
-        MaxLevel = -1
-    end
-    self.Id = Id
-    self.Owner = Owner
-    self.PriceFormula = PriceFormula
-    self.MaxLevel = MaxLevel
-    self.level = 0
-    self.World = self.Owner.World
-end
-__TS__SetDescriptor(
-    Skill.prototype,
-    "Level",
-    {
-        get = function(self)
-            return self.level
-        end,
-        set = function(self, level)
-            local oldLevel = self.Level
-            self.level = level
-            if level > oldLevel then
-                self:OnLevelUp(oldLevel, level)
-            end
-        end
-    },
-    true
-)
-__TS__SetDescriptor(
-    Skill.prototype,
-    "CanBeUpgraded",
-    {get = function(self)
-        return not self.IsMaxLevelReached and self.PlayerHasMoney
-    end},
-    true
-)
-__TS__SetDescriptor(
-    Skill.prototype,
-    "PlayerHasMoney",
-    {get = function(self)
-        return self.UpgradePrice <= self.World.Player.SkillPoints
-    end},
-    true
-)
-__TS__SetDescriptor(
-    Skill.prototype,
-    "IsMaxLevelReached",
-    {get = function(self)
-        return self.MaxLevel ~= -1 and self.Level >= self.MaxLevel
-    end},
-    true
-)
-__TS__SetDescriptor(
-    Skill.prototype,
-    "Description",
-    {get = function(self)
-    end},
-    true
-)
-__TS__SetDescriptor(
-    Skill.prototype,
-    "UpgradePrice",
-    {get = function(self)
-        return self.PriceFormula ~= nil and self.PriceFormula(self.Level + 1) or 0
-    end},
-    true
-)
-function Skill.prototype.Upgrade(self)
-    if not self.CanBeUpgraded then
-        return
-    end
-    local player = self.World.Player
-    local price = self.UpgradePrice
-    if player.SkillPoints >= price then
-        player.SkillPoints = player.SkillPoints - price
-        self.Level = self.Level + 1
-    end
-end
-function Skill.prototype.OnLevelUp(self, oldLevel, newLevel)
-    self:UpdateUI()
-end
-function Skill.prototype.UpdateUI(self)
-    local ____table_DescriptionText_SetText_result_81 = self.DescriptionText
-    if ____table_DescriptionText_SetText_result_81 ~= nil then
-        ____table_DescriptionText_SetText_result_81 = ____table_DescriptionText_SetText_result_81:SetText(self.Description)
-    end
-    local ____table_LevelText_SetText_result_83 = self.LevelText
-    if ____table_LevelText_SetText_result_83 ~= nil then
-        ____table_LevelText_SetText_result_83 = ____table_LevelText_SetText_result_83:SetText("L. " .. tostring(self.Level))
-    end
-    self:UpdateUpgradeButton()
-end
-function Skill.prototype.UpdateUpgradeButton(self)
-    self.UpgradeButton:Enable(self.CanBeUpgraded)
-    local ____table_UpgradeButton_TextControl_result_SetText_result_85 = self.UpgradeButton
-    if ____table_UpgradeButton_TextControl_result_SetText_result_85 ~= nil then
-        ____table_UpgradeButton_TextControl_result_SetText_result_85 = ____table_UpgradeButton_TextControl_result_SetText_result_85:TextControl():SetText(not self.IsMaxLevelReached and tostring(self.UpgradePrice) .. " SP" or "MAX")
-    end
-end
-function Skill.prototype.Update(self, deltaTime)
-end
-function Skill.prototype.OnMonsterHit(self, monster, isCrit)
-end
-function Skill.prototype.OnMonsterKill(self, monster, isCrit)
-end
-____exports.SkillPassiveStatBonus = __TS__Class()
-local SkillPassiveStatBonus = ____exports.SkillPassiveStatBonus
-SkillPassiveStatBonus.name = "SkillPassiveStatBonus"
-__TS__ClassExtends(SkillPassiveStatBonus, ____exports.Skill)
-function SkillPassiveStatBonus.prototype.____constructor(self, Id, Owner, Stat, BonusType, ValuePerLevel, PriceFormula, MaxLevel)
-    if MaxLevel == nil then
-        MaxLevel = -1
-    end
-    SkillPassiveStatBonus.____super.prototype.____constructor(
-        self,
-        Id,
-        Owner,
-        PriceFormula,
-        MaxLevel
-    )
-    self.Id = Id
-    self.Owner = Owner
-    self.Stat = Stat
-    self.BonusType = BonusType
-    self.ValuePerLevel = ValuePerLevel
-    self.PriceFormula = PriceFormula
-    self.MaxLevel = MaxLevel
-end
-__TS__SetDescriptor(
-    SkillPassiveStatBonus.prototype,
-    "Description",
-    {get = function(self)
-        local value = self.Value
-        local statTitle = ____exports.StatTitles[self.Stat]
-        if self.BonusType == 0 then
-            return (((statTitle .. " ") .. (value > 0 and "+" or "")) .. tostring(value)) .. (__TS__ArrayIncludes(____exports.PctStats, self.Stat) and "%" or "")
-        elseif self.BonusType == 1 then
-            return (((statTitle .. " ") .. (value > 0 and "+" or "")) .. tostring(value)) .. "%"
-        end
-        return (statTitle .. " x") .. tostring(value)
-    end},
-    true
-)
-__TS__SetDescriptor(
-    SkillPassiveStatBonus.prototype,
-    "Value",
-    {get = function(self)
-        return self.ValuePerLevel(self.Level)
-    end},
-    true
-)
-function SkillPassiveStatBonus.prototype.OnLevelUp(self, oldLevel, newLevel)
-    SkillPassiveStatBonus.____super.prototype.OnLevelUp(self, oldLevel, newLevel)
-    self.World.Player:AddStatBonus(self.Stat, self.BonusType, self.Value, self.Id)
-end
-____exports.SkillHealPlayerOnKill = __TS__Class()
-local SkillHealPlayerOnKill = ____exports.SkillHealPlayerOnKill
-SkillHealPlayerOnKill.name = "SkillHealPlayerOnKill"
-__TS__ClassExtends(SkillHealPlayerOnKill, ____exports.Skill)
-function SkillHealPlayerOnKill.prototype.____constructor(self, Id, Owner, HpPerLevel, PriceFormula, MaxLevel)
-    if MaxLevel == nil then
-        MaxLevel = -1
-    end
-    SkillHealPlayerOnKill.____super.prototype.____constructor(
-        self,
-        Id,
-        Owner,
-        PriceFormula,
-        MaxLevel
-    )
-    self.Id = Id
-    self.Owner = Owner
-    self.HpPerLevel = HpPerLevel
-    self.PriceFormula = PriceFormula
-    self.MaxLevel = MaxLevel
-end
-__TS__SetDescriptor(
-    SkillHealPlayerOnKill.prototype,
-    "Description",
-    {get = function(self)
-        return ("+" .. tostring(self.HPOnKill)) .. " HP on kill"
-    end},
-    true
-)
-__TS__SetDescriptor(
-    SkillHealPlayerOnKill.prototype,
-    "HPOnKill",
-    {get = function(self)
-        return self.HpPerLevel(self.Level)
-    end},
-    true
-)
-function SkillHealPlayerOnKill.prototype.OnMonsterKill(self, monster, isCrit)
-    local ____self_World_Player_87, ____HP_88 = self.World.Player, "HP"
-    ____self_World_Player_87[____HP_88] = ____self_World_Player_87[____HP_88] + self.HPOnKill
-end
-____exports.SkillAuraOfDeath = __TS__Class()
-local SkillAuraOfDeath = ____exports.SkillAuraOfDeath
-SkillAuraOfDeath.name = "SkillAuraOfDeath"
-__TS__ClassExtends(SkillAuraOfDeath, ____exports.Skill)
-function SkillAuraOfDeath.prototype.____constructor(self, Id, Owner, Interval, DpsPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
-    if MaxLevel == nil then
-        MaxLevel = -1
-    end
-    SkillAuraOfDeath.____super.prototype.____constructor(
-        self,
-        Id,
-        Owner,
-        PriceFormula,
-        MaxLevel
-    )
-    self.Id = Id
-    self.Owner = Owner
-    self.Interval = Interval
-    self.DpsPctPerLevel = DpsPctPerLevel
-    self.RangePerLevel = RangePerLevel
-    self.PriceFormula = PriceFormula
-    self.MaxLevel = MaxLevel
-    self.timePassed = 0
-end
-__TS__SetDescriptor(
-    SkillAuraOfDeath.prototype,
-    "Description",
-    {get = function(self)
-        return ((((((("Every " .. tostring(self.Interval)) .. " ") .. (self.Interval == 1 and "second" or "seconds")) .. " damage all enemies in ") .. tostring(self.Range)) .. "m range for ") .. tostring(self.DpsPct)) .. "% of DPS"
-    end},
-    true
-)
-__TS__SetDescriptor(
-    SkillAuraOfDeath.prototype,
-    "Range",
-    {get = function(self)
-        return self.RangePerLevel(self.Level)
-    end},
-    true
-)
-__TS__SetDescriptor(
-    SkillAuraOfDeath.prototype,
-    "DpsPct",
-    {get = function(self)
-        return self.DpsPctPerLevel(self.Level)
-    end},
-    true
-)
-function SkillAuraOfDeath.prototype.Update(self, deltaTime)
-    SkillAuraOfDeath.____super.prototype.Update(self, deltaTime)
-    self.timePassed = self.timePassed + deltaTime
-    if self.timePassed < self.Interval then
-        return
-    end
-    local weapon = self.World.Player.Weapon
-    if weapon == nil then
-        return
-    end
-    self.timePassed = self.timePassed - self.Interval
-    local playerPos = self.World.Player.GO:position()
-    local rangeSqr = self.Range * self.Range
-    local damage = weapon.DPS * self.DpsPct / 100
-    for _, monster in pairs(self.World.Monsters) do
-        do
-            if monster.GO == nil or monster.IsDead then
-                goto __continue50
-            end
-            local distanceSqr = monster.GO:position():distance_to_sqr(playerPos)
-            if distanceSqr <= rangeSqr then
-                self.World:DamageMonster(monster, damage, false)
-            end
-        end
-        ::__continue50::
-    end
-end
-function ____exports.PriceFormulaConstant(price)
-    return function(_level) return price end
-end
-____exports.PriceFormulaLevel = function(level) return level end
 ____exports.StatTitles = {
     [0] = "Run Speed",
     [1] = "Sprint Speed",
@@ -4903,6 +5006,7 @@ local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
 local cfg = require("MonsterWorldMod.MonsterWorldConfig")
 local ____MonsterWorldConfig = require("MonsterWorldMod.MonsterWorldConfig")
+local LevelType = ____MonsterWorldConfig.LevelType
 local MonsterRank = ____MonsterWorldConfig.MonsterRank
 ____exports.MonsterWorldSpawns = __TS__Class()
 local MonsterWorldSpawns = ____exports.MonsterWorldSpawns
@@ -5019,16 +5123,31 @@ function MonsterWorldSpawns.prototype.OnSimSquadAddMember(self, obj, section, po
     local elitesSpawned = 0
     local locCfg = cfg.LocationConfigs[level.name()]
     local locLevel = locCfg.level or 1
-    if locLevel < 10 then
-        squadSize = squadSize * (0.5 + 0.05 * locLevel)
+    if locLevel < 5 then
+        squadSize = squadSize * (0.5 + 0.1 * locLevel)
+    end
+    local playerLevel = self.world.Player.Level
+    local enemyLvl = locLevel
+    if locLevel < playerLevel then
+        if locLevel <= 5 then
+            enemyLvl = math.max(locLevel, playerLevel - 1)
+        elseif locLevel <= 15 then
+            enemyLvl = math.max(locLevel, playerLevel)
+        elseif locCfg.type == LevelType.Open then
+            enemyLvl = math.max(locLevel, playerLevel + 1)
+        elseif locCfg.type == LevelType.Underground then
+            enemyLvl = math.max(locLevel, playerLevel + 3)
+        elseif locCfg.type == LevelType.Lab then
+            enemyLvl = math.max(locLevel, playerLevel + 5)
+        end
     end
     do
         local i = 0
         while i < squadSize do
             do
-                local enemyLvl = math.max(locLevel, self.world.Player.Level - 3)
+                local squadMemberLevel = enemyLvl
                 if IsPctRolled(cfg.EnemyHigherLevelChance) then
-                    enemyLvl = enemyLvl + 1
+                    squadMemberLevel = squadMemberLevel + 1
                 end
                 local rank = MonsterRank.Common
                 if not isBossSpawned and IsPctRolled(cfg.EnemyEliteChance) then
@@ -5053,12 +5172,12 @@ function MonsterWorldSpawns.prototype.OnSimSquadAddMember(self, obj, section, po
                 )
                 if monsterId == nil then
                     Log("SPAWN PROBLEM  NO monster!")
-                    goto __continue25
+                    goto __continue31
                 end
-                Save(monsterId, "MW_SpawnParams", {type = monsterType, level = enemyLvl, rank = rank})
+                Save(monsterId, "MW_SpawnParams", {type = monsterType, level = squadMemberLevel, rank = rank})
                 i = i + 1
             end
-            ::__continue25::
+            ::__continue31::
         end
     end
 end
@@ -5151,6 +5270,10 @@ function MonsterWorldUI.prototype.____constructor(self, World)
             return
         end
         s.name:SetTextColor(cfg.QualityColors[weapon.Quality])
+        s.ammo:Show(false)
+        s.note:Show(false)
+        s.value:Show(false)
+        s.weight:Show(false)
     end
     utils_ui.UIInfoItem.Update = newUIInfoItemUpdate
     local oldUISortBySizeKind = utils_ui.sort_by_sizekind
@@ -5714,6 +5837,7 @@ __TS__SetDescriptor(
     {get = function(self)
         if self.player == nil then
             self.player = __TS__New(MWPlayer, self, 0)
+            self.player:Initialize()
         end
         return self.player
     end},
@@ -5740,7 +5864,9 @@ function MonsterWorld.prototype.GetMonster(self, monsterOrId)
         return nil
     end
     if not (self.Monsters[monsterId] ~= nil) then
-        self.Monsters[monsterId] = __TS__New(MWMonster, self, monsterId)
+        local monster = __TS__New(MWMonster, self, monsterId)
+        monster:Initialize()
+        self.Monsters[monsterId] = monster
     end
     return self.Monsters[monsterId]
 end
@@ -5765,7 +5891,9 @@ function MonsterWorld.prototype.GetWeapon(self, itemOrId)
         return nil
     end
     if not (self.weapons[itemId] ~= nil) then
-        self.weapons[itemId] = __TS__New(MWWeapon, self, itemId)
+        local weapon = __TS__New(MWWeapon, self, itemId)
+        weapon:Initialize()
+        self.weapons[itemId] = weapon
     end
     return self.weapons[itemId]
 end
@@ -5857,10 +5985,14 @@ function MonsterWorld.prototype.OnPlayerHit(self, shit, boneId)
             ____weapon_is_weapon_result_14 = ____weapon_is_weapon_result_14:is_weapon()
         end
         if ____weapon_is_weapon_result_14 then
-            damage = damage * (weapon:cast_Weapon():RPM() * 1.5)
+            damage = damage * clamp(
+                weapon:cast_Weapon():RPM(),
+                0.3,
+                2
+            )
         end
     end
-    damage = math.max(2, damage) * self.enemyDamageMult
+    damage = math.max(1, damage) * self.enemyDamageMult
     local ____self_Player_16, ____HP_17 = self.Player, "HP"
     ____self_Player_16[____HP_17] = ____self_Player_16[____HP_17] - damage
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
@@ -6096,8 +6228,11 @@ return ____exports
 ["MonsterWorldMod.BaseMWObject"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
+local Map = ____lualib.Map
+local __TS__New = ____lualib.__TS__New
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
+local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local GetStatBonusField, GetStatBaseField, GetStatTotalField
 local ____basic = require("StalkerAPI.extensions.basic")
@@ -6122,26 +6257,8 @@ BaseMWObject.name = "BaseMWObject"
 function BaseMWObject.prototype.____constructor(self, World, id)
     self.World = World
     self.id = id
-    if not self.Initialized then
-        self:Initialize()
-        self.Initialized = true
-    else
-        self:Reinit()
-    end
+    self.Skills = __TS__New(Map)
 end
-__TS__SetDescriptor(
-    BaseMWObject.prototype,
-    "Initialized",
-    {
-        get = function(self)
-            return self:Load("Initialized")
-        end,
-        set = function(self, initialized)
-            self:Save("Initialized", initialized)
-        end
-    },
-    true
-)
 __TS__SetDescriptor(
     BaseMWObject.prototype,
     "ServerGO",
@@ -6237,6 +6354,26 @@ __TS__SetDescriptor(
     end},
     true
 )
+__TS__SetDescriptor(
+    BaseMWObject.prototype,
+    "WasInitializedForFirstTime",
+    {
+        get = function(self)
+            return self:Load("Initialized")
+        end,
+        set = function(self, initialized)
+            self:Save("Initialized", initialized)
+        end
+    },
+    true
+)
+function BaseMWObject.prototype.Initialize(self)
+    if not self.WasInitializedForFirstTime then
+        self:OnFirstTimeInitialize()
+        self.WasInitializedForFirstTime = true
+    end
+    self:OnInitialize()
+end
 function BaseMWObject.prototype.Update(self, deltaTime)
     self:RegenHP(deltaTime)
 end
@@ -6315,13 +6452,40 @@ function BaseMWObject.prototype.OnStatChanged(self, stat, total)
         self.HP = total
     end
 end
+function BaseMWObject.prototype.SetSkillLevel(self, skillId, level)
+    self:Save("SkillLevel_" .. skillId, level)
+end
+function BaseMWObject.prototype.GetSkillLevel(self, skillId)
+    return self:Load("SkillLevel_" .. skillId, 0)
+end
+function BaseMWObject.prototype.SetupSkills(self)
+end
+function BaseMWObject.prototype.AddSkill(self, skill)
+    skill:Init()
+    self.Skills:set(skill.Id, skill)
+end
+function BaseMWObject.prototype.IterateSkills(self, iterator, onlyWithLevel)
+    if onlyWithLevel == nil then
+        onlyWithLevel = true
+    end
+    for ____, ____value in __TS__Iterator(self.Skills) do
+        local _ = ____value[1]
+        local skill = ____value[2]
+        if not onlyWithLevel or skill.Level > 0 then
+            iterator(skill)
+        end
+    end
+end
 function BaseMWObject.prototype.Save(self, varname, val)
     Save(self.id, "MW_" .. varname, val)
 end
 function BaseMWObject.prototype.Load(self, varname, def)
     return Load(self.id, "MW_" .. varname, def)
 end
-function BaseMWObject.prototype.Reinit(self)
+function BaseMWObject.prototype.OnFirstTimeInitialize(self)
+end
+function BaseMWObject.prototype.OnInitialize(self)
+    self:SetupSkills()
 end
 function BaseMWObject.prototype.OnDeath(self)
 end
