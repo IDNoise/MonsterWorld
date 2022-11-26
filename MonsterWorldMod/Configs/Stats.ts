@@ -14,15 +14,14 @@ export const enum StatType{
     DamageToStalkersBonusPct, //Player + Weapon
     DamageToMutantssBonusPct, //Player + Weapon
     MagSize, //Player + Weapon
+    Rpm, //Weapon - only from upgrades
+    Dispersion, //Weapon - only from upgrades
+    Recoil, //Weapon - only from upgrades
+    BulletSpeed, //Weapon - only from upgrades
+    AutoFireMode, //Weapon - only from upgrades
 
     DamageResistancePct, //Armor
 
-    //Bonuses from weapon upgrades
-    AutoFireModeState,
-    RpmBonusPct,
-    DispersionBonusPct,
-    RecoilBonusPct,
-    BulletSpeedBonusPct,
     //Predefined by armor quality
     ArtefactSlots
 }
@@ -41,14 +40,13 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.DamageToStalkersBonusPct]: "Damage to Stalkers",
     [StatType.DamageToMutantssBonusPct]: "Damage to Mutants",
     [StatType.MagSize]: "Ammo",
+    [StatType.Rpm]: "Fire rate",
+    [StatType.Dispersion]: "Accuracy",
+    [StatType.Recoil]: "Recoil",
+    [StatType.BulletSpeed]: "Flatness",
+    [StatType.AutoFireMode]:  "AUTO Fire mode enabled",
 
     [StatType.DamageResistancePct]: "Damage Resistance",
-
-    [StatType.AutoFireModeState]: "AUTO fire mode enabled",
-    [StatType.RpmBonusPct]: "Fire rate",
-    [StatType.DispersionBonusPct]: "Accuracy",
-    [StatType.RecoilBonusPct]: "Recoil",
-    [StatType.BulletSpeedBonusPct]: "Flatness",
 
     [StatType.ArtefactSlots]: "Artefact slots",
 }
@@ -65,25 +63,24 @@ export let PctStats: StatType[] = [
     StatType.DamageToStalkersBonusPct, 
     StatType.DamageToMutantssBonusPct, 
     StatType.ReloadSpeedBonusPct,
-    StatType.RpmBonusPct,
-    StatType.DispersionBonusPct,
-    StatType.RecoilBonusPct,
-    StatType.BulletSpeedBonusPct,
     StatType.DamageResistancePct,
 ];
 
 export let NoValueStats: StatType[] = [
-    StatType.AutoFireModeState
+    StatType.AutoFireMode
 ]
 
 export let NegativeBonuses = [
-    StatType.RecoilBonusPct
+    StatType.Recoil
 ];
 
 export function GetBonusDescription(stat: StatType, bonus: number = 0, asPct: boolean = false): string{
+    if (bonus == 0) 
+        return ""
+
     if (NoValueStats.includes(stat))
-        return `%c[255,255,255,0]${StatTitles[stat]}${EndColorTag}`;
+        return `%c[255,255,255,0]${StatTitles[stat]}${EndColorTag}\\n`;
     
     const valueStr = `${NegativeBonuses.includes(stat) ? "-" : "+"}${math.floor(bonus)}${(asPct || PctStats.includes(stat)) ? "\%" : ""}`;
-    return `%c[255,56,166,209]${valueStr.padEnd(6, " ")}${EndColorTag} ${StatTitles[stat]}`
+    return `%c[255,56,166,209]${valueStr.padEnd(6, " ")}${EndColorTag} ${StatTitles[stat]}\\n`
 }

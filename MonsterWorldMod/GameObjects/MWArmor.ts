@@ -13,17 +13,10 @@ export class MWArmor extends MWItem {
     get Description(): string{
         let result = "";
 
-        let DescriptionStats: StatType[] = [
-            StatType.MaxHP,
-            StatType.ArtefactSlots,
-            StatType.DamageResistancePct,
-        ];
-
-        for(const stat of DescriptionStats){
-            let value = this.GetStat(stat);
-            if (value != 0)
-                result += GetBonusDescription(stat, value) + " \\n";
-        }
+        result += GetBonusDescription(StatType.MaxHP, this.GetTotalFlatBonus(StatType.MaxHP));
+        result += GetBonusDescription(StatType.ArtefactSlots, this.GetStat(StatType.ArtefactSlots));
+        result += GetBonusDescription(StatType.DamageResistancePct, this.GetTotalFlatBonus(StatType.DamageResistancePct));
+        result += GetBonusDescription(StatType.HPRegen, this.GetTotalPctBonus(StatType.HPRegen), true);
 
         return result;
     }
@@ -38,7 +31,10 @@ export class MWArmor extends MWItem {
         let maxHPBonus = 5 * this.Level + math.random((this.Quality - 1) * this.Level / 2, (5 + 2 * this.Quality) * this.Level);
         this.AddStatBonus(StatType.MaxHP, StatBonusType.Flat, maxHPBonus, "generation")
 
-        let availableBonuses: StatType[] = [StatType.DamageResistancePct];
+        let availableBonuses: StatType[] = [
+            StatType.DamageResistancePct,
+            StatType.HPRegen
+        ];
         let upgradeTypesToAdd = 1 + this.Quality;
         const upgradeTypesToSelect = math.min(availableBonuses.length, upgradeTypesToAdd);
         let selectedUpgradeStats = TakeRandomUniqueElementsFromArray(availableBonuses, upgradeTypesToSelect);
@@ -47,6 +43,10 @@ export class MWArmor extends MWItem {
             if (stat == StatType.DamageResistancePct) {
                 let damageResistanceBonus = math.random(2 + 2 * (this.Quality - 1), (4 + 1.5 * (this.Quality - 1)) * this.Quality)
                 this.AddStatBonus(StatType.DamageResistancePct, StatBonusType.Flat, damageResistanceBonus, "generation")
+            }
+            else if (stat == StatType.HPRegen) {
+                let hpRegenBonus = math.random(10 + 5 * (this.Quality - 1), (30 + 10 * (this.Quality - 1)) * this.Quality)
+                this.AddStatBonus(StatType.HPRegen, StatBonusType.Pct, hpRegenBonus, "generation")
             }
         }
     }

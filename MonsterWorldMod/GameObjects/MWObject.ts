@@ -55,6 +55,8 @@ export abstract class MWObject {
     get Section(): string { return this.ServerGO.section_name(); }
 
     GetStat(stat: StatType): number{ return this.Load<number>(GetStatTotalField(stat), 0); }
+    GetStatBase(stat: StatType): number { return this.Load<number>(GetStatBaseField(stat), 0); }
+    GetStatDiffWithBase(stat: StatType): number { return this.GetStat(stat) - this.GetStatBase(stat); }
 
     SetStatBase(stat: StatType, baseValue: number): void{ 
         this.Save<number>(GetStatBaseField(stat), baseValue); 

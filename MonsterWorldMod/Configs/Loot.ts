@@ -56,30 +56,30 @@ export function GetDropParticles(type: DropType, quality: number): string {
 
 export let WeaponStatsForGeneration = [
     StatType.Damage, 
-    StatType.RpmBonusPct, 
+    StatType.Rpm, 
     StatType.MagSize, 
-    StatType.DispersionBonusPct, 
-    StatType.RecoilBonusPct, 
+    StatType.Dispersion, 
+    StatType.Recoil, 
     StatType.ReloadSpeedBonusPct, 
     StatType.CritChancePct
 ]; 
 
 export let WeaponStatsUsingUpgrades = [
-    StatType.RpmBonusPct, 
-    StatType.DispersionBonusPct, 
-    StatType.RecoilBonusPct, 
-    StatType.BulletSpeedBonusPct, 
-    StatType.AutoFireModeState
+    StatType.Rpm, 
+    StatType.Dispersion, 
+    StatType.Recoil, 
+    StatType.BulletSpeed, 
+    StatType.AutoFireMode
 ]; 
 
 export function GetWeaponUpgradesByStat(weaponSection: Section, stat: StatType): Section[]{
     let prefix = "";
     switch(stat){
-        case StatType.RpmBonusPct: prefix = "rpm"; break; 
-        case StatType.DispersionBonusPct: prefix = "dispersion"; break; 
-        case StatType.RecoilBonusPct: prefix = "recoil"; break; 
-        case StatType.BulletSpeedBonusPct: prefix = "bullet_speed"; break; 
-        case StatType.AutoFireModeState: prefix = "fire_mode"; break; 
+        case StatType.Rpm: prefix = "rpm"; break; 
+        case StatType.Dispersion: prefix = "dispersion"; break; 
+        case StatType.Recoil: prefix = "recoil"; break; 
+        case StatType.BulletSpeed: prefix = "bullet_speed"; break; 
+        case StatType.AutoFireMode: prefix = "fire_mode"; break; 
     }
 
     if (prefix == ""){
@@ -96,10 +96,10 @@ export function GetWeaponUpgradesByStat(weaponSection: Section, stat: StatType):
 
 export function GetWeaponSectinFieldNameByStat(stat: StatType): string {
     switch(stat){
-        case StatType.RpmBonusPct: return "rpm"; 
-        case StatType.DispersionBonusPct: return "fire_dispersion_base"; 
-        case StatType.RecoilBonusPct: return "cam_max_angle";
-        case StatType.BulletSpeedBonusPct: return "bullet_speed"; 
+        case StatType.Rpm: return "rpm"; 
+        case StatType.Dispersion: return "fire_dispersion_base"; 
+        case StatType.Recoil: return "cam_max_angle";
+        case StatType.BulletSpeed: return "bullet_speed"; 
         case StatType.MagSize: return "ammo_mag_size"; 
     }
     return "";

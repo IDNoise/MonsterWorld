@@ -3476,12 +3476,12 @@ ____exports.StatTitles = {
     [8] = "Damage to Stalkers",
     [9] = "Damage to Mutants",
     [10] = "Ammo",
-    [11] = "Damage Resistance",
-    [12] = "AUTO fire mode enabled",
-    [13] = "Fire rate",
-    [14] = "Accuracy",
-    [15] = "Recoil",
-    [16] = "Flatness",
+    [11] = "Fire rate",
+    [12] = "Accuracy",
+    [13] = "Recoil",
+    [14] = "Flatness",
+    [15] = "AUTO Fire mode enabled",
+    [16] = "Damage Resistance",
     [17] = "Artefact slots"
 }
 ____exports.PctStats = {
@@ -3490,14 +3490,10 @@ ____exports.PctStats = {
     8,
     9,
     5,
-    13,
-    14,
-    15,
-    16,
-    11
+    16
 }
-____exports.NoValueStats = {12}
-____exports.NegativeBonuses = {15}
+____exports.NoValueStats = {15}
+____exports.NegativeBonuses = {13}
 function ____exports.GetBonusDescription(stat, bonus, asPct)
     if bonus == nil then
         bonus = 0
@@ -3505,11 +3501,14 @@ function ____exports.GetBonusDescription(stat, bonus, asPct)
     if asPct == nil then
         asPct = false
     end
+    if bonus == 0 then
+        return ""
+    end
     if __TS__ArrayIncludes(____exports.NoValueStats, stat) then
-        return ("%c[255,255,255,0]" .. ____exports.StatTitles[stat]) .. EndColorTag
+        return (("%c[255,255,255,0]" .. ____exports.StatTitles[stat]) .. EndColorTag) .. "\\n"
     end
     local valueStr = ((__TS__ArrayIncludes(____exports.NegativeBonuses, stat) and "-" or "+") .. tostring(math.floor(bonus))) .. ((asPct or __TS__ArrayIncludes(____exports.PctStats, stat)) and "%" or "")
-    return ((("%c[255,56,166,209]" .. __TS__StringPadEnd(valueStr, 6, " ")) .. EndColorTag) .. " ") .. ____exports.StatTitles[stat]
+    return (((("%c[255,56,166,209]" .. __TS__StringPadEnd(valueStr, 6, " ")) .. EndColorTag) .. " ") .. ____exports.StatTitles[stat]) .. "\\n"
 end
 return ____exports
  end,
@@ -3836,6 +3835,15 @@ function MWObject.prototype.GetStat(self, stat)
         0
     )
 end
+function MWObject.prototype.GetStatBase(self, stat)
+    return self:Load(
+        GetStatBaseField(stat),
+        0
+    )
+end
+function MWObject.prototype.GetStatDiffWithBase(self, stat)
+    return self:GetStat(stat) - self:GetStatBase(stat)
+end
 function MWObject.prototype.SetStatBase(self, stat, baseValue)
     self:Save(
         GetStatBaseField(stat),
@@ -4023,45 +4031,45 @@ function ____exports.GetDropParticles(____type, quality)
 end
 ____exports.WeaponStatsForGeneration = {
     4,
-    13,
+    11,
     10,
-    14,
-    15,
+    12,
+    13,
     5,
     7
 }
 ____exports.WeaponStatsUsingUpgrades = {
+    11,
+    12,
     13,
     14,
-    15,
-    16,
-    12
+    15
 }
 function ____exports.GetWeaponUpgradesByStat(weaponSection, stat)
     local prefix = ""
     repeat
         local ____switch15 = stat
-        local ____cond15 = ____switch15 == 13
+        local ____cond15 = ____switch15 == 11
         if ____cond15 then
             prefix = "rpm"
             break
         end
-        ____cond15 = ____cond15 or ____switch15 == 14
+        ____cond15 = ____cond15 or ____switch15 == 12
         if ____cond15 then
             prefix = "dispersion"
             break
         end
-        ____cond15 = ____cond15 or ____switch15 == 15
+        ____cond15 = ____cond15 or ____switch15 == 13
         if ____cond15 then
             prefix = "recoil"
             break
         end
-        ____cond15 = ____cond15 or ____switch15 == 16
+        ____cond15 = ____cond15 or ____switch15 == 14
         if ____cond15 then
             prefix = "bullet_speed"
             break
         end
-        ____cond15 = ____cond15 or ____switch15 == 12
+        ____cond15 = ____cond15 or ____switch15 == 15
         if ____cond15 then
             prefix = "fire_mode"
             break
@@ -4079,19 +4087,19 @@ end
 function ____exports.GetWeaponSectinFieldNameByStat(stat)
     repeat
         local ____switch19 = stat
-        local ____cond19 = ____switch19 == 13
+        local ____cond19 = ____switch19 == 11
         if ____cond19 then
             return "rpm"
         end
-        ____cond19 = ____cond19 or ____switch19 == 14
+        ____cond19 = ____cond19 or ____switch19 == 12
         if ____cond19 then
             return "fire_dispersion_base"
         end
-        ____cond19 = ____cond19 or ____switch19 == 15
+        ____cond19 = ____cond19 or ____switch19 == 13
         if ____cond19 then
             return "cam_max_angle"
         end
-        ____cond19 = ____cond19 or ____switch19 == 16
+        ____cond19 = ____cond19 or ____switch19 == 14
         if ____cond19 then
             return "bullet_speed"
         end
@@ -4308,7 +4316,7 @@ function MWItem.prototype.OnItemPickedUp(self)
     self.GO:set_condition(100)
 end
 function MWItem.prototype.GetPlayerStatBonusesOnEquip(self)
-    return {2, 11}
+    return {2, 16}
 end
 function MWItem.prototype.OnItemEquipped(self)
     local source = tostring(self.id)
@@ -4351,8 +4359,6 @@ local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__StringReplace = ____lualib.__TS__StringReplace
 local ____exports = {}
-local ____StalkerModBase = require("StalkerModBase")
-local Log = ____StalkerModBase.Log
 local cfg = require("MonsterWorldMod.Configs.Constants")
 local ____Loot = require("MonsterWorldMod.Configs.Loot")
 local WeaponStatsUsingUpgrades = ____Loot.WeaponStatsUsingUpgrades
@@ -4361,7 +4367,6 @@ local GetWeaponUpgradesByStat = ____Loot.GetWeaponUpgradesByStat
 local GetWeaponSectinFieldNameByStat = ____Loot.GetWeaponSectinFieldNameByStat
 local GetWeaponBaseValueByStat = ____Loot.GetWeaponBaseValueByStat
 local ____Stats = require("MonsterWorldMod.Configs.Stats")
-local PctStats = ____Stats.PctStats
 local GetBonusDescription = ____Stats.GetBonusDescription
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
 local TakeRandomUniqueElementsFromArray = ____Collections.TakeRandomUniqueElementsFromArray
@@ -4441,28 +4446,47 @@ __TS__SetDescriptor(
     "Description",
     {get = function(self)
         local result = ""
-        local DescriptionStats = {
+        result = result .. GetBonusDescription(
             4,
-            13,
+            self:GetTotalPctBonus(4),
+            true
+        )
+        result = result .. GetBonusDescription(
+            11,
+            self:GetTotalPctBonus(11),
+            true
+        )
+        result = result .. GetBonusDescription(
             10,
+            self:GetStatDiffWithBase(10)
+        )
+        result = result .. GetBonusDescription(
             5,
-            7,
+            self:GetTotalFlatBonus(5)
+        )
+        result = result .. GetBonusDescription(
+            12,
+            self:GetTotalPctBonus(12),
+            true
+        )
+        result = result .. GetBonusDescription(
+            13,
+            self:GetTotalPctBonus(13),
+            true
+        )
+        result = result .. GetBonusDescription(
             14,
+            self:GetTotalPctBonus(14),
+            true
+        )
+        result = result .. GetBonusDescription(
+            7,
+            self:GetStat(7)
+        )
+        result = result .. GetBonusDescription(
             15,
-            16,
-            12
-        }
-        for ____, stat in ipairs(DescriptionStats) do
-            local asPct = false
-            local value = self:GetStat(stat)
-            if stat == 4 or stat == 10 then
-                asPct = true
-                value = self:GetTotalPctBonus(stat)
-            end
-            if value ~= 0 then
-                result = result .. GetBonusDescription(stat, value, asPct) .. " \\n"
-            end
-        end
+            self:GetStat(15)
+        )
         return result
     end},
     true
@@ -4473,7 +4497,6 @@ function MWWeapon.prototype.OnItemPickedUp(self)
 end
 function MWWeapon.prototype.OnReloadStart(self, anim_table)
     local mult = 1 + MonsterWorld:GetStat(5, self, MonsterWorld.Player) / 100
-    Log("OnReloadStart. Bonus: x" .. tostring(mult))
     anim_table.anm_speed = anim_table.anm_speed * mult
 end
 function MWWeapon.prototype.OnReloadEnd(self)
@@ -4486,11 +4509,25 @@ function MWWeapon.prototype.GeneateStats(self)
         return
     end
     local baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, self.Level - 1)
-    local fireRate = 60 / GetWeaponBaseValueByStat(self.Section, 13)
+    local rpm = GetWeaponBaseValueByStat(self.Section, 11)
+    local fireRate = 60 / rpm
     local damagePerHit = baseDPS * fireRate
-    self:SetStatBase(4, damagePerHit)
     local magSize = GetWeaponBaseValueByStat(self.Section, 10)
+    self:SetStatBase(4, damagePerHit)
+    self:SetStatBase(11, rpm)
     self:SetStatBase(10, magSize)
+    self:SetStatBase(
+        12,
+        GetWeaponBaseValueByStat(self.Section, 12)
+    )
+    self:SetStatBase(
+        13,
+        GetWeaponBaseValueByStat(self.Section, 13)
+    )
+    self:SetStatBase(
+        14,
+        GetWeaponBaseValueByStat(self.Section, 14)
+    )
     local weaponUpgradesByBonusType = {}
     for ____, uType in ipairs(WeaponStatsUsingUpgrades) do
         local upgrades = GetWeaponUpgradesByStat(self.Section, uType)
@@ -4507,35 +4544,35 @@ function MWWeapon.prototype.GeneateStats(self)
     local upgradeTypesToAdd = 1 + self.Quality + math.floor(self.Level / 10)
     local upgradeTypesToSelect = math.min(#availableBonuses, upgradeTypesToAdd)
     local selectedUpgradeStats = TakeRandomUniqueElementsFromArray(availableBonuses, upgradeTypesToSelect)
-    if IsPctRolled(30) and weaponUpgradesByBonusType[16] ~= nil then
-        selectedUpgradeStats[#selectedUpgradeStats + 1] = 16
+    if IsPctRolled(30) and weaponUpgradesByBonusType[14] ~= nil then
+        selectedUpgradeStats[#selectedUpgradeStats + 1] = 14
     end
-    if IsPctRolled(30) and weaponUpgradesByBonusType[12] ~= nil then
-        selectedUpgradeStats[#selectedUpgradeStats + 1] = 12
+    if IsPctRolled(30) and weaponUpgradesByBonusType[15] ~= nil then
+        selectedUpgradeStats[#selectedUpgradeStats + 1] = 15
     end
     local damageBonusPct = 0
     local allSelectedUpgrades = {}
     for ____, stat in ipairs(selectedUpgradeStats) do
         if stat == 4 then
-            damageBonusPct = damageBonusPct + math.random(5 + 10 * (self.Quality - 1), (15 + 15 * (self.Quality - 1)) * self.Quality)
+            damageBonusPct = damageBonusPct + math.random(3 + 7 * (self.Quality - 1), (15 + 15 * (self.Quality - 1)) * self.Quality)
         elseif stat == 5 then
             local reloadSpeedBonus = math.random(2 + 3 * (self.Quality - 1), (10 + 10 * (self.Quality - 1)) * self.Quality)
             self:AddStatBonus(5, 0, reloadSpeedBonus, "generation")
         elseif stat == 7 then
-            local critChanceBonus = math.random(1, (0.5 + 0.4 * (self.Quality - 1)) * self.Quality)
+            local critChanceBonus = math.random(1, 3 + (0.4 + 0.5 * (self.Quality - 1)) * self.Quality)
             self:AddStatBonus(7, 0, critChanceBonus, "generation")
         elseif stat == 10 then
-            local magSizeBonus = math.random(3 + 5 * (self.Quality - 1), (20 + 20 * (self.Quality - 1)) * self.Quality)
+            local magSizeBonus = math.random(2 + 3 * (self.Quality - 1), (20 + 20 * (self.Quality - 1)) * self.Quality)
             while magSize * magSizeBonus / 100 < 1 do
                 magSizeBonus = magSizeBonus + 3
             end
             self:AddStatBonus(10, 1, magSizeBonus, "generation")
-        elseif stat == 12 then
+        elseif stat == 15 then
             allSelectedUpgrades[#allSelectedUpgrades + 1] = weaponUpgradesByBonusType[stat][1]
-            self:AddStatBonus(12, 0, 1, "generation")
+            self:AddStatBonus(15, 0, 1, "generation")
         else
-            local minUpgradesToSelect = 1 + 2 * (self.Quality - 1)
-            local maxUpgradesToSelect = 4 * self.Quality
+            local minUpgradesToSelect = 1 + (self.Quality - 1) / 2
+            local maxUpgradesToSelect = 3 * self.Quality + 2.5 * math.max(0, self.Quality - 3)
             local upgradesToSelect = math.random(minUpgradesToSelect, maxUpgradesToSelect)
             local upgrades = weaponUpgradesByBonusType[stat]
             local bonusValue = 0
@@ -4553,16 +4590,14 @@ function MWWeapon.prototype.GeneateStats(self)
                 end
             end
             if bonusValue ~= 0 then
-                if __TS__ArrayIncludes(PctStats, stat) then
-                    local defaultValue = GetWeaponBaseValueByStat(self.Section, stat)
-                    if defaultValue == 0 then
-                        defaultValue = 1
-                    end
-                    bonusValue = bonusValue / defaultValue * 100
+                local defaultValue = GetWeaponBaseValueByStat(self.Section, stat)
+                if defaultValue == 0 then
+                    defaultValue = 1
                 end
+                bonusValue = bonusValue / defaultValue * 100
                 self:AddStatBonus(
                     stat,
-                    0,
+                    1,
                     math.abs(bonusValue),
                     "generation"
                 )
@@ -4889,13 +4924,23 @@ __TS__SetDescriptor(
     "Description",
     {get = function(self)
         local result = ""
-        local DescriptionStats = {2, 17, 11}
-        for ____, stat in ipairs(DescriptionStats) do
-            local value = self:GetStat(stat)
-            if value ~= 0 then
-                result = result .. GetBonusDescription(stat, value) .. " \\n"
-            end
-        end
+        result = result .. GetBonusDescription(
+            2,
+            self:GetTotalFlatBonus(2)
+        )
+        result = result .. GetBonusDescription(
+            17,
+            self:GetStat(17)
+        )
+        result = result .. GetBonusDescription(
+            16,
+            self:GetTotalFlatBonus(16)
+        )
+        result = result .. GetBonusDescription(
+            3,
+            self:GetTotalPctBonus(3),
+            true
+        )
         return result
     end},
     true
@@ -4913,14 +4958,17 @@ function MWArmor.prototype.GeneateStats(self)
     self:SetStatBase(17, self.Quality)
     local maxHPBonus = 5 * self.Level + math.random((self.Quality - 1) * self.Level / 2, (5 + 2 * self.Quality) * self.Level)
     self:AddStatBonus(2, 0, maxHPBonus, "generation")
-    local availableBonuses = {11}
+    local availableBonuses = {16, 3}
     local upgradeTypesToAdd = 1 + self.Quality
     local upgradeTypesToSelect = math.min(#availableBonuses, upgradeTypesToAdd)
     local selectedUpgradeStats = TakeRandomUniqueElementsFromArray(availableBonuses, upgradeTypesToSelect)
     for ____, stat in ipairs(selectedUpgradeStats) do
-        if stat == 11 then
+        if stat == 16 then
             local damageResistanceBonus = math.random(2 + 2 * (self.Quality - 1), (4 + 1.5 * (self.Quality - 1)) * self.Quality)
-            self:AddStatBonus(11, 0, damageResistanceBonus, "generation")
+            self:AddStatBonus(16, 0, damageResistanceBonus, "generation")
+        elseif stat == 3 then
+            local hpRegenBonus = math.random(10 + 5 * (self.Quality - 1), (30 + 10 * (self.Quality - 1)) * self.Quality)
+            self:AddStatBonus(3, 1, hpRegenBonus, "generation")
         end
     end
 end

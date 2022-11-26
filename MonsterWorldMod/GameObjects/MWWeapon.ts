@@ -20,29 +20,15 @@ export class MWWeapon extends MWItem {
     get Description(): string{
         let result = "";
 
-        let DescriptionStats: StatType[] = [
-            StatType.Damage,
-            StatType.RpmBonusPct,
-            StatType.MagSize,
-            StatType.ReloadSpeedBonusPct,
-            StatType.CritChancePct,
-            StatType.DispersionBonusPct,
-            StatType.RecoilBonusPct,
-            StatType.BulletSpeedBonusPct,
-            StatType.AutoFireModeState
-        ];
-
-        for(const stat of DescriptionStats){
-            let asPct = false;
-            let value = this.GetStat(stat);
-            if (stat == StatType.Damage || stat == StatType.MagSize){
-                asPct = true;
-                value = this.GetTotalPctBonus(stat)
-            }
-
-            if (value != 0)
-                result += GetBonusDescription(stat, value, asPct) + " \\n";
-        }
+        result += GetBonusDescription(StatType.Damage, this.GetTotalPctBonus(StatType.Damage), true);
+        result += GetBonusDescription(StatType.Rpm, this.GetTotalPctBonus(StatType.Rpm), true);
+        result += GetBonusDescription(StatType.MagSize, this.GetStatDiffWithBase(StatType.MagSize));
+        result += GetBonusDescription(StatType.ReloadSpeedBonusPct, this.GetTotalFlatBonus(StatType.ReloadSpeedBonusPct));
+        result += GetBonusDescription(StatType.Dispersion, this.GetTotalPctBonus(StatType.Dispersion), true);
+        result += GetBonusDescription(StatType.Recoil, this.GetTotalPctBonus(StatType.Recoil), true);
+        result += GetBonusDescription(StatType.BulletSpeed, this.GetTotalPctBonus(StatType.BulletSpeed), true);
+        result += GetBonusDescription(StatType.CritChancePct, this.GetStat(StatType.CritChancePct));
+        result += GetBonusDescription(StatType.AutoFireMode, this.GetStat(StatType.AutoFireMode));
 
         return result;
     }
@@ -54,7 +40,6 @@ export class MWWeapon extends MWItem {
 
     OnReloadStart(anim_table: AnimationTable) {
         let mult = 1 + MonsterWorld.GetStat(StatType.ReloadSpeedBonusPct, this, MonsterWorld.Player) / 100;
-        Log(`OnReloadStart. Bonus: x${mult}`)
         anim_table.anm_speed *= mult
     }
 
@@ -74,12 +59,17 @@ export class MWWeapon extends MWItem {
         //Log(`GenerateWeaponStats`)
         let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
 
-        const fireRate = 60 / GetWeaponBaseValueByStat(this.Section, StatType.RpmBonusPct);
+        let rpm = GetWeaponBaseValueByStat(this.Section, StatType.Rpm);
+        const fireRate = 60 / rpm;
         let damagePerHit = baseDPS * fireRate;
-        this.SetStatBase(StatType.Damage, damagePerHit)
-
         let magSize = GetWeaponBaseValueByStat(this.Section, StatType.MagSize);
+
+        this.SetStatBase(StatType.Damage, damagePerHit)
+        this.SetStatBase(StatType.Rpm, rpm);
         this.SetStatBase(StatType.MagSize, magSize)
+        this.SetStatBase(StatType.Dispersion, GetWeaponBaseValueByStat(this.Section, StatType.Dispersion));
+        this.SetStatBase(StatType.Recoil, GetWeaponBaseValueByStat(this.Section, StatType.Recoil));
+        this.SetStatBase(StatType.BulletSpeed, GetWeaponBaseValueByStat(this.Section, StatType.BulletSpeed));
 
         let weaponUpgradesByBonusType: LuaTable<StatType, string[]> = new LuaTable();
 
@@ -102,45 +92,44 @@ export class MWWeapon extends MWItem {
         const upgradeTypesToSelect = math.min(availableBonuses.length, upgradeTypesToAdd);
         let selectedUpgradeStats = TakeRandomUniqueElementsFromArray(availableBonuses, upgradeTypesToSelect);
 
-        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.BulletSpeedBonusPct)){ //Bullet speed is additional bonus
-            selectedUpgradeStats.push(StatType.BulletSpeedBonusPct);
+        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.BulletSpeed)){ //Bullet speed is additional random bonus
+            selectedUpgradeStats.push(StatType.BulletSpeed);
             //Log(`selectedUpgradeTypes ${BonusParams.Type.BulletSpeed}`)
         }
 
-        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.AutoFireModeState)){ //Bullet speed is additional bonus
-            selectedUpgradeStats.push(StatType.AutoFireModeState);
+        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.AutoFireMode)){ //Auto fire is additional random bonus
+            selectedUpgradeStats.push(StatType.AutoFireMode);
             //Log(`selectedUpgradeTypes ${BonusParams.Type.FireMode}`)
         }
 
-        
         let damageBonusPct = 0;
         let allSelectedUpgrades: string[] = [];
         for (let stat of selectedUpgradeStats) {
             if (stat == StatType.Damage) {
-                damageBonusPct += math.random(5 + 10 * (this.Quality - 1), (15 + 15 * (this.Quality - 1)) * this.Quality)
+                damageBonusPct += math.random(3 + 7 * (this.Quality - 1), (15 + 15 * (this.Quality - 1)) * this.Quality)
             }
             else if (stat == StatType.ReloadSpeedBonusPct) {
                 let reloadSpeedBonus = math.random(2 + 3 * (this.Quality - 1), (10 + 10 * (this.Quality - 1)) * this.Quality)
                 this.AddStatBonus(StatType.ReloadSpeedBonusPct, StatBonusType.Flat, reloadSpeedBonus, "generation")
             }
             else if (stat == StatType.CritChancePct) {
-                let critChanceBonus = math.random(1, (0.5 + 0.4 * (this.Quality - 1)) * this.Quality)
+                let critChanceBonus = math.random(1, 3 + (0.4 + 0.5 * (this.Quality - 1)) * this.Quality)
                 this.AddStatBonus(StatType.CritChancePct, StatBonusType.Flat, critChanceBonus, "generation")
             }
             else if (stat == StatType.MagSize) {
-                let magSizeBonus = math.random(3 + 5 * (this.Quality - 1), (20 + 20 * (this.Quality - 1)) * this.Quality)
+                let magSizeBonus = math.random(2 + 3 * (this.Quality - 1), (20 + 20 * (this.Quality - 1)) * this.Quality)
                 while (magSize * magSizeBonus / 100 < 1){
                     magSizeBonus += 3;
                 }
                 this.AddStatBonus(StatType.MagSize, StatBonusType.Pct, magSizeBonus, "generation")
             }
-            else if (stat == StatType.AutoFireModeState) {
+            else if (stat == StatType.AutoFireMode) {
                 allSelectedUpgrades.push(weaponUpgradesByBonusType.get(stat)[0]);
-                this.AddStatBonus(StatType.AutoFireModeState, StatBonusType.Flat, 1, "generation")
+                this.AddStatBonus(StatType.AutoFireMode, StatBonusType.Flat, 1, "generation")
             }
             else {
-                let minUpgradesToSelect = 1 + 2 * (this.Quality - 1)
-                let maxUpgradesToSelect = 4 * this.Quality;
+                let minUpgradesToSelect = 1 + (this.Quality - 1) / 2
+                let maxUpgradesToSelect = 3 * this.Quality + 2.5 * math.max(0, this.Quality - 3);
                 let upgradesToSelect = math.random(minUpgradesToSelect, maxUpgradesToSelect)
                 
                 let upgrades = weaponUpgradesByBonusType.get(stat);
@@ -152,15 +141,13 @@ export class MWWeapon extends MWItem {
                 }
 
                 if (bonusValue != 0) {
-                    if (PctStats.includes(stat)) {
-                        let defaultValue = GetWeaponBaseValueByStat(this.Section, stat);
-                        if (defaultValue == 0) 
-                            defaultValue = 1;
-                        //Log(`Bonus ${t}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
-                        bonusValue = bonusValue / defaultValue * 100;
-                    }
+                    let defaultValue = GetWeaponBaseValueByStat(this.Section, stat);
+                    if (defaultValue == 0) 
+                        defaultValue = 1;
+                    //Log(`Bonus ${stat}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
+                    bonusValue = bonusValue / defaultValue * 100;
 
-                    this.AddStatBonus(stat, StatBonusType.Flat, math.abs(bonusValue), "generation")
+                    this.AddStatBonus(stat, StatBonusType.Pct, math.abs(bonusValue), "generation")
                 }
             }
         }
@@ -177,7 +164,6 @@ export class MWWeapon extends MWItem {
             this.GO.install_upgrade(upgrade);
         }
         this.RefillMagazine();
-        //Log(`Bonus description: ${this.GetBonusDescription()}`);
     }
 
     RefillMagazine(){
