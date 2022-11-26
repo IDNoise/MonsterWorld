@@ -1,11 +1,12 @@
-import { GetByWeightFromArray } from "../Helpers/Collections";
+import { GetByWeightFromArray, TakeRandomElementFromArray } from '../Helpers/Collections';
 import { StatType } from "./Stats";
 import { EndColorTag } from "./UI";
 
 export const enum DropType {
     Weapon = 0,
     Stimpack,
-    Art
+    Art,
+    Armor,
 }
 
 export let EnemyDropChanceByRank: number[] = [15, 100, 35];
@@ -33,34 +34,23 @@ export type DropConfig = {
 export let DropConfigs: DropConfig[] = [
     {type: DropType.Weapon, weight: 50},
     {type: DropType.Stimpack, weight: 10},
+    {type: DropType.Armor, weight: 50}, 
     //{type: DropType.Art, weight: 500}, 
 ]
 
 export function GetDropType(): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.weight).type; }
 
-export type StimpackConfig = {
-    section: Section,
-    quality: number,
-    weight: number
-}
-export let Stimpacks: StimpackConfig[] = [
-    {section: "mw_stimpack_25", quality: 1, weight: 150},
-    {section: "mw_stimpack_50", quality: 3, weight: 40},
-    {section: "mw_stimpack_75", quality: 5, weight: 10},
-]
-
-export function GetStimpack(): [Section, number] { 
-    let stimpack = GetByWeightFromArray(Stimpacks, (e) => e.weight);
-    return [stimpack.section, stimpack.quality]; 
+export function GetStimpackByQuality(qualityLevel: number): Section {
+    if (qualityLevel <= 2) return "mw_stimpack_25";
+    if (qualityLevel <= 4) return "mw_stimpack_50";
+    return "mw_stimpack_75"
 }
 
 export function GetDropParticles(type: DropType, quality: number): string {
-    if (type == DropType.Weapon || type == DropType.Stimpack){
-        if (quality <= 2) return "static\\effects\\net_base_green";
-        if (quality <= 4) return "static\\effects\\net_base_blue";
-        return "static\\effects\\net_base_red";
-    }
-
+    if (quality == 1) return "explosions\\effects\\campfire_sparks";
+    if (quality == 2) return "static\\effects\\net_base_green";
+    if (quality == 3) return "static\\effects\\net_base_blue";
+    if (quality == 4) return "static\\effects\\net_base_red";
     return "_samples_particles_\\holo_lines";
 }
 

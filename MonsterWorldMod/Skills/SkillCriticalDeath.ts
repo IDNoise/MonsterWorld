@@ -1,11 +1,11 @@
-import { BaseMWObject } from '../GameObjects/BaseMWObject';
+import { MWObject } from '../GameObjects/MWObject';
 import { MWMonster } from '../GameObjects/MWMonster';
 import { Skill } from './Skill';
 
 
 
 export class SkillCriticalDeath extends Skill {
-    constructor(public Id: string, public Owner: BaseMWObject, public ChancePctPerLevel: (level: number) => number, public HpPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number,
+    constructor(public Id: string, public Owner: MWObject, public ChancePctPerLevel: (level: number) => number, public HpPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number,
         public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
         super(Id, Owner, PriceFormula, MaxLevel);
     }

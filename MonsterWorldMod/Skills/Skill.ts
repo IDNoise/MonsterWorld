@@ -1,5 +1,5 @@
 import { MWMonster } from '../GameObjects/MWMonster';
-import { BaseMWObject } from '../GameObjects/BaseMWObject';
+import { MWObject } from '../GameObjects/MWObject';
 
 
 export abstract class Skill {
@@ -7,7 +7,7 @@ export abstract class Skill {
 
     public OnLevelUpHandlers: ((skill: Skill) => void)[] = [];
 
-    constructor(public Id: string, public Owner: BaseMWObject, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
+    constructor(public Id: string, public Owner: MWObject, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
     }
 
     Init(): void {

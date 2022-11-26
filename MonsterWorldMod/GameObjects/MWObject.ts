@@ -3,8 +3,9 @@ import { World } from '../World';
 import { Skill } from '../Skills/Skill';
 import { StatType, StatBonusType, PctStats } from '../Configs/Stats';
 import { Save, Load } from '../Helpers/StalkerAPI';
+import { SumTable } from '../Helpers/Collections';
 
-export abstract class BaseMWObject {
+export abstract class MWObject {
     Skills: Map<string, Skill> = new Map();
 
     constructor(public id: Id) {
@@ -77,31 +78,31 @@ export abstract class BaseMWObject {
     public RemoveStatBonus(stat: StatType, bonusType: StatBonusType, source: string): void{
         let field = GetStatBonusField(stat, bonusType);
         let bonuses = this.Load<LuaTable<string, number>>(field, new LuaTable());
-        bonuses.delete(source);
-        this.Save<LuaTable<string, number>>(field, bonuses);
-        this.RecalculateStatTotal(stat); 
+        if (bonuses.length() > 0){
+            bonuses.delete(source);
+            this.Save<LuaTable<string, number>>(field, bonuses);
+            this.RecalculateStatTotal(stat); 
+        }
+    }
+
+    public RemoveStatBonuses(stat: StatType, source: string): void{
+        this.RemoveStatBonus(stat, StatBonusType.Flat, source);
+        this.RemoveStatBonus(stat, StatBonusType.Pct, source);
+        this.RemoveStatBonus(stat, StatBonusType.Mult, source);
     }
 
     GetTotalFlatBonus(stat: StatType): number{
         let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Flat), new LuaTable());
-        let value = 0;
-        for(let [_, bonusValue] of bonuses){
-            value += bonusValue;
-        }
-        return value;
+        return SumTable(bonuses, (k, v) => v)
     }
 
     GetTotalPctBonus(stat: StatType): number{
         let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Pct), new LuaTable());
-        let value = 0;
-        for(let [_, bonusValue] of bonuses){
-            value += bonusValue;
-        }
-        return value;
+        return SumTable(bonuses, (k, v) => v)
     }
 
     GetTotalMultBonus(stat: StatType): number{
-        let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Pct), new LuaTable());
+        let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Mult), new LuaTable());
         let value = 1;
         for(let [_, bonusValue] of bonuses){
             value *= bonusValue;
@@ -149,16 +150,27 @@ export abstract class BaseMWObject {
     
     private get WasInitializedForFirstTime(): boolean { return this.Load("Initialized"); }
     private set WasInitializedForFirstTime(initialized: boolean) { this.Save("Initialized", initialized); }
-    protected OnFirstTimeInitialize(): void {}
+    protected OnFirstTimeInitialize(): void {
+    }
     protected OnInitialize(): void {
         this.SetupSkills();
     }
 
-    protected OnDeath(): void {}
+    protected OnDeath(): void {
+        //callstack()
+    }
+
+    abstract get Type(): ObjectType;
 }
 
 function GetStatBonusField(stat: StatType, bonusType: StatBonusType): string { return `${stat}_${bonusType}_bonuses`; }
 function GetStatBaseField(stat: StatType): string { return `${stat}_base`; }
 function GetStatTotalField(stat: StatType): string { return `${stat}_total`; }
 
-
+export enum ObjectType {
+    Player,
+    Monster,
+    Weapon,
+    Armor,
+    Artefact
+}

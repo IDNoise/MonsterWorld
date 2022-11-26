@@ -1,9 +1,9 @@
-import { BaseMWObject } from '../GameObjects/BaseMWObject';
+import { MWObject } from '../GameObjects/MWObject';
 import { Skill } from './Skill';
 
 
 export class SkillAuraOfDeath extends Skill {
-    constructor(public Id: string, public Owner: BaseMWObject, public Interval: number, public DpsPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number,
+    constructor(public Id: string, public Owner: MWObject, public Interval: number, public DpsPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number,
         public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
         super(Id, Owner, PriceFormula, MaxLevel);
     }

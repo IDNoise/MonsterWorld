@@ -1,9 +1,9 @@
 import { StatType, StatBonusType, StatTitles, PctStats } from "../Configs/Stats";
-import { BaseMWObject } from "../GameObjects/BaseMWObject";
+import { MWObject } from "../GameObjects/MWObject";
 import { Skill } from "./Skill";
 
 export class SkillPassiveStatBonus extends Skill {
-    constructor(public Id: string, public Owner: BaseMWObject, public Stat: StatType, public BonusType: StatBonusType,
+    constructor(public Id: string, public Owner: MWObject, public Stat: StatType, public BonusType: StatBonusType,
         public ValuePerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
         super(Id, Owner, PriceFormula, MaxLevel);
     }

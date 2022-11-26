@@ -62,6 +62,20 @@ public class Storage
     public IEnumerable<File> AllChangedFiles => RootDirectory.AllFiles.Where(f => f.IsDirty);
     public IEnumerable<Section> AllSections => RootDirectory.AllFiles.SelectMany(f => f.Sections);
 
+
+    public Directory GetDirectory(string path)
+    {
+        var dirNames = path.Split("/");
+        var currentDir = RootDirectory;
+        if (dirNames.Length > 0)
+        {
+            foreach (var dirName in dirNames)
+                currentDir = currentDir.SubDirectoriesByName[dirName];
+        }
+
+        return currentDir;
+    }
+    
     public File GetFile(string name) => AllFiles.Single(f => f.Name == name);
     public Section GetSection(string name) => AllSections.Single(s => s.Name == name);
     

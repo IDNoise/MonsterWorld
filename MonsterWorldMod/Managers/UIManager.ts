@@ -2,6 +2,9 @@ import { Log } from '../../StalkerModBase';
 import { World } from '../World';
 import { MWMonster } from '../GameObjects/MWMonster';
 import { QualityColors, MonsterRankColors, Qualities } from '../Configs/UI';
+import { ObjectType } from '../GameObjects/MWObject';
+import { MWWeapon } from '../GameObjects/MWWeapon';
+import { MWArmor } from '../GameObjects/MWArmor';
 
 type DamageNumberEntry = {
     showTime: number;
@@ -68,8 +71,8 @@ export class UIManager {
             if (!res || !obj) 
                 return res;
 
-            let weapon = MonsterWorld.GetWeapon(obj);
-            if (!weapon)
+            let item = MonsterWorld.GetItem(obj);
+            if (item == null)
                 return res;
 
             if (!s.mwLevel){ //Add custom level text
@@ -80,9 +83,15 @@ export class UIManager {
             }
 
             s.mwLevel.SetWndPos(new vector2().set(3, s.cell.GetHeight() - 14))
-            s.mwLevel.TextControl().SetText(`L.${weapon.Level}   DPS:${math.floor(weapon.DPS)}`)
-            s.mwLevel.TextControl().SetTextColor(QualityColors[weapon.Quality])
+            s.mwLevel.TextControl().SetTextColor(QualityColors[item.Quality])
             s.mwLevel.Show(true)
+
+            if (item.Type == ObjectType.Weapon){
+                s.mwLevel.TextControl().SetText(`L.${item.Level}   DPS:${math.floor((<MWWeapon>item).DPS)}`)
+            }
+            else {
+                s.mwLevel.TextControl().SetText(`L.${item.Level}   HP:${math.floor((<MWArmor>item).HPBonus)}`)
+            }
 
             return res;
         }
@@ -94,11 +103,11 @@ export class UIManager {
             if (!obj) 
                 return;
 
-            let weapon = MonsterWorld.GetWeapon(obj);
-            if (!weapon)
+            let item = MonsterWorld.GetItem(obj);
+            if (!item)
                 return;
             
-            s.name.SetTextColor(QualityColors[weapon.Quality])
+            s.name.SetTextColor(QualityColors[item.Quality])
 
             //TODO Custom stats display for weapons and stimpacks and mb smth new
 
@@ -113,17 +122,19 @@ export class UIManager {
         utils_ui.sort_by_sizekind = (t, a, b) => { //Sorting by DPS > level > quality
             let objA = t.get(a);
             let objB = t.get(b);
-            let weaponA = MonsterWorld.GetWeapon(objA)
-            let weaponB = MonsterWorld.GetWeapon(objB)
-            if (weaponA != null && weaponB != null && weaponA != weaponB){
-                if (weaponA.DPS != weaponB.DPS)
-                    return weaponA.DPS > weaponB.DPS;
-                else if(weaponA.Level != weaponB.Level)
-                    return weaponA.Level > weaponB.Level;
-                else if (weaponA.Quality != weaponB.Quality)
-                    return weaponA.Quality > weaponB.Quality;
+            let itemA = MonsterWorld.GetItem(objA)
+            let itemB = MonsterWorld.GetItem(objB)
+            if (itemA != null && itemB != null && itemA != itemB){
+                if (itemA.Type != itemB.Type)
+                    return itemA.Type > itemB.Type;
+                else if (itemA.Type == ObjectType.Weapon && (<MWWeapon>itemA).DPS != (<MWWeapon>itemB).DPS)
+                    return (<MWWeapon>itemA).DPS > (<MWWeapon>itemB).DPS;
+                else if(itemA.Level != itemB.Level)
+                    return itemA.Level > itemB.Level;
+                else if (itemA.Quality != itemB.Quality)
+                    return itemA.Quality > itemB.Quality;
                 else
-                    return weaponA.id > weaponB.id;
+                    return itemA.id > itemB.id;
             }
             return oldUISortBySizeKind(t, a, b);
         }
@@ -447,32 +458,35 @@ export class UIManager {
         weaponStats[utils_ui.StatType.Handling].index = 101;
         weaponStats[utils_ui.StatType.Handling].icon_p = "";
 
+
+        //TODO Armor setup
+
         return result;
     }
 
     UIGetItemName(obj: game_object, current: string): string{
-        let weapon = MonsterWorld.GetWeapon(obj);
-        if (weapon == undefined)
+        let item = MonsterWorld.GetItem(obj);
+        if (item == undefined)
             return "";
 
         //return `${cfg.QualityColors[weapon.Quality]}${cfg.Qualities[weapon.Quality]}${cfg.EndColorTag} ${current} ${cfg.LevelColor}L.${weapon.Level}${cfg.EndColorTag}`
-        return `${Qualities[weapon.Quality]} ${current} L.${weapon.Level}`
+        return `${Qualities[item.Quality]} ${current} L.${item.Level}`
     }
 
     UIGetItemDescription(obj: game_object, current: string): string{
-        let weapon = MonsterWorld.GetWeapon(obj);
-        if (weapon == undefined)
+        let item = MonsterWorld.GetItem(obj);
+        if (item == undefined)
             return "";
 
-        return weapon.Description;
+        return item.Description;
     }
 
     UIGetItemLevel(obj: game_object): number { 
-        let weapon = MonsterWorld.GetWeapon(obj);
-        if (weapon == undefined)
+        let item = MonsterWorld.GetItem(obj);
+        if (item == undefined)
             return 0;
 
-        return weapon.Level; 
+        return item.Level; 
     }
 
     UIGetWeaponDPS(obj: game_object): number { 

@@ -4,25 +4,12 @@ import { MinQuality, MaxQuality, WeaponStatsUsingUpgrades, WeaponStatsForGenerat
 import { StatType, StatBonusType, PctStats, GetBonusDescription } from '../Configs/Stats';
 import { TakeRandomUniqueElementsFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
-import { BaseMWItem } from './BaseMWItem';
+import { MWItem } from './MWItem';
+import { ObjectType } from './MWObject';
 
-export class MWWeapon extends BaseMWItem {
+export class MWWeapon extends MWItem {
     
-    constructor(public id: Id) {
-        super(id);
-    }
-
-    override OnFirstTimeInitialize(): void {
-        super.OnFirstTimeInitialize();
-
-        if (this.Section.indexOf("knife") >= 0){
-            this.SetStatBase(StatType.Damage, cfg.WeaponDPSBase)
-            //DO smth with knife or fuck it?
-            return;
-        }
-
-        this.GenerateWeaponStats();
-    }
+    get Type(): ObjectType { return ObjectType.Weapon }
 
     get TimeBetweenShots(): number { return math.max(0.01, this.GO?.cast_Weapon()?.RPM()) }
     get Damage(): number { return this.GetStat(StatType.Damage); } //Per hit
@@ -48,13 +35,13 @@ export class MWWeapon extends BaseMWItem {
         for(const stat of DescriptionStats){
             let asPct = false;
             let value = this.GetStat(stat);
-            if (stat == StatType.Damage){
+            if (stat == StatType.Damage || stat == StatType.MagSize){
                 asPct = true;
                 value = this.GetTotalPctBonus(stat)
             }
 
             if (value != 0)
-                result += GetBonusDescription(stat, value) + " \\n";
+                result += GetBonusDescription(stat, value, asPct) + " \\n";
         }
 
         return result;
@@ -75,7 +62,15 @@ export class MWWeapon extends BaseMWItem {
         this.RefillMagazine();
     }
 
-    private GenerateWeaponStats() {
+    override GeneateStats() {
+        super.GeneateStats();
+
+        if (this.Section.indexOf("knife") >= 0){
+            this.SetStatBase(StatType.Damage, cfg.WeaponDPSBase)
+            //DO smth with knife or fuck it?
+            return;
+        }
+
         //Log(`GenerateWeaponStats`)
         let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
 
@@ -103,7 +98,7 @@ export class MWWeapon extends BaseMWItem {
             }
         }        
 
-        let upgradeTypesToAdd = 1 + this.Quality + math.floor(this.Level / 5);
+        let upgradeTypesToAdd = 1 + this.Quality + math.floor(this.Level / 10);
         const upgradeTypesToSelect = math.min(availableBonuses.length, upgradeTypesToAdd);
         let selectedUpgradeStats = TakeRandomUniqueElementsFromArray(availableBonuses, upgradeTypesToSelect);
 
@@ -188,9 +183,4 @@ export class MWWeapon extends BaseMWItem {
     RefillMagazine(){
         this.GO?.cast_Weapon().SetAmmoElapsed(this.MagSize)
     }
-}
-
-export type  WeaponSpawnParams = {
-    level: number;
-    quality: number;
 }

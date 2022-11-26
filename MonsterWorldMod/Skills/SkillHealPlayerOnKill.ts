@@ -1,10 +1,10 @@
-import { BaseMWObject } from "../GameObjects/BaseMWObject";
+import { MWObject } from "../GameObjects/MWObject";
 import { MWMonster } from "../GameObjects/MWMonster";
 import { Skill } from "./Skill";
 
 
 export class SkillHealPlayerOnKill extends Skill {
-    constructor(public Id: string, public Owner: BaseMWObject, public HpPerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
+    constructor(public Id: string, public Owner: MWObject, public HpPerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
         super(Id, Owner, PriceFormula, MaxLevel);
     }
 

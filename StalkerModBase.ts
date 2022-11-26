@@ -133,6 +133,18 @@ export class StalkerModBase {
         //Log(`OnItemUse ${item.name()}`)
     }
 
+    protected OnItemToBelt(item: game_object) {
+        //Log(`OnItemToBelt ${item.name()}`)
+    }
+
+    protected OnItemToRuck(item: game_object) {
+        //Log(`OnItemToRuck ${item.name()}`)
+    }
+
+    protected OnItemToSlot(item: game_object) {
+        //Log(`OnItemToSlot ${item.name()}`)
+    }
+
     protected OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void{
         //Log(`OnWeaponFired ${wpn.name()} by ${obj.name()}`)
     }
@@ -186,6 +198,10 @@ export class StalkerModBase {
         RegisterScriptCallback("actor_on_weapon_fired",  (obj, wpn, ammo_elapsed,grenade_elapsed,ammo_type,grenade_type) => this.OnWeaponFired(obj, wpn, ammo_elapsed));
         RegisterScriptCallback("actor_on_hud_animation_play",  (anim_table, item) => this.OnHudAnimationPlay(item, anim_table));
         RegisterScriptCallback("actor_on_hud_animation_end",  (item, section, motion, state, slot) => this.OnHudAnimationEnd(item, section, motion, state, slot));
+
+        RegisterScriptCallback("actor_item_to_belt",  (item) => this.OnItemToBelt(item));
+        RegisterScriptCallback("actor_item_to_ruck",  (item) => this.OnItemToRuck(item));
+        RegisterScriptCallback("actor_item_to_slot",  (item) => this.OnItemToSlot(item));
         // actor_on_before_death		            = {}, -- Params: (<number>,<table>)
         // actor_on_weapon_fired		            = {}, -- Params: (<game_object>,<game_object>,<number>,<number>,<number>,<number>)
         // actor_on_weapon_jammed		            = {}, -- Params: (<game_object>)
@@ -199,9 +215,6 @@ export class StalkerModBase {
         // actor_on_item_put_in_box 	            = {}, -- Params: (<game_object>,<game_object>)
         // actor_on_item_before_use			    = {}, -- Params: (<game_object>,<table>)
         // actor_on_item_before_pickup				= {}, -- Params: (<game_object>,<table>)
-        // actor_item_to_belt			            = {}, -- Params: (<game_object>)
-        // actor_item_to_ruck			            = {}, -- Params: (<game_object>)
-        // actor_item_to_slot			            = {}, -- Params: (<game_object>)
         // actor_on_trade				            = {}, -- Params: (<game_object>,<?>,<number>)
         // actor_on_init				            = {}, -- Params: (<binder>)
         // actor_on_reinit				            = {}, -- Params: (<binder>)

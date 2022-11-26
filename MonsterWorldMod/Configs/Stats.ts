@@ -15,12 +15,42 @@ export const enum StatType{
     DamageToMutantssBonusPct, //Player + Weapon
     MagSize, //Player + Weapon
 
+    DamageResistancePct, //Armor
+
     //Bonuses from weapon upgrades
     AutoFireModeState,
     RpmBonusPct,
     DispersionBonusPct,
     RecoilBonusPct,
     BulletSpeedBonusPct,
+    //Predefined by armor quality
+    ArtefactSlots
+}
+
+export let StatTitles: {[key in StatType]: string} = {
+    [StatType.RunSpeed]: "Run Speed",
+    [StatType.SprintSpeed]: "Sprint Speed",
+    [StatType.MaxHP]: "Max HP",
+    [StatType.HPRegen]: "HP Regen",
+
+    [StatType.Damage]: "Damage per Hit",
+    
+    [StatType.ReloadSpeedBonusPct]: "Reload Speed",
+    [StatType.CritDamagePct]: "Crit Damage",
+    [StatType.CritChancePct]: "Crit Chance",
+    [StatType.DamageToStalkersBonusPct]: "Damage to Stalkers",
+    [StatType.DamageToMutantssBonusPct]: "Damage to Mutants",
+    [StatType.MagSize]: "Ammo",
+
+    [StatType.DamageResistancePct]: "Damage Resistance",
+
+    [StatType.AutoFireModeState]: "AUTO fire mode enabled",
+    [StatType.RpmBonusPct]: "Fire rate",
+    [StatType.DispersionBonusPct]: "Accuracy",
+    [StatType.RecoilBonusPct]: "Recoil",
+    [StatType.BulletSpeedBonusPct]: "Flatness",
+
+    [StatType.ArtefactSlots]: "Artefact slots",
 }
 
 export const enum StatBonusType{
@@ -39,6 +69,7 @@ export let PctStats: StatType[] = [
     StatType.DispersionBonusPct,
     StatType.RecoilBonusPct,
     StatType.BulletSpeedBonusPct,
+    StatType.DamageResistancePct,
 ];
 
 export let NoValueStats: StatType[] = [
@@ -48,27 +79,6 @@ export let NoValueStats: StatType[] = [
 export let NegativeBonuses = [
     StatType.RecoilBonusPct
 ];
-
-export let StatTitles: {[key in StatType]: string} = {
-    [StatType.RunSpeed]: "Run Speed",
-    [StatType.SprintSpeed]: "Sprint Speed",
-    [StatType.MaxHP]: "Max HP",
-    [StatType.HPRegen]: "HP Regen",
-    [StatType.Damage]: "Damage per Hit",
-    [StatType.ReloadSpeedBonusPct]: "Reload Speed",
-    [StatType.CritDamagePct]: "Crit Damage",
-    [StatType.CritChancePct]: "Crit Chance",
-    [StatType.DamageToStalkersBonusPct]: "Damage to Stalkers",
-    [StatType.DamageToMutantssBonusPct]: "Damage to Mutants",
-    [StatType.MagSize]: "Ammo",
-
-    [StatType.AutoFireModeState]: "AUTO fire mode enabled",
-    [StatType.RpmBonusPct]: "Fire rate",
-    [StatType.DispersionBonusPct]: "Accuracy",
-    [StatType.RecoilBonusPct]: "Recoil",
-    [StatType.BulletSpeedBonusPct]: "Flatness",
-}
-
 
 export function GetBonusDescription(stat: StatType, bonus: number = 0, asPct: boolean = false): string{
     if (NoValueStats.includes(stat))

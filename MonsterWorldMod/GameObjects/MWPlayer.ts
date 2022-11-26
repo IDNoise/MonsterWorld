@@ -1,4 +1,4 @@
-import { BaseMWObject } from './BaseMWObject';
+import { MWObject, ObjectType } from './MWObject';
 import { MWWeapon } from './MWWeapon';
 import * as cfg from '../Configs/Constants';
 import { PriceFormulaConstant, PriceFormulaLevel, Skill } from "../Skills/Skill";
@@ -7,9 +7,14 @@ import { SkillAuraOfDeath } from "../Skills/SkillAuraOfDeath";
 import { SkillHealPlayerOnKill } from "../Skills/SkillHealPlayerOnKill";
 import { SkillCriticalDeath } from '../Skills/SkillCriticalDeath';
 import { StatType, StatBonusType } from '../Configs/Stats';
+import { Log } from '../../StalkerModBase';
+import { MWArmor } from './MWArmor';
 
-export class MWPlayer extends BaseMWObject {
+export class MWPlayer extends MWObject {
+    get Type(): ObjectType { return ObjectType.Player }
+
     override OnFirstTimeInitialize(): void {
+        super.OnFirstTimeInitialize()
         this.Level = 0;
         this.CurrentXP = 0;
         this.SetStatBase(StatType.MaxHP, cfg.PlayerHPBase)
@@ -38,6 +43,7 @@ export class MWPlayer extends BaseMWObject {
     }
 
     get Weapon(): MWWeapon | undefined { return MonsterWorld.GetWeapon(this.GO.active_item())}
+    get Armor(): MWArmor | undefined { return MonsterWorld.GetArmor(this.GO.item_in_slot(7))}
 
     private LevelUp(): void{
         this.Level++;

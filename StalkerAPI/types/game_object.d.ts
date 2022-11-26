@@ -159,20 +159,20 @@ declare interface game_object {
   // function can_throw_grenades(boolean)
   
   // -- items
-  // function active_slot()
+  active_slot(): number;
   active_item(): game_object;
   // function active_detector() const
   // function show_detector(): void;
   // function hide_detector(): void;
   // function force_hide_detector() --  useful for item animations and grenade quickthrow 
   // function activate_slot(number): void;
-  // function item_in_slot(number)
-  // function item_on_belt(number)
-  // function is_on_belt(game_object*)
-  // function belt_count() const
-  // function move_to_ruck(game_object*): void;
-  // function move_to_slot(game_object*, number): void;
-  // function move_to_belt(game_object*): void;
+  item_in_slot(slot: number): game_object;
+  item_on_belt(slot: number): game_object;
+  is_on_belt(item: game_object): boolean;
+  belt_count(): number;
+  move_to_ruck(item: game_object): void;
+  move_to_slot(item: game_object, slot: number): void;
+  move_to_belt(item: game_object): void;
   // function eat(game_object*): void;
   // function best_item()
   // function best_weapon()
@@ -198,9 +198,9 @@ declare interface game_object {
   // function set_item(enum MonsterSpace::EObjectAction, game_object*): void;
   // function set_item(enum MonsterSpace::EObjectAction, game_object*, number): void;
   // function set_item(enum MonsterSpace::EObjectAction, game_object*, number, number): void;
-  // function iterate_inventory(function<void>, object): void;
-  // function iterate_ruck(function<void>, object): void;
-  // function iterate_belt(function<void>, object): void;
+  iterate_inventory(iterator: (item: game_object) => void, owner: game_object): void;
+  iterate_ruck(iterator: (item: game_object) => void, owner: game_object): void;
+  iterate_belt(iterator: (item: game_object) => void, owner: game_object): void;
   inventory_for_each(iterator: (item: game_object) => void): void;
   transfer_item(item: game_object, npc: game_object): void;
   // function is_trade_enabled()

@@ -73,3 +73,19 @@ export function GetByWeightFromTable<TK extends AnyNotNil, TV>(tbl: LuaTable<TK,
 
     return keys[0];
 }
+
+export function SumArray<T>(array: T[], valueGetter: (element: T) => number): number{
+    let result: number = 0;
+    for(let element of array){
+        result += valueGetter(element);
+    }
+    return result;
+}
+
+export function SumTable<K extends AnyNotNil, V>(table: LuaTable<K, V>, valueGetter: (key: K, value: V) => number): number{
+    let result: number = 0;
+    for(let [key, value] of table){
+        result += valueGetter(key, value);
+    }
+    return result;
+}

@@ -6,22 +6,24 @@ import { MWPlayer } from './GameObjects/MWPlayer';
 import { MWWeapon } from './GameObjects/MWWeapon';
 import { SpawnManager } from './Managers/SpawnManager';
 import { UIManager } from './Managers/UIManager';
-import { BaseMWObject } from './GameObjects/BaseMWObject';
+import { MWObject } from './GameObjects/MWObject';
 import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/Difficulty';
-import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, GetStimpack, GetDropParticles, DropType } from './Configs/Loot';
+import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, GetDropParticles, DropType, GetStimpackByQuality } from './Configs/Loot';
 import { StatType } from './Configs/Stats';
 import { ObjectOrId, GetId, CreateVector, CreateWorldPositionAtPosWithGO, Save } from './Helpers/StalkerAPI';
 import { RandomFromArray } from './Helpers/Collections';
 import { IsPctRolled } from './Helpers/Random';
 import { TimerManager } from './Managers/TimerManager';
-import { BaseMWItem } from './GameObjects/BaseMWItem';
+import { MWItem } from './GameObjects/MWItem';
+import { MWArmor } from './GameObjects/MWArmor';
+import { MWArtefact } from './GameObjects/MWArtefact';
 
 declare global{
     let MonsterWorld: World;
 }
 
 export class World {
-    private items: LuaTable<Id, BaseMWItem>
+    private items: LuaTable<Id, MWItem>
     private enemyDamageMult: number = 1;
     private enemyDropChanceMult: number = 1;
 
@@ -72,7 +74,7 @@ export class World {
         return this.Monsters.get(monsterId);
     }
     
-    public GetItem(item: ObjectOrId): BaseMWItem | undefined {
+    public GetItem(item: ObjectOrId): MWItem | undefined {
         let itemId = GetId(item);
         let se_obj = alife_object(itemId);
         let go = level.object_by_id(itemId);
@@ -80,12 +82,16 @@ export class World {
             return undefined;
 
         if (!this.items.has(itemId)){   
-            let newItem: BaseMWItem | undefined = undefined;
+            let newItem: MWItem | undefined = undefined;
             if (go.is_weapon()){
                 newItem = new MWWeapon(itemId);
             }
-            //Other item types
-
+            else if (go.is_outfit()){
+                newItem = new MWArmor(itemId);
+            }
+            else if (go.is_artefact()){
+                newItem = new MWArtefact(itemId);
+            }
 
             if (newItem != undefined){
                 newItem.Initialize();
@@ -96,9 +102,8 @@ export class World {
         return this.items.get(itemId);
     }
 
-    public GetWeapon(item: ObjectOrId): MWWeapon | undefined {
-        return <MWWeapon>this.GetItem(item);
-    }
+    public GetWeapon(item: ObjectOrId): MWWeapon | undefined { return <MWWeapon>this.GetItem(item); }
+    public GetArmor(item: ObjectOrId): MWArmor | undefined { return <MWArmor>this.GetItem(item); }
 
     public DestroyObject(id:Id) {
         this.CleanupObjectTimersAndMinimapMarks(id);
@@ -127,6 +132,22 @@ export class World {
             let healPct = ini_sys.r_float_ex(item.section(), "mw_heal_pct", 25);
             this.Player.HP += this.Player.MaxHP * healPct / 100;
         }
+    }
+
+    public OnItemToRuck(itemGO: game_object) {
+        let item = this.GetItem(itemGO)
+        item?.OnItemUnequipped();
+        //Log(`OnItemToRuck: ${item.section()}`)
+    }
+
+    public OnItemToSlot(itemGO: game_object) {
+        let item = this.GetItem(itemGO)
+        item?.OnItemEquipped();
+        //Log(`OnItemToRuck: ${item.section()}`)
+    }
+    
+    public OnItemToBelt(item: game_object) {
+        //Log(`OnItemToBelt: ${item.section()}`)
     }
     
     public OnWeaponFired(wpn: game_object, ammo_elapsed: number) {
@@ -180,7 +201,7 @@ export class World {
         if (attackerGO.is_stalker() && shit.weapon_id != 0 && shit.weapon_id != attackerGO.id()){
             let weapon = level.object_by_id(shit.weapon_id);
             if (weapon?.is_weapon())
-                damage *= clamp(weapon.cast_Weapon().RPM(), 0.25, 1.25); //limit on damage multiplier for slow firing enemies (can be overkill)
+                damage *= clamp(weapon.cast_Weapon().RPM(), 0.4, 1.25); //limit on damage multiplier for slow firing enemies (can be overkill)
         }
 
         damage = math.max(1, damage) * this.enemyDamageMult;
@@ -244,7 +265,7 @@ export class World {
         return realDamage;
     }
 
-    GetStat(stat: StatType, ...sources: BaseMWObject[]){
+    GetStat(stat: StatType, ...sources: MWObject[]){
         let value = 0;
         for(let source of sources){
             value += source.GetStat(stat);
@@ -275,19 +296,23 @@ export class World {
         let type = GetDropType();
 
         let sgo: cse_alife_object | undefined = undefined;
-        let quality = 1;
+        let [dropLevel, qualityLevel] = this.GetDropLevelAndQualityFromMonster(monster)
+        let dropPos = CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO);
         if (type == DropType.Weapon){
-            [sgo, quality] = this.GenerateWeaponDropFromMonster(monster);
+            sgo = this.GenerateWeaponDrop(dropLevel, qualityLevel, dropPos);
         }
         else if (type == DropType.Stimpack){
-            [sgo, quality] = this.GenerateStimpackDropFromMonster(monster);
+            sgo = this.GenerateStimpackDrop(dropLevel, qualityLevel, dropPos);
+        }
+        else if (type == DropType.Armor){
+            sgo = this.GenerateArmorDrop(dropLevel, qualityLevel, dropPos);
         }
 
         if (sgo != undefined){
             Log(`Spawned ${sgo.section_name()}:${sgo.id}`)
 
             //Log(`Highlight drop`)
-            this.HighlightDroppedItem(sgo.id, type, quality);
+            this.HighlightDroppedItem(sgo.id, type, qualityLevel);
             //Log(`Add ttl timer for drop`)
             this.AddTTLTimer(sgo.id, 300)
             //Log(`Post add ttl timer for drop`)
@@ -295,6 +320,20 @@ export class World {
         else {
             Log(`Drop generation failed`)
         }
+    }
+
+    GetDropLevelAndQualityFromMonster(monster: MWMonster) : LuaMultiReturn<[number, number]>{
+        let dropLevel = monster.Level;
+        if (IsPctRolled(HigherLevelDropChancePct)){
+            dropLevel++;
+        }
+
+        let qualityLevel = GetDropQuality();
+    
+        if (IsPctRolled(constants.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
+        if (IsPctRolled(constants.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
+
+        return $multi(dropLevel, qualityLevel)
     }
 
     GenerateWeaponDrop(dropLevel: number, qualityLevel: number, pos: WorldPosition): cse_alife_object | undefined {
@@ -306,13 +345,9 @@ export class World {
         let [_, weaponBaseSection] = ini_sys.r_line_ex(selectedTypeSection, selectedElement)
         let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
         let selectedVariant = RandomFromArray(weaponVariants)
-        
-        if (IsPctRolled(HigherLevelDropChancePct)){
-            dropLevel++;
-        }
 
         Log(`Spawning ${selectedVariant}`)
-        let sgo = alife_create_item(selectedVariant, pos)// db.actor.position());
+        let sgo = alife_create_item(selectedVariant, pos)
         if (!sgo){
             Log(`GenerateWeaponDrop spawn failed`)
             return undefined;
@@ -325,16 +360,8 @@ export class World {
         
     }
 
-    GenerateWeaponDropFromMonster(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
-        let dropLevel = monster.Level;
-        let qualityLevel = GetDropQuality();
-    
-        if (IsPctRolled(constants.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
-        if (IsPctRolled(constants.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
-        return $multi(this.GenerateWeaponDrop(dropLevel, qualityLevel, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO)), qualityLevel)
-    }
-
-    GenerateStimpackDrop(section: Section, pos: WorldPosition): cse_alife_object | undefined {
+    GenerateStimpackDrop(dropLevel: number, qualityLevel: number, pos: WorldPosition): cse_alife_object | undefined {
+        let section = GetStimpackByQuality(qualityLevel);
         let sgo = alife_create_item(section, pos)
         if (!sgo){
             Log(`GenerateStimpackDrop spawn failed`)
@@ -343,17 +370,30 @@ export class World {
         return sgo;
     }
 
-    GenerateStimpackDropFromMonster(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
-        let [stimpackSection, quality] = GetStimpack();
-        Log(`Spawning ${stimpackSection}`)
+    GenerateArmorDrop(dropLevel: number, qualityLevel: number, pos: WorldPosition): cse_alife_object | undefined {
+        qualityLevel = math.min(qualityLevel, MaxQuality)
+        let section = `outfits_ql_${qualityLevel}`;
+        let armorCount = ini_sys.line_count(section);
+        let selectedElement = math.random(0, armorCount - 1);
+        let [_, armorSection] = ini_sys.r_line_ex(section, selectedElement)
         
-        return $multi(this.GenerateStimpackDrop(stimpackSection, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO)), quality);
+        Log(`Spawning ${armorSection}`)
+        let sgo = alife_create_item(armorSection, pos)
+        if (!sgo){
+            Log(`GenerateWeaponDrop spawn failed`)
+            return undefined;
+        }
+
+        Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
+        return sgo;
     }
 
     highlightParticles: LuaTable<Id, particles_object> = new LuaTable()
     HighlightDroppedItem(id: Id, type: DropType, quality: number) {
         this.Timers.AddOnObjectSpawn(`${id}_highlight`, id, (obj) => {
-            let particles = new particles_object(GetDropParticles(type, quality));
+            let particlesPath = GetDropParticles(type, quality);
+            Log(`Particles: ${particlesPath}`)
+            let particles = new particles_object(particlesPath);
             this.highlightParticles.set(id, particles)
             let pos = obj.position()
             pos.y -= 0.1;
@@ -414,9 +454,10 @@ export class World {
 
     private DoMonkeyPatch() {
         bind_anomaly_field.dyn_anomalies_refresh = (_force) => {}
+        let oldAnomalyRefresh =  bind_anomaly_zone.anomaly_zone_binder.refresh;
         bind_anomaly_zone.anomaly_zone_binder.refresh = (s, from) => { 
             s.disabled = true;
-            s.turn_off();
+            oldAnomalyRefresh(s, from);
         }
         bind_anomaly_zone.anomaly_zone_binder.turn_on = (s) => {}
         utils_item.get_upgrades_tree = (wpn, _t) => {};

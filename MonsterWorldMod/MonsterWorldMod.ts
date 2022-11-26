@@ -1,7 +1,7 @@
 import { Log, StalkerModBase } from '../StalkerModBase';
 import { HitInfo, World } from './World';
 import { ReloadAnims } from './Constants/WeaponAnimations';
-import { GetStimpack } from './Configs/Loot';
+import { MinQuality, MaxQuality, DropType } from './Configs/Loot';
 import { CriticalBones } from './Constants/CritBones';
 import { CreateWorldPositionAtGO } from './Helpers/StalkerAPI';
 
@@ -61,6 +61,21 @@ export class MonsterWorldMod extends StalkerModBase {
     protected override OnItemUse(item: game_object): void {
         super.OnItemTake(item);
         this.World.OnItemUse(item);
+    }
+
+    protected override OnItemToRuck(item: game_object): void {
+        super.OnItemToRuck(item);
+        this.World.OnItemToRuck(item);
+    }
+
+    protected override OnItemToSlot(item: game_object): void {
+        super.OnItemToSlot(item);
+        this.World.OnItemToSlot(item);
+    }
+
+    protected override OnItemToBelt(item: game_object): void {
+        super.OnItemToBelt(item);
+        this.World.OnItemToBelt(item);
     }
 
     protected override OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void {
@@ -180,7 +195,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (weapon == undefined)
             return false;
 
-        let isCritPartHit = CriticalBones[monster.Type].includes(boneId)
+        let isCritPartHit = CriticalBones[monster.MonsterType].includes(boneId)
         let hitInfo = {monster: monster, weapon: weapon, isCritPartHit: isCritPartHit};
         let currentHitInfo = this.monsterHitsThisFrame.get(monster.id);
         if (currentHitInfo != undefined){
@@ -207,11 +222,25 @@ export class MonsterWorldMod extends StalkerModBase {
         if (key == DIK_keys.DIK_DELETE) {
             this.World.Player.SkillPoints += 1000;
         }
+
+        let item: cse_alife_object | undefined = undefined;
+        let level = math.random(1, 30);
+        let quality = math.random(1, 5);
+        let itemType: DropType = DropType.Weapon;
         if (key == DIK_keys.DIK_UP) {
-            this.World.GenerateWeaponDrop(math.random(1, 30), math.random(1, 5), CreateWorldPositionAtGO(db.actor));
+            item = this.World.GenerateWeaponDrop(level, quality, CreateWorldPositionAtGO(db.actor));
+            itemType = DropType.Weapon;
         }
         if (key == DIK_keys.DIK_DOWN) {
-            this.World.GenerateStimpackDrop(GetStimpack()[0], CreateWorldPositionAtGO(db.actor));
+            item = this.World.GenerateStimpackDrop(level, quality, CreateWorldPositionAtGO(db.actor));
+            itemType = DropType.Stimpack;
+        }
+        if (key == DIK_keys.DIK_RIGHT) {
+            item = this.World.GenerateArmorDrop(level, quality, CreateWorldPositionAtGO(db.actor));
+            itemType = DropType.Armor;
+        }
+        if (item != null){ 
+            this.World.HighlightDroppedItem(item.id, itemType, quality) 
         }
     }
 
