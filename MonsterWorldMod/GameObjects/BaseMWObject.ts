@@ -1,8 +1,8 @@
-import { Load, Save } from '../../StalkerAPI/extensions/basic';
 import { Log } from '../../StalkerModBase';
 import { World } from '../World';
 import { Skill } from '../Skills/Skill';
 import { StatType, StatBonusType, PctStats } from '../Configs/Stats';
+import { Save, Load } from '../Helpers/StalkerAPI';
 
 export abstract class BaseMWObject {
     Skills: Map<string, Skill> = new Map();

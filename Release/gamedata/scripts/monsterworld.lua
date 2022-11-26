@@ -2830,147 +2830,16 @@ function StalkerModBase.prototype.RegisterCallbacks(self)
         function(data) return self:OnLoadState(data) end
     )
     local oldItemNetSpawn = bind_item.item_binder.net_spawn
-    local function newItemNetSpawn(s, serverGO)
+    bind_item.item_binder.net_spawn = function(s, serverGO)
         local result = oldItemNetSpawn(s, serverGO)
         if result then
             self:OnItemNetSpawn(s.object, serverGO)
         end
         return result
     end
-    bind_item.item_binder.net_spawn = newItemNetSpawn
 end
 StalkerModBase.ModName = "StarlkerModBase"
 StalkerModBase.IsLogEnabled = true
-return ____exports
- end,
-["StalkerAPI.extensions.basic"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local Map = ____lualib.Map
-local __TS__New = ____lualib.__TS__New
-local __TS__ArraySplice = ____lualib.__TS__ArraySplice
-local ____exports = {}
-function ____exports.Save(id, varname, val)
-    se_save_var(id, "", varname, val)
-end
-function ____exports.Load(id, varname, def)
-    local result = se_load_var(id, "", varname)
-    if not result and def then
-        return def
-    end
-    return result
-end
-function ____exports.CreateWorldPositionAtGO(object)
-    return {
-        object:position(),
-        object:level_vertex_id(),
-        object:game_vertex_id()
-    }
-end
-function ____exports.CreateWorldPositionAtPosWithGO(offset, object)
-    return {
-        object:position():add(offset),
-        object:level_vertex_id(),
-        object:game_vertex_id()
-    }
-end
-function ____exports.CreateVector(x, y, z)
-    if y == nil then
-        y = 0
-    end
-    if z == nil then
-        z = 0
-    end
-    return vector():set(x, y, z)
-end
-function ____exports.EnableMutantLootingWithoutKnife()
-    item_knife.is_equipped = function() return true end
-    item_knife.get_condition = function() return 1 end
-    item_knife.degradate = function()
-    end
-    item_knife.can_loot = function(monster) return true end
-    item_knife.is_axe = function() return false end
-end
-function ____exports.IsPctRolled(value)
-    return math.random(1, 100) <= value
-end
-function ____exports.MapToTable(map)
-    local result = {}
-    map:forEach(function(____, v, k, _map)
-        result[k] = v
-        return nil
-    end)
-    return result
-end
-function ____exports.TableToMap(tbl)
-    local result = __TS__New(Map)
-    for key, value in pairs(tbl) do
-        result:set(key, value)
-    end
-    return result
-end
-function ____exports.RandomFromArray(array)
-    local index = math.random(0, #array - 1)
-    return array[index + 1]
-end
-function ____exports.TakeRandomElementFromArray(array)
-    local index = math.random(0, #array - 1)
-    local element = array[index + 1]
-    __TS__ArraySplice(array, index, 1)
-    return element
-end
-function ____exports.TakeRandomUniqueElementsFromArray(array, count)
-    local result = {}
-    count = math.min(count, #array)
-    do
-        local i = 0
-        while i < count do
-            result[#result + 1] = ____exports.TakeRandomElementFromArray(array)
-            i = i + 1
-        end
-    end
-    return result
-end
-function ____exports.NumberToCondList(value)
-    return xr_logic.parse_condlist(
-        nil,
-        nil,
-        nil,
-        tostring(value)
-    )
-end
-function ____exports.GetByWeightFromArray(array, weightGetter)
-    local totalWeight = 0
-    for ____, element in ipairs(array) do
-        totalWeight = totalWeight + weightGetter(element)
-    end
-    local randValue = math.random(1, totalWeight)
-    local weightStartCheck = 0
-    for ____, element in ipairs(array) do
-        weightStartCheck = weightStartCheck + weightGetter(element)
-        if randValue <= weightStartCheck then
-            return element
-        end
-    end
-    return array[1]
-end
-function ____exports.GetByWeightFromTable(tbl, weightGetter)
-    local totalWeight = 0
-    local keys = {}
-    for k, v in pairs(tbl) do
-        keys[#keys + 1] = k
-        totalWeight = totalWeight + weightGetter(v)
-    end
-    local randValue = math.random(1, totalWeight)
-    local weightStartCheck = 0
-    local first = nil
-    for k, v in pairs(tbl) do
-        weightStartCheck = weightStartCheck + weightGetter(v)
-        if randValue <= weightStartCheck then
-            return k
-        end
-    end
-    return keys[1]
-end
 return ____exports
  end,
 ["MonsterWorldMod.Configs.Constants"] = function(...) 
@@ -2987,7 +2856,7 @@ ____exports.PlayerSprintSpeedCoeff = 2.1
 ____exports.PlayerXPForFirstLevel = 250
 ____exports.PlayerXPExp = 1.3
 ____exports.PlayerXPPct = 100
-____exports.PlayerPointsPerLevelUp = 1
+____exports.SkillPointsPerLevelUp = 5
 ____exports.EnemyHPBase = 50
 ____exports.EnemyHPExpPerLevel = 1.15
 ____exports.EnemyHPPctPerLevel = 75
@@ -2999,8 +2868,8 @@ ____exports.EnemyXpRewardBase = ____exports.PlayerXPForFirstLevel / 20
 ____exports.EnemyXpRewardExpPerLevel = 1.25
 ____exports.EnemyXpRewardPctPerLevel = 50
 ____exports.EnemyHigherLevelChance = 5
-____exports.EnemyEliteChance = 15
-____exports.EnemyBossChance = 5
+____exports.EnemyEliteChance = 12
+____exports.EnemyBossChance = 3
 ____exports.EnemyHpMultsByRank = {1, 3, 10}
 ____exports.EnemyXpMultsByRank = {1, 3, 10}
 ____exports.EnemyDamageMultsByRank = {1, 1.5, 3}
@@ -3167,6 +3036,68 @@ ____exports.StatTitles = {
 }
 return ____exports
  end,
+["MonsterWorldMod.Helpers.StalkerAPI"] = function(...) 
+local ____exports = {}
+function ____exports.Save(id, varname, val)
+    se_save_var(id, "", varname, val)
+end
+function ____exports.Load(id, varname, def)
+    local result = se_load_var(id, "", varname)
+    if not result and def then
+        return def
+    end
+    return result
+end
+function ____exports.CreateWorldPositionAtGO(object)
+    return {
+        object:position(),
+        object:level_vertex_id(),
+        object:game_vertex_id()
+    }
+end
+function ____exports.CreateWorldPositionAtPosWithGO(offset, object)
+    return {
+        object:position():add(offset),
+        object:level_vertex_id(),
+        object:game_vertex_id()
+    }
+end
+function ____exports.CreateVector(x, y, z)
+    if y == nil then
+        y = 0
+    end
+    if z == nil then
+        z = 0
+    end
+    return vector():set(x, y, z)
+end
+function ____exports.EnableMutantLootingWithoutKnife()
+    item_knife.is_equipped = function() return true end
+    item_knife.get_condition = function() return 1 end
+    item_knife.degradate = function()
+    end
+    item_knife.can_loot = function(monster) return true end
+    item_knife.is_axe = function() return false end
+end
+function ____exports.NumberToCondList(value)
+    return xr_logic.parse_condlist(
+        nil,
+        nil,
+        nil,
+        tostring(value)
+    )
+end
+function ____exports.GetId(objOrId)
+    if type(objOrId) == "number" then
+        return objOrId
+    end
+    if type(objOrId.id) == "number" then
+        return objOrId.id
+    end
+    return objOrId:id()
+end
+return ____exports
+ end,
 ["MonsterWorldMod.GameObjects.BaseMWObject"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -3177,13 +3108,13 @@ local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local GetStatBonusField, GetStatBaseField, GetStatTotalField
-local ____basic = require("StalkerAPI.extensions.basic")
-local Load = ____basic.Load
-local Save = ____basic.Save
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
 local ____Stats = require("MonsterWorldMod.Configs.Stats")
 local PctStats = ____Stats.PctStats
+local ____StalkerAPI = require("MonsterWorldMod.Helpers.StalkerAPI")
+local Save = ____StalkerAPI.Save
+local Load = ____StalkerAPI.Load
 function GetStatBonusField(stat, bonusType)
     return ((tostring(stat) .. "_") .. tostring(bonusType)) .. "_bonuses"
 end
@@ -3429,6 +3360,84 @@ function BaseMWObject.prototype.OnInitialize(self)
     self:SetupSkills()
 end
 function BaseMWObject.prototype.OnDeath(self)
+end
+return ____exports
+ end,
+["MonsterWorldMod.Helpers.Collections"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local Map = ____lualib.Map
+local __TS__New = ____lualib.__TS__New
+local __TS__ArraySplice = ____lualib.__TS__ArraySplice
+local ____exports = {}
+function ____exports.MapToTable(map)
+    local result = {}
+    map:forEach(function(____, v, k, _map)
+        result[k] = v
+        return nil
+    end)
+    return result
+end
+function ____exports.TableToMap(tbl)
+    local result = __TS__New(Map)
+    for key, value in pairs(tbl) do
+        result:set(key, value)
+    end
+    return result
+end
+function ____exports.RandomFromArray(array)
+    local index = math.random(0, #array - 1)
+    return array[index + 1]
+end
+function ____exports.TakeRandomElementFromArray(array)
+    local index = math.random(0, #array - 1)
+    local element = array[index + 1]
+    __TS__ArraySplice(array, index, 1)
+    return element
+end
+function ____exports.TakeRandomUniqueElementsFromArray(array, count)
+    local result = {}
+    count = math.min(count, #array)
+    do
+        local i = 0
+        while i < count do
+            result[#result + 1] = ____exports.TakeRandomElementFromArray(array)
+            i = i + 1
+        end
+    end
+    return result
+end
+function ____exports.GetByWeightFromArray(array, weightGetter)
+    local totalWeight = 0
+    for ____, element in ipairs(array) do
+        totalWeight = totalWeight + weightGetter(element)
+    end
+    local randValue = math.random(1, totalWeight)
+    local weightStartCheck = 0
+    for ____, element in ipairs(array) do
+        weightStartCheck = weightStartCheck + weightGetter(element)
+        if randValue <= weightStartCheck then
+            return element
+        end
+    end
+    return array[1]
+end
+function ____exports.GetByWeightFromTable(tbl, weightGetter)
+    local totalWeight = 0
+    local keys = {}
+    for k, v in pairs(tbl) do
+        keys[#keys + 1] = k
+        totalWeight = totalWeight + weightGetter(v)
+    end
+    local randValue = math.random(1, totalWeight)
+    local weightStartCheck = 0
+    local first = nil
+    for k, v in pairs(tbl) do
+        weightStartCheck = weightStartCheck + weightGetter(v)
+        if randValue <= weightStartCheck then
+            return k
+        end
+    end
+    return keys[1]
 end
 return ____exports
  end,
@@ -3820,8 +3829,8 @@ ____exports.MonsterConfigs.Chimera = {
     elite_section = "chimera_strong",
     boss_section = "chimera_strong4"
 }
-____exports.MonsterConfigs["Monolith soldier"] = {
-    type = "Monolith soldier",
+____exports.MonsterConfigs.Monolith = {
+    type = "Monolith",
     level_start = 15,
     level_type = 7,
     hp_mult = 2.5,
@@ -3864,8 +3873,8 @@ local ____lualib = require("lualib_bundle")
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__StringPadEnd = ____lualib.__TS__StringPadEnd
 local ____exports = {}
-local ____basic = require("StalkerAPI.extensions.basic")
-local GetByWeightFromArray = ____basic.GetByWeightFromArray
+local ____Collections = require("MonsterWorldMod.Helpers.Collections")
+local GetByWeightFromArray = ____Collections.GetByWeightFromArray
 local ____UI = require("MonsterWorldMod.Configs.UI")
 local EndColorTag = ____UI.EndColorTag
 ____exports.EnemyDropChanceByRank = {15, 100, 35}
@@ -4116,6 +4125,13 @@ function MWMonster.prototype.GetDamage(self, level)
 end
 return ____exports
  end,
+["MonsterWorldMod.Helpers.Random"] = function(...) 
+local ____exports = {}
+function ____exports.IsPctRolled(value)
+    return math.random(1, 100) <= value
+end
+return ____exports
+ end,
 ["MonsterWorldMod.GameObjects.MWWeapon"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -4124,9 +4140,6 @@ local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__StringReplace = ____lualib.__TS__StringReplace
 local ____exports = {}
-local ____basic = require("StalkerAPI.extensions.basic")
-local IsPctRolled = ____basic.IsPctRolled
-local TakeRandomUniqueElementsFromArray = ____basic.TakeRandomUniqueElementsFromArray
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
 local ____BaseMWObject = require("MonsterWorldMod.GameObjects.BaseMWObject")
@@ -4141,6 +4154,10 @@ local GetBonusDescription = ____Loot.GetBonusDescription
 local ParamsForSelection = ____Loot.ParamsForSelection
 local PctBonuses = ____Loot.PctBonuses
 local SectionFields = ____Loot.SectionFields
+local ____Collections = require("MonsterWorldMod.Helpers.Collections")
+local TakeRandomUniqueElementsFromArray = ____Collections.TakeRandomUniqueElementsFromArray
+local ____Random = require("MonsterWorldMod.Helpers.Random")
+local IsPctRolled = ____Random.IsPctRolled
 ____exports.MWWeapon = __TS__Class()
 local MWWeapon = ____exports.MWWeapon
 MWWeapon.name = "MWWeapon"
@@ -4180,6 +4197,18 @@ __TS__SetDescriptor(
 )
 __TS__SetDescriptor(
     MWWeapon.prototype,
+    "FireDistance",
+    {get = function(self)
+        local ____table_GO_cast_Weapon_result_GetFireDistance_result_0 = self.GO
+        if ____table_GO_cast_Weapon_result_GetFireDistance_result_0 ~= nil then
+            ____table_GO_cast_Weapon_result_GetFireDistance_result_0 = ____table_GO_cast_Weapon_result_GetFireDistance_result_0:cast_Weapon():GetFireDistance()
+        end
+        return ____table_GO_cast_Weapon_result_GetFireDistance_result_0 or 1
+    end},
+    true
+)
+__TS__SetDescriptor(
+    MWWeapon.prototype,
     "DescriptionBonuses",
     {
         get = function(self)
@@ -4193,18 +4222,18 @@ __TS__SetDescriptor(
 )
 __TS__SetDescriptor(
     MWWeapon.prototype,
-    "RPM",
+    "TimeBetweenShots",
     {get = function(self)
-        local ____math_max_4 = math.max
-        local ____table_GO_cast_Weapon_result_2 = self.GO
-        if ____table_GO_cast_Weapon_result_2 ~= nil then
-            ____table_GO_cast_Weapon_result_2 = ____table_GO_cast_Weapon_result_2:cast_Weapon()
+        local ____math_max_6 = math.max
+        local ____table_GO_cast_Weapon_result_4 = self.GO
+        if ____table_GO_cast_Weapon_result_4 ~= nil then
+            ____table_GO_cast_Weapon_result_4 = ____table_GO_cast_Weapon_result_4:cast_Weapon()
         end
-        local ____table_GO_cast_Weapon_result_RPM_result_0 = ____table_GO_cast_Weapon_result_2
-        if ____table_GO_cast_Weapon_result_RPM_result_0 ~= nil then
-            ____table_GO_cast_Weapon_result_RPM_result_0 = ____table_GO_cast_Weapon_result_RPM_result_0:RPM()
+        local ____table_GO_cast_Weapon_result_RPM_result_2 = ____table_GO_cast_Weapon_result_4
+        if ____table_GO_cast_Weapon_result_RPM_result_2 ~= nil then
+            ____table_GO_cast_Weapon_result_RPM_result_2 = ____table_GO_cast_Weapon_result_RPM_result_2:RPM()
         end
-        return ____math_max_4(0.0001, ____table_GO_cast_Weapon_result_RPM_result_0)
+        return ____math_max_6(0.01, ____table_GO_cast_Weapon_result_RPM_result_2)
     end},
     true
 )
@@ -4212,7 +4241,7 @@ __TS__SetDescriptor(
     MWWeapon.prototype,
     "DPS",
     {get = function(self)
-        return self.DamagePerHit * (1 / self.RPM)
+        return self.DamagePerHit * (1 / self.TimeBetweenShots)
     end},
     true
 )
@@ -4356,9 +4385,9 @@ function MWWeapon.prototype.GenerateWeaponStats(self)
     self:RefillMagazine()
 end
 function MWWeapon.prototype.RefillMagazine(self)
-    local ____table_GO_cast_Weapon_result_SetAmmoElapsed_result_5 = self.GO
-    if ____table_GO_cast_Weapon_result_SetAmmoElapsed_result_5 ~= nil then
-        ____table_GO_cast_Weapon_result_SetAmmoElapsed_result_5 = ____table_GO_cast_Weapon_result_SetAmmoElapsed_result_5:cast_Weapon():SetAmmoElapsed(self.MagSize)
+    local ____table_GO_cast_Weapon_result_SetAmmoElapsed_result_7 = self.GO
+    if ____table_GO_cast_Weapon_result_SetAmmoElapsed_result_7 ~= nil then
+        ____table_GO_cast_Weapon_result_SetAmmoElapsed_result_7 = ____table_GO_cast_Weapon_result_SetAmmoElapsed_result_7:cast_Weapon():SetAmmoElapsed(self.MagSize)
     end
 end
 return ____exports
@@ -4648,12 +4677,6 @@ local ____Skill = require("MonsterWorldMod.Skills.Skill")
 local PriceFormulaConstant = ____Skill.PriceFormulaConstant
 local ____SkillPassiveStatBonus = require("MonsterWorldMod.Skills.SkillPassiveStatBonus")
 local SkillPassiveStatBonus = ____SkillPassiveStatBonus.SkillPassiveStatBonus
-local ____SkillAuraOfDeath = require("MonsterWorldMod.Skills.SkillAuraOfDeath")
-local SkillAuraOfDeath = ____SkillAuraOfDeath.SkillAuraOfDeath
-local ____SkillHealPlayerOnKill = require("MonsterWorldMod.Skills.SkillHealPlayerOnKill")
-local SkillHealPlayerOnKill = ____SkillHealPlayerOnKill.SkillHealPlayerOnKill
-local ____SkillCriticalDeath = require("MonsterWorldMod.Skills.SkillCriticalDeath")
-local SkillCriticalDeath = ____SkillCriticalDeath.SkillCriticalDeath
 ____exports.MWPlayer = __TS__Class()
 local MWPlayer = ____exports.MWPlayer
 MWPlayer.name = "MWPlayer"
@@ -4722,7 +4745,7 @@ function MWPlayer.prototype.OnFirstTimeInitialize(self)
 end
 function MWPlayer.prototype.LevelUp(self)
     self.Level = self.Level + 1
-    self.SkillPoints = self.SkillPoints + cfg.PlayerPointsPerLevelUp
+    self.SkillPoints = self.SkillPoints + cfg.SkillPointsPerLevelUp
     self:UpdateLevelBonuses()
     local ____MonsterWorld_UIManager_ShowLevelUpMessage_result_0 = MonsterWorld.UIManager
     if ____MonsterWorld_UIManager_ShowLevelUpMessage_result_0 ~= nil then
@@ -4756,12 +4779,24 @@ end
 function MWPlayer.prototype.SetupSkills(self)
     BaseMWObject.prototype.SetupSkills(self)
     self:AddSkill(__TS__New(
-        SkillHealPlayerOnKill,
-        "heal_on_kill",
+        SkillPassiveStatBonus,
+        "max_hp",
         self,
-        function(level) return 0.5 * level end,
+        2,
+        1,
+        function(level) return 5 * level end,
         PriceFormulaConstant(1),
-        10
+        50
+    ))
+    self:AddSkill(__TS__New(
+        SkillPassiveStatBonus,
+        "hp_regen",
+        self,
+        3,
+        1,
+        function(level) return 10 * level end,
+        PriceFormulaConstant(1),
+        50
     ))
     self:AddSkill(__TS__New(
         SkillPassiveStatBonus,
@@ -4769,19 +4804,9 @@ function MWPlayer.prototype.SetupSkills(self)
         self,
         0,
         1,
-        function(level) return 5 * level end,
+        function(level) return 1 * level end,
         PriceFormulaConstant(1),
-        10
-    ))
-    self:AddSkill(__TS__New(
-        SkillPassiveStatBonus,
-        "sprint_speed",
-        self,
-        1,
-        1,
-        function(level) return 5 * level end,
-        PriceFormulaConstant(1),
-        10
+        50
     ))
     self:AddSkill(__TS__New(
         SkillPassiveStatBonus,
@@ -4789,9 +4814,9 @@ function MWPlayer.prototype.SetupSkills(self)
         self,
         5,
         0,
-        function(level) return 5 * level end,
+        function(level) return 1 * level end,
         PriceFormulaConstant(1),
-        10
+        50
     ))
     self:AddSkill(__TS__New(
         SkillPassiveStatBonus,
@@ -4799,29 +4824,9 @@ function MWPlayer.prototype.SetupSkills(self)
         self,
         6,
         0,
-        function(level) return 10 * level end,
+        function(level) return 5 * level end,
         PriceFormulaConstant(1),
-        10
-    ))
-    self:AddSkill(__TS__New(
-        SkillAuraOfDeath,
-        "aura_of_death",
-        self,
-        3,
-        function(level) return 1 * level end,
-        function(level) return 5 + 1 * level end,
-        PriceFormulaConstant(1),
-        10
-    ))
-    self:AddSkill(__TS__New(
-        SkillCriticalDeath,
-        "crit_explosion",
-        self,
-        function(level) return 10 * level end,
-        function(level) return 2.5 * level end,
-        function(level) return 5 + 1 * level end,
-        PriceFormulaConstant(1),
-        5
+        50
     ))
 end
 return ____exports
@@ -4831,12 +4836,6 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__StringIncludes = ____lualib.__TS__StringIncludes
 local ____exports = {}
-local ____basic = require("StalkerAPI.extensions.basic")
-local IsPctRolled = ____basic.IsPctRolled
-local Load = ____basic.Load
-local NumberToCondList = ____basic.NumberToCondList
-local RandomFromArray = ____basic.RandomFromArray
-local Save = ____basic.Save
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
 local ____Constants = require("MonsterWorldMod.Configs.Constants")
@@ -4847,13 +4846,21 @@ local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
 local MonsterConfigs = ____Enemies.MonsterConfigs
 local ____Levels = require("MonsterWorldMod.Configs.Levels")
 local LocationConfigs = ____Levels.LocationConfigs
+local ____Collections = require("MonsterWorldMod.Helpers.Collections")
+local RandomFromArray = ____Collections.RandomFromArray
+local ____Random = require("MonsterWorldMod.Helpers.Random")
+local IsPctRolled = ____Random.IsPctRolled
+local ____StalkerAPI = require("MonsterWorldMod.Helpers.StalkerAPI")
+local Load = ____StalkerAPI.Load
+local Save = ____StalkerAPI.Save
+local NumberToCondList = ____StalkerAPI.NumberToCondList
 ____exports.SpawnManager = __TS__Class()
 local SpawnManager = ____exports.SpawnManager
 SpawnManager.name = "SpawnManager"
 function SpawnManager.prototype.____constructor(self)
     self.safeSmarts = {}
     local oldSimSquadAddSquadMember = sim_squad_scripted.sim_squad_scripted.add_squad_member
-    local function newSimSquadAddSquadMember(obj, section, pos, lvid, gvid)
+    sim_squad_scripted.sim_squad_scripted.add_squad_member = function(obj, section, pos, lvid, gvid)
         return self:OnSimSquadAddMember(
             obj,
             section,
@@ -4863,7 +4870,6 @@ function SpawnManager.prototype.____constructor(self)
             oldSimSquadAddSquadMember
         )
     end
-    sim_squad_scripted.sim_squad_scripted.add_squad_member = newSimSquadAddSquadMember
 end
 function SpawnManager.prototype.Save(self, data)
     data.safeSmarts = self.safeSmarts
@@ -5064,7 +5070,7 @@ function UIManager.prototype.____constructor(self)
         oldGetItemDesc(obj)
     ) end
     local oldUICellItemUpdate = utils_ui.UICellItem.Update
-    local function newUICellItemUpdate(s, obj)
+    utils_ui.UICellItem.Update = function(s, obj)
         local res = oldUICellItemUpdate(s, obj)
         local ____s_bar_Show_result_0 = s.bar
         if ____s_bar_Show_result_0 ~= nil then
@@ -5101,9 +5107,8 @@ function UIManager.prototype.____constructor(self)
         s.mwLevel:Show(true)
         return res
     end
-    utils_ui.UICellItem.Update = newUICellItemUpdate
     local oldUIInfoItemUpdate = utils_ui.UIInfoItem.Update
-    local function newUIInfoItemUpdate(s, obj, sec, flags)
+    utils_ui.UIInfoItem.Update = function(s, obj, sec, flags)
         oldUIInfoItemUpdate(s, obj, sec, flags)
         if not obj then
             return
@@ -5118,7 +5123,6 @@ function UIManager.prototype.____constructor(self)
         s.value:Show(false)
         s.weight:Show(false)
     end
-    utils_ui.UIInfoItem.Update = newUIInfoItemUpdate
     local oldUISortBySizeKind = utils_ui.sort_by_sizekind
     utils_ui.sort_by_sizekind = function(t, a, b)
         local objA = t[a]
@@ -5320,9 +5324,8 @@ function UIManager.prototype.UpdateTarget(self)
         self:HideEnemyHealthUI()
         return
     end
-    local targetDist = level.get_target_dist()
-    local monster = MonsterWorld:GetMonster(targetObj:id())
-    if targetDist < 300 and monster and monster.HP > 0 then
+    local monster = MonsterWorld:GetMonster(targetObj)
+    if monster and monster.HP > 0 and level.get_target_dist() < 300 then
         self:ShowEnemyHealthUI(monster)
     else
         local ____self_HideEnemyHealthUI_16 = self.HideEnemyHealthUI
@@ -5353,12 +5356,11 @@ function UIManager.prototype.ShowEnemyHealthUI(self, monster)
     self.enemyHPBarValue:SetText((tostring(math.floor(monster.HP)) .. " / ") .. tostring(math.floor(monster.MaxHP)))
     local player = MonsterWorld.Player
     local playerPos = player.GO:position()
-    local playerWeapon = player.Weapon
-    local ____playerWeapon_GO_cast_Weapon_result_GetFireDistance_result_19 = playerWeapon
-    if ____playerWeapon_GO_cast_Weapon_result_GetFireDistance_result_19 ~= nil then
-        ____playerWeapon_GO_cast_Weapon_result_GetFireDistance_result_19 = ____playerWeapon_GO_cast_Weapon_result_GetFireDistance_result_19.GO:cast_Weapon():GetFireDistance()
+    local ____player_Weapon_FireDistance_19 = player.Weapon
+    if ____player_Weapon_FireDistance_19 ~= nil then
+        ____player_Weapon_FireDistance_19 = ____player_Weapon_FireDistance_19.FireDistance
     end
-    local distance = ____playerWeapon_GO_cast_Weapon_result_GetFireDistance_result_19 or 100000
+    local distance = ____player_Weapon_FireDistance_19 or 100000
     self.enemyHPOutOfDistanceNotice:Show(monster.GO:position():distance_to(playerPos) >= distance)
 end
 function UIManager.prototype.UpdateDamageNumbers(self)
@@ -5559,7 +5561,7 @@ function UIManager.prototype.UIGetWeaponRPM(self, obj)
     if weapon == nil then
         return 0
     end
-    return 60 / weapon.RPM
+    return 60 / weapon.TimeBetweenShots
 end
 function UIManager.prototype.UIGetWeaponAmmoMagSize(self, obj)
     local weapon = MonsterWorld:GetWeapon(obj)
@@ -5573,16 +5575,7 @@ function UIManager.prototype.UIGetWeaponFireDistance(self, obj)
     if weapon == nil then
         return 0
     end
-    local ____math_max_27 = math.max
-    local ____obj_cast_Weapon_result_25 = obj
-    if ____obj_cast_Weapon_result_25 ~= nil then
-        ____obj_cast_Weapon_result_25 = ____obj_cast_Weapon_result_25:cast_Weapon()
-    end
-    local ____obj_cast_Weapon_result_GetFireDistance_result_23 = ____obj_cast_Weapon_result_25
-    if ____obj_cast_Weapon_result_GetFireDistance_result_23 ~= nil then
-        ____obj_cast_Weapon_result_GetFireDistance_result_23 = ____obj_cast_Weapon_result_GetFireDistance_result_23:GetFireDistance()
-    end
-    return ____math_max_27(1, ____obj_cast_Weapon_result_GetFireDistance_result_23 or 0)
+    return weapon.FireDistance
 end
 return ____exports
  end,
@@ -5606,6 +5599,81 @@ function ____exports.GetDifficultyDropChanceMult()
 end
 return ____exports
  end,
+["MonsterWorldMod.Managers.TimerManager"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local Map = ____lualib.Map
+local __TS__New = ____lualib.__TS__New
+local __TS__Iterator = ____lualib.__TS__Iterator
+local ____exports = {}
+____exports.TimerManager = __TS__Class()
+local TimerManager = ____exports.TimerManager
+TimerManager.name = "TimerManager"
+function TimerManager.prototype.____constructor(self)
+    self.timers = __TS__New(Map)
+end
+function TimerManager.prototype.AddOneTime(self, id, delay, callback)
+    self.timers:set(id, {
+        Repeat = false,
+        Delay = delay,
+        Interval = 0,
+        IntervalsLeft = 0,
+        Callback = callback
+    })
+end
+function TimerManager.prototype.AddInterval(self, id, interval, delay, callback, maxIntervals)
+    if maxIntervals == nil then
+        maxIntervals = -1
+    end
+    self.timers:set(id, {
+        Repeat = true,
+        Delay = delay,
+        Interval = interval,
+        IntervalsLeft = maxIntervals,
+        Callback = callback
+    })
+end
+function TimerManager.prototype.AddOnObjectSpawn(self, id, objectId, callback)
+    self:AddInterval(
+        id,
+        0.05,
+        0,
+        function()
+            local obj = level.object_by_id(objectId)
+            if obj ~= nil then
+                callback(obj)
+                return ____exports.StopTimerSignal
+            end
+        end
+    )
+end
+function TimerManager.prototype.Remove(self, id)
+    self.timers:delete(id)
+end
+function TimerManager.prototype.Update(self, deltaTime)
+    local timersToDelete = {}
+    for ____, ____value in __TS__Iterator(self.timers) do
+        local id = ____value[1]
+        local timer = ____value[2]
+        timer.Delay = timer.Delay - deltaTime
+        if timer.Delay <= 0 then
+            local result = timer:Callback()
+            local doStop = result == ____exports.StopTimerSignal
+            if not timer.Repeat or timer.IntervalsLeft == 0 or doStop then
+                timersToDelete[#timersToDelete + 1] = id
+            else
+                timer.Delay = timer.Interval
+                timer.IntervalsLeft = timer.IntervalsLeft - 1
+            end
+        end
+    end
+    for ____, id in ipairs(timersToDelete) do
+        self:Remove(id)
+    end
+end
+____exports.StopTimerSignal = -1
+return ____exports
+ end,
 ["MonsterWorldMod.World"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -5616,12 +5684,6 @@ local __TS__StringEndsWith = ____lualib.__TS__StringEndsWith
 local Map = ____lualib.Map
 local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
-local ____basic = require("StalkerAPI.extensions.basic")
-local IsPctRolled = ____basic.IsPctRolled
-local RandomFromArray = ____basic.RandomFromArray
-local Save = ____basic.Save
-local CreateVector = ____basic.CreateVector
-local CreateWorldPositionAtPosWithGO = ____basic.CreateWorldPositionAtPosWithGO
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
 local constants = require("MonsterWorldMod.Configs.Constants")
@@ -5645,6 +5707,17 @@ local MaxQuality = ____Loot.MaxQuality
 local GetDropQuality = ____Loot.GetDropQuality
 local GetStimpack = ____Loot.GetStimpack
 local GetDropParticles = ____Loot.GetDropParticles
+local ____StalkerAPI = require("MonsterWorldMod.Helpers.StalkerAPI")
+local GetId = ____StalkerAPI.GetId
+local CreateVector = ____StalkerAPI.CreateVector
+local CreateWorldPositionAtPosWithGO = ____StalkerAPI.CreateWorldPositionAtPosWithGO
+local Save = ____StalkerAPI.Save
+local ____Collections = require("MonsterWorldMod.Helpers.Collections")
+local RandomFromArray = ____Collections.RandomFromArray
+local ____Random = require("MonsterWorldMod.Helpers.Random")
+local IsPctRolled = ____Random.IsPctRolled
+local ____TimerManager = require("MonsterWorldMod.Managers.TimerManager")
+local TimerManager = ____TimerManager.TimerManager
 ____exports.World = __TS__Class()
 local World = ____exports.World
 World.name = "World"
@@ -5658,6 +5731,7 @@ function World.prototype.____constructor(self, mod)
     self.weapons = {}
     self.SpawnManager = __TS__New(SpawnManager)
     self.UIManager = __TS__New(UIManager)
+    self.Timers = __TS__New(TimerManager)
     utils_item.get_upgrades_tree = function(wpn, _t)
     end
     game_setup.try_spawn_world_item = function(ignore)
@@ -5697,21 +5771,8 @@ __TS__SetDescriptor(
     end},
     true
 )
-function World.prototype.GetMonster(self, monsterOrId)
-    local monsterId = 0
-    if type(monsterOrId) ~= "number" then
-        local ____monsterOrId_id_0 = monsterOrId
-        if ____monsterOrId_id_0 ~= nil then
-            ____monsterOrId_id_0 = ____monsterOrId_id_0.id
-        end
-        if ____monsterOrId_id_0 ~= nil then
-            monsterId = monsterOrId:id()
-        else
-            return nil
-        end
-    else
-        monsterId = monsterOrId
-    end
+function World.prototype.GetMonster(self, monster)
+    local monsterId = GetId(monster)
     local se_obj = alife_object(monsterId)
     local go = level.object_by_id(monsterId)
     if se_obj == nil or go == nil or not (go:is_monster() or go:is_stalker()) then
@@ -5724,21 +5785,8 @@ function World.prototype.GetMonster(self, monsterOrId)
     end
     return self.Monsters[monsterId]
 end
-function World.prototype.GetWeapon(self, itemOrId)
-    local itemId = 0
-    if type(itemOrId) ~= "number" then
-        local ____itemOrId_id_2 = itemOrId
-        if ____itemOrId_id_2 ~= nil then
-            ____itemOrId_id_2 = ____itemOrId_id_2.id
-        end
-        if ____itemOrId_id_2 ~= nil then
-            itemId = itemOrId:id()
-        else
-            return nil
-        end
-    else
-        itemId = itemOrId
-    end
+function World.prototype.GetWeapon(self, item)
+    local itemId = GetId(item)
     local se_obj = alife_object(itemId)
     local go = level.object_by_id(itemId)
     if se_obj == nil or go == nil or not go:is_weapon() then
@@ -5758,9 +5806,9 @@ function World.prototype.DestroyObject(self, id)
 end
 function World.prototype.OnTakeItem(self, item)
     local weapon = self:GetWeapon(item)
-    local ____weapon_OnWeaponPickedUp_result_4 = weapon
-    if ____weapon_OnWeaponPickedUp_result_4 ~= nil then
-        ____weapon_OnWeaponPickedUp_result_4 = ____weapon_OnWeaponPickedUp_result_4:OnWeaponPickedUp()
+    local ____weapon_OnWeaponPickedUp_result_0 = weapon
+    if ____weapon_OnWeaponPickedUp_result_0 ~= nil then
+        ____weapon_OnWeaponPickedUp_result_0 = ____weapon_OnWeaponPickedUp_result_0:OnWeaponPickedUp()
     end
     self:CleanupItemData(item:id())
 end
@@ -5781,8 +5829,8 @@ function World.prototype.OnItemUse(self, item)
             "mw_heal_pct",
             25
         )
-        local ____self_Player_6, ____HP_7 = self.Player, "HP"
-        ____self_Player_6[____HP_7] = ____self_Player_6[____HP_7] + self.Player.MaxHP * healPct / 100
+        local ____self_Player_2, ____HP_3 = self.Player, "HP"
+        ____self_Player_2[____HP_3] = ____self_Player_2[____HP_3] + self.Player.MaxHP * healPct / 100
     end
 end
 function World.prototype.OnWeaponFired(self, wpn, ammo_elapsed)
@@ -5798,24 +5846,16 @@ function World.prototype.OnPlayerSpawned(self)
 end
 function World.prototype.Save(self, data)
     self.SpawnManager:Save(data)
-    local ____table_UIManager_Save_result_8 = self.UIManager
-    if ____table_UIManager_Save_result_8 ~= nil then
-        ____table_UIManager_Save_result_8 = ____table_UIManager_Save_result_8:Save(data)
-    end
+    self.UIManager:Save(data)
 end
 function World.prototype.Load(self, data)
     self.SpawnManager:Load(data)
-    local ____table_UIManager_Load_result_10 = self.UIManager
-    if ____table_UIManager_Load_result_10 ~= nil then
-        ____table_UIManager_Load_result_10 = ____table_UIManager_Load_result_10:Load(data)
-    end
+    self.UIManager:Load(data)
 end
 function World.prototype.Update(self, deltaTime)
     self.DeltaTime = deltaTime
-    local ____table_UIManager_Update_result_12 = self.UIManager
-    if ____table_UIManager_Update_result_12 ~= nil then
-        ____table_UIManager_Update_result_12 = ____table_UIManager_Update_result_12:Update()
-    end
+    self.Timers:Update(deltaTime)
+    self.UIManager:Update()
     self.Player:Update(deltaTime)
     self.Player:IterateSkills(function(s) return s:Update(deltaTime) end)
     for _, monster in pairs(self.Monsters) do
@@ -5827,18 +5867,18 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
     if not attackerGO:is_monster() and not attackerGO:is_stalker() then
         return
     end
-    local monster = self:GetMonster(attackerGO:id())
+    local monster = self:GetMonster(attackerGO)
     if monster == nil then
         return
     end
     local damage = monster.Damage
     if attackerGO:is_stalker() and shit.weapon_id ~= 0 and shit.weapon_id ~= attackerGO:id() then
         local weapon = level.object_by_id(shit.weapon_id)
-        local ____weapon_is_weapon_result_14 = weapon
-        if ____weapon_is_weapon_result_14 ~= nil then
-            ____weapon_is_weapon_result_14 = ____weapon_is_weapon_result_14:is_weapon()
+        local ____weapon_is_weapon_result_4 = weapon
+        if ____weapon_is_weapon_result_4 ~= nil then
+            ____weapon_is_weapon_result_4 = ____weapon_is_weapon_result_4:is_weapon()
         end
-        if ____weapon_is_weapon_result_14 then
+        if ____weapon_is_weapon_result_4 then
             damage = damage * clamp(
                 weapon:cast_Weapon():RPM(),
                 0.25,
@@ -5847,8 +5887,8 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
         end
     end
     damage = math.max(1, damage) * self.enemyDamageMult
-    local ____self_Player_16, ____HP_17 = self.Player, "HP"
-    ____self_Player_16[____HP_17] = ____self_Player_16[____HP_17] - damage
+    local ____self_Player_6, ____HP_7 = self.Player, "HP"
+    ____self_Player_6[____HP_7] = ____self_Player_6[____HP_7] - damage
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
@@ -5872,7 +5912,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
             local isCritPartHit = ____value[2]
             do
                 if monster.IsDead then
-                    goto __continue51
+                    goto __continue43
                 end
                 local monsterDamage = weaponDamage
                 if monster.GO:is_stalker() then
@@ -5886,13 +5926,10 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
                     monsterDamage = monsterDamage * critDamageMult
                 end
                 local realDamage = self:DamageMonster(monster, monsterDamage, isCrit)
-                local ____table_UIManager_ShowDamage_result_18 = self.UIManager
-                if ____table_UIManager_ShowDamage_result_18 ~= nil then
-                    ____table_UIManager_ShowDamage_result_18 = ____table_UIManager_ShowDamage_result_18:ShowDamage(realDamage, isCrit, monster.IsDead)
-                end
+                self.UIManager:ShowDamage(realDamage, isCrit, monster.IsDead)
                 self.Player:IterateSkills(function(s) return s:OnMonsterHit(monster, isCrit) end)
             end
-            ::__continue51::
+            ::__continue43::
         end
     end
 end
@@ -5914,12 +5951,9 @@ function World.prototype.GetStat(self, stat, ...)
 end
 function World.prototype.OnMonsterKilled(self, monster, isCrit)
     Log(((("OnMonsterKilled. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
-    local ____table_UIManager_ShowXPReward_result_20 = self.UIManager
-    if ____table_UIManager_ShowXPReward_result_20 ~= nil then
-        ____table_UIManager_ShowXPReward_result_20 = ____table_UIManager_ShowXPReward_result_20:ShowXPReward(monster.XPReward)
-    end
-    local ____self_Player_22, ____CurrentXP_23 = self.Player, "CurrentXP"
-    ____self_Player_22[____CurrentXP_23] = ____self_Player_22[____CurrentXP_23] + monster.XPReward
+    self.UIManager:ShowXPReward(monster.XPReward)
+    local ____self_Player_8, ____CurrentXP_9 = self.Player, "CurrentXP"
+    ____self_Player_8[____CurrentXP_9] = ____self_Player_8[____CurrentXP_9] + monster.XPReward
     local dropChance = monster.DropChance * self.enemyDropChanceMult
     if IsPctRolled(dropChance) then
         self:GenerateDrop(monster)
@@ -6006,15 +6040,10 @@ function World.prototype.GenerateStimpackDropFromMonster(self, monster)
     ), quality
 end
 function World.prototype.HighlightDroppedItem(self, id, ____type, quality)
-    CreateTimeEvent(
+    self.Timers:AddOnObjectSpawn(
+        tostring(id) .. "_highlight",
         id,
-        "highlight",
-        0.3,
-        function()
-            local obj = level.object_by_id(id)
-            if obj == nil then
-                return false
-            end
+        function(obj)
             local particles = particles_object(GetDropParticles(____type, quality))
             self.highlightParticles[id] = particles
             local pos = obj:position()
@@ -6032,16 +6061,15 @@ function World.prototype.HighlightDroppedItem(self, id, ____type, quality)
                 end
             end
             level.map_add_object_spot_ser(id, spotType, "")
-            return true
         end
     )
 end
 function World.prototype.RemoveHighlight(self, id)
-    RemoveTimeEvent(id, "highlight")
+    self.Timers:Remove(tostring(id) .. "_highlight")
     local particles = self.highlightParticles[id]
-    local ____particles_stop_result_24 = particles
-    if ____particles_stop_result_24 ~= nil then
-        ____particles_stop_result_24 = ____particles_stop_result_24:stop()
+    local ____particles_stop_result_10 = particles
+    if ____particles_stop_result_10 ~= nil then
+        ____particles_stop_result_10 = ____particles_stop_result_10:stop()
     end
     self.highlightParticles[id] = nil
 end
@@ -6053,22 +6081,19 @@ function World.prototype.GetHighlighBone(self, go)
     return bone
 end
 function World.prototype.AddTTLTimer(self, id, time)
-    CreateTimeEvent(
-        id,
-        "ttl",
+    self.Timers:AddOneTime(
+        tostring(id) .. "_ttl",
         time,
-        function(id)
+        function()
             local toRelease = alife():object(id)
             if toRelease ~= nil then
                 safe_release_manager.release(toRelease)
             end
-            return true
-        end,
-        id
+        end
     )
 end
 function World.prototype.RemoveTTLTimer(self, id)
-    RemoveTimeEvent(id, "ttl")
+    self.Timers:Remove(tostring(id) .. "_ttl")
 end
 function World.prototype.GetMonstersInRange(self, pos, range)
     local result = {}
@@ -6076,14 +6101,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue96
+                goto __continue87
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue96::
+        ::__continue87::
     end
     return result
 end
@@ -6126,18 +6151,8 @@ return ____exports
 local ____exports = {}
 local dogBones = {15}
 local bloodsuckerBones = {14}
-local chimeraBones = {
-    25,
-    26,
-    27,
-    28,
-    29,
-    30,
-    31,
-    34,
-    34
-}
 local humanBones = {
+    14,
     15,
     16,
     17,
@@ -6151,11 +6166,17 @@ ____exports.CriticalBones = {
     Cat = {13},
     ["Pseudo Dog"] = dogBones,
     Bloodsucker = bloodsuckerBones,
-    Fracture = {13},
-    Snork = {4},
-    Lurker = chimeraBones,
+    Fracture = {12, 13},
+    Snork = {4, 5},
+    Lurker = {23, 25, 26, 28},
     Flesh = {13},
-    Chimera = chimeraBones,
+    Chimera = {
+        23,
+        24,
+        25,
+        28,
+        33
+    },
     Burer = {
         39,
         40,
@@ -6168,18 +6189,12 @@ ____exports.CriticalBones = {
     },
     Controller = {31},
     Psysucker = bloodsuckerBones,
-    Giant = {
-        1,
-        2,
-        3,
-        4,
-        5
-    },
+    Giant = {1},
     Bandit = humanBones,
     Army = humanBones,
     Sin = humanBones,
     Mercenary = humanBones,
-    ["Monolith soldier"] = humanBones,
+    Monolith = humanBones,
     Zombified = humanBones
 }
 return ____exports
@@ -6192,9 +6207,6 @@ local __TS__New = ____lualib.__TS__New
 local Map = ____lualib.Map
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local ____exports = {}
-local ____basic = require("StalkerAPI.extensions.basic")
-local EnableMutantLootingWithoutKnife = ____basic.EnableMutantLootingWithoutKnife
-local CreateWorldPositionAtGO = ____basic.CreateWorldPositionAtGO
 local ____StalkerModBase = require("StalkerModBase")
 local StalkerModBase = ____StalkerModBase.StalkerModBase
 local ____World = require("MonsterWorldMod.World")
@@ -6205,6 +6217,8 @@ local ____Loot = require("MonsterWorldMod.Configs.Loot")
 local GetStimpack = ____Loot.GetStimpack
 local ____CritBones = require("MonsterWorldMod.Constants.CritBones")
 local CriticalBones = ____CritBones.CriticalBones
+local ____StalkerAPI = require("MonsterWorldMod.Helpers.StalkerAPI")
+local CreateWorldPositionAtGO = ____StalkerAPI.CreateWorldPositionAtGO
 ____exports.MonsterWorldMod = __TS__Class()
 local MonsterWorldMod = ____exports.MonsterWorldMod
 MonsterWorldMod.name = "MonsterWorldMod"
@@ -6228,11 +6242,11 @@ function MonsterWorldMod.prototype.OnLoadState(self, data)
 end
 function MonsterWorldMod.prototype.OnMonsterNetSpawn(self, monster, serverObject)
     StalkerModBase.prototype.OnMonsterNetSpawn(self, monster, serverObject)
-    self.World:GetMonster(monster:id())
+    self.World:GetMonster(monster)
 end
 function MonsterWorldMod.prototype.OnNpcNetSpawn(self, npc, serverObject)
     StalkerModBase.prototype.OnNpcNetSpawn(self, npc, serverObject)
-    self.World:GetMonster(npc:id())
+    self.World:GetMonster(npc)
 end
 function MonsterWorldMod.prototype.OnItemNetSpawn(self, item, serverObject)
     StalkerModBase.prototype.OnItemNetSpawn(self, item, serverObject)
@@ -6329,7 +6343,6 @@ function MonsterWorldMod.prototype.OnServerEntityUnregister(self, serverObject, 
 end
 function MonsterWorldMod.prototype.OnActorFirstUpdate(self)
     StalkerModBase.prototype.OnActorFirstUpdate(self)
-    EnableMutantLootingWithoutKnife()
     self.World:OnPlayerSpawned()
 end
 function MonsterWorldMod.prototype.OnUpdate(self, deltaTime)
@@ -6364,7 +6377,7 @@ function MonsterWorldMod.prototype.OnMonsterBeforeHit(self, monsterGO, shit, bon
     if monsterGO.health <= 0 or shit.draftsman:id() ~= 0 then
         return false
     end
-    local monster = self.World:GetMonster(monsterGO:id())
+    local monster = self.World:GetMonster(monsterGO)
     if monster == nil then
         return false
     end

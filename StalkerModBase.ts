@@ -368,13 +368,12 @@ export class StalkerModBase {
         // on_get_item_cost						= {}, -- look at bottom of utils_item.script for detailed explanation
 
         let oldItemNetSpawn = bind_item.item_binder.net_spawn;
-        let newItemNetSpawn = (s: any, serverGO: cse_alife_item) => {
+        bind_item.item_binder.net_spawn = (s: any, serverGO: cse_alife_item) => {
             let result = oldItemNetSpawn(s, serverGO);
             //Log(`Net iem spawn: ${serverGO.name()}`)
             if (result)
                 this.OnItemNetSpawn(s.object, serverGO)
             return result;
-        }
-        bind_item.item_binder.net_spawn = newItemNetSpawn;
+        };
     }
 }

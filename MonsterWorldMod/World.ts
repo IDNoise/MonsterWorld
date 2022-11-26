@@ -1,4 +1,3 @@
-import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save, CreateWorldPositionAtGO, CreateVector, CreateWorldPositionAtPosWithGO } from '../StalkerAPI/extensions/basic';
 import { Log } from '../StalkerModBase';
 import * as constants from './Configs/Constants';
 import { MonsterWorldMod } from './MonsterWorldMod';
@@ -11,6 +10,10 @@ import { BaseMWObject } from './GameObjects/BaseMWObject';
 import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/Difficulty';
 import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, GetStimpack, GetDropParticles, DropType } from './Configs/Loot';
 import { StatType } from './Configs/Stats';
+import { ObjectOrId, GetId, CreateVector, CreateWorldPositionAtPosWithGO, Save } from './Helpers/StalkerAPI';
+import { RandomFromArray } from './Helpers/Collections';
+import { IsPctRolled } from './Helpers/Random';
+import { TimerManager } from './Managers/TimerManager';
 
 declare global{
     let MonsterWorld: World;
@@ -25,6 +28,7 @@ export class World {
 
     public SpawnManager: SpawnManager;
     public UIManager: UIManager;
+    public Timers: TimerManager;
 
     public DeltaTime: number;
 
@@ -35,6 +39,7 @@ export class World {
 
         this.SpawnManager = new SpawnManager();
         this.UIManager = new UIManager();
+        this.Timers = new TimerManager();
 
         utils_item.get_upgrades_tree = (wpn, _t) => {};
         game_setup.try_spawn_world_item = (ignore: any) => {};
@@ -67,21 +72,9 @@ export class World {
         return this.player;
     }
 
-    public GetMonster(monsterOrId: Id | game_object): MWMonster | undefined {
+    public GetMonster(monster: ObjectOrId): MWMonster | undefined {
         //Log(`GetMonster: ${monsterId}`)
-        let monsterId = 0;
-        if (typeof(monsterOrId) != "number"){
-            if (monsterOrId?.id != undefined){
-                monsterId = monsterOrId.id();
-            }
-            else {
-                return undefined;
-            }
-        }
-        else {
-            monsterId = monsterOrId;
-        }
-
+        let monsterId = GetId(monster);
         let se_obj = alife_object(monsterId);
         let go = level.object_by_id(monsterId);
         if (se_obj == null || go == null || !(go.is_monster() || go.is_stalker()))
@@ -97,20 +90,9 @@ export class World {
         return this.Monsters.get(monsterId);
     }
 
-    public GetWeapon(itemOrId: Id | game_object): MWWeapon | undefined {
-        let itemId = 0;
-        if (typeof(itemOrId) != "number"){
-            if (itemOrId?.id != undefined){
-                itemId = itemOrId.id();
-            }
-            else {
-                return undefined;
-            }
-        }
-        else {
-            itemId = itemOrId;
-        }
+    public GetWeapon(item: ObjectOrId): MWWeapon | undefined {
         //Log(`GetWeapon: ${itemId}`)
+        let itemId = GetId(item);
         let se_obj = alife_object(itemId);
         let go = level.object_by_id(itemId);
         if (se_obj == null || go == null || !go.is_weapon())
@@ -157,13 +139,11 @@ export class World {
     }
     
     public OnWeaponFired(wpn: game_object, ammo_elapsed: number) {
-        //Log(`OnWeaponFired: ${wpn.section()}`)
         let weapon = this.GetWeapon(wpn)
         if (weapon != undefined && weapon.Section.endsWith("_mw") && weapon.GO.get_ammo_total() < 500){
             let ammo = ini_sys.r_sec_ex(weapon.Section, "ammo_class")
             alife_create_item(ammo, this.Player.GO, {ammo: 1});
         }
-        //Log(`OnWeaponFired END: ${wpn.section()}`)
     }
 
     public OnPlayerSpawned():void{
@@ -177,17 +157,18 @@ export class World {
 
     public Save(data: { [key: string]: any; }) {
         this.SpawnManager.Save(data)
-        this.UIManager?.Save(data)
+        this.UIManager.Save(data)
     }
 
     public Load(data: { [key: string]: any; }) {
         this.SpawnManager.Load(data)
-        this.UIManager?.Load(data)
+        this.UIManager.Load(data)
     }
 
     public Update(deltaTime: number) {
         this.DeltaTime = deltaTime;
-        this.UIManager?.Update();
+        this.Timers.Update(deltaTime);
+        this.UIManager.Update();
         this.Player.Update(deltaTime);
         this.Player.IterateSkills((s) => s.Update(deltaTime))
         for(let [_, monster] of this.Monsters){
@@ -200,7 +181,7 @@ export class World {
         if (!attackerGO.is_monster() && !attackerGO.is_stalker())
             return;
 
-        let monster = this.GetMonster(attackerGO.id());
+        let monster = this.GetMonster(attackerGO);
         if (monster == undefined) 
             return;
 
@@ -250,7 +231,7 @@ export class World {
                 }
 
                 let realDamage = this.DamageMonster(monster, monsterDamage, isCrit);
-                this.UIManager?.ShowDamage(realDamage, isCrit, monster.IsDead)
+                this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
                 this.Player.IterateSkills((s) => s.OnMonsterHit(monster, isCrit))
             }
         }
@@ -277,7 +258,7 @@ export class World {
     public OnMonsterKilled(monster: MWMonster, isCrit: boolean) {
         Log(`OnMonsterKilled. ${monster.Name} (${monster.SectionId})`)
 
-        this.UIManager?.ShowXPReward(monster.XPReward)
+        this.UIManager.ShowXPReward(monster.XPReward)
         this.Player.CurrentXP += monster.XPReward;
 
         let dropChance = monster.DropChance * this.enemyDropChanceMult
@@ -374,12 +355,7 @@ export class World {
 
     highlightParticles: LuaTable<Id, particles_object> = new LuaTable()
     HighlightDroppedItem(id: Id, type: DropType, quality: number) {
-        CreateTimeEvent(id, "highlight", 0.3, (): boolean => {
-            let obj = level.object_by_id(id);
-            if (obj == undefined){
-                return false;
-            }
-
+        this.Timers.AddOnObjectSpawn(`${id}_highlight`, id, (obj) => {
             let particles = new particles_object(GetDropParticles(type, quality));
             this.highlightParticles.set(id, particles)
             let pos = obj.position()
@@ -397,14 +373,12 @@ export class World {
                     spotType = SpotType.Treasure;
             }
             level.map_add_object_spot_ser(id, spotType, "")
-
-            return true;
         })
     }
 
     RemoveHighlight(id: Id){
         //Log(`remove highligh: ${id}`)
-        RemoveTimeEvent(id, "highlight"); 
+        this.Timers.Remove(`${id}_highlight`)
         let particles = this.highlightParticles.get(id)
         particles?.stop();
         this.highlightParticles.delete(id);
@@ -417,20 +391,15 @@ export class World {
     }
 
     AddTTLTimer(id: Id, time: number){
-        //Log(`add ttl: ${id}`)
-        CreateTimeEvent(id, "ttl", time, (id: Id): boolean => {
+        this.Timers.AddOneTime(`${id}_ttl`, time, () => {
             let toRelease = alife().object(id)
             if (toRelease != undefined){
                 safe_release_manager.release(toRelease);
             }
-            return true;
-        }, id);
+        });
     }
 
-    RemoveTTLTimer(id: Id){ 
-        //Log(`remove ttl timer: ${id}`)
-        RemoveTimeEvent(id, "ttl"); 
-    }
+    RemoveTTLTimer(id: Id){ this.Timers.Remove(`${id}_ttl`) }
 
     public GetMonstersInRange(pos: vector, range: number) : MWMonster[] {
         let result: MWMonster[] = [];

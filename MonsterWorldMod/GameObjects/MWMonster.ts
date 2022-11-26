@@ -1,4 +1,3 @@
-import { IsPctRolled, Save } from '../../StalkerAPI/extensions/basic';
 import { BaseMWObject } from './BaseMWObject';
 import { World } from '../World';
 import * as constants from '../Configs/Constants'

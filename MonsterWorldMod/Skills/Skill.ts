@@ -1,5 +1,4 @@
 import { MWMonster } from '../GameObjects/MWMonster';
-import { World } from '../World';
 import { BaseMWObject } from '../GameObjects/BaseMWObject';
 
 

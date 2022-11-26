@@ -16,7 +16,7 @@ export const enum MonsterType {
     Psysucker = "Psysucker",
     Giant = "Giant",
 
-    MonolithSoldier = "Monolith soldier",
+    Monolith = "Monolith",
     Bandit = "Bandit",
     Mercenary = "Mercenary",
     Sin = "Sin",
@@ -318,8 +318,8 @@ MonsterConfigs.set(MonsterType.Chimera, {
     boss_section: "chimera_strong4",
 });
 
-MonsterConfigs.set(MonsterType.MonolithSoldier, {
-    type: MonsterType.MonolithSoldier,
+MonsterConfigs.set(MonsterType.Monolith, {
+    type: MonsterType.Monolith,
     level_start: 15,
     level_type: LevelType.All,
     hp_mult: 2.5,

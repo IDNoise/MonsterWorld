@@ -1,8 +1,10 @@
-import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save } from '../../StalkerAPI/extensions/basic';
 import { Log } from '../../StalkerModBase';
 import { EnemyEliteChance, EnemyBossChance, EnemyHigherLevelChance } from '../Configs/Constants';
 import { MonsterType, MonsterConfigs, MonsterRank } from '../Configs/Enemies';
 import { LevelType, LocationConfigs } from '../Configs/Levels';
+import { RandomFromArray } from '../Helpers/Collections';
+import { IsPctRolled } from '../Helpers/Random';
+import { Load, Save, NumberToCondList } from '../Helpers/StalkerAPI';
 
 export class SpawnManager {
     private safeSmarts: LuaSet<Id>
@@ -11,10 +13,9 @@ export class SpawnManager {
         this.safeSmarts = new LuaSet();
 
         const oldSimSquadAddSquadMember = sim_squad_scripted.sim_squad_scripted.add_squad_member;
-        const newSimSquadAddSquadMember = (obj: any, section: string, pos: vector, lvid: number, gvid: number) => {
+        sim_squad_scripted.sim_squad_scripted.add_squad_member = (obj: any, section: string, pos: vector, lvid: number, gvid: number) => {
             return this.OnSimSquadAddMember(obj, section, pos, lvid, gvid, oldSimSquadAddSquadMember);
-        };
-        sim_squad_scripted.sim_squad_scripted.add_squad_member = newSimSquadAddSquadMember;
+        };;
     }
 
     Save(data: { [key: string]: any; }) {

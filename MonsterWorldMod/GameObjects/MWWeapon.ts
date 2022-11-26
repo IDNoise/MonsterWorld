@@ -1,10 +1,11 @@
-import { IsPctRolled, TakeRandomUniqueElementsFromArray } from '../../StalkerAPI/extensions/basic';
 import { Log } from '../../StalkerModBase';
 import { BaseMWObject } from './BaseMWObject';
 import { World } from '../World';
 import * as cfg from '../Configs/Constants';
 import { MinQuality, MaxQuality, WeaponBonusParamType, ParamsWithWeaponUpgradesSelection, GetBonusDescription, ParamsForSelection, PctBonuses, SectionFields} from '../Configs/Loot';
 import { StatType, StatBonusType } from '../Configs/Stats';
+import { TakeRandomUniqueElementsFromArray } from '../Helpers/Collections';
+import { IsPctRolled } from '../Helpers/Random';
 
 export class MWWeapon extends BaseMWObject {
     
@@ -33,12 +34,13 @@ export class MWWeapon extends BaseMWObject {
 
     get DamagePerHit(): number { return this.GetStat(StatType.DamagePerHit); }
     get MagSize(): number { return math.floor(this.GetStat(StatType.MagSize)); }
+    get FireDistance(): number { return this.GO?.cast_Weapon().GetFireDistance() || 1; }
 
     get DescriptionBonuses(): LuaTable<WeaponBonusParamType, number> { return this.Load("GeneratedBonuses"); }
     set DescriptionBonuses(bonuses: LuaTable<WeaponBonusParamType, number>) { this.Save("GeneratedBonuses", bonuses); }
 
-    get RPM(): number { return math.max(0.0001, this.GO?.cast_Weapon()?.RPM()) }
-    get DPS(): number { return this.DamagePerHit  * (1 / this.RPM) }
+    get TimeBetweenShots(): number { return math.max(0.01, this.GO?.cast_Weapon()?.RPM()) }
+    get DPS(): number { return this.DamagePerHit  * (1 / this.TimeBetweenShots) }
 
     public GetBonusDescription(): string{
         let result = "";
@@ -193,8 +195,6 @@ export class MWWeapon extends BaseMWObject {
         this.RefillMagazine();
         //Log(`Bonus description: ${this.GetBonusDescription()}`);
     }
-
-    
 
     RefillMagazine(){
         this.GO?.cast_Weapon().SetAmmoElapsed(this.MagSize)

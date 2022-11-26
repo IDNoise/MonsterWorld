@@ -1,9 +1,9 @@
-import { EnableMutantLootingWithoutKnife, CreateWorldPositionAtGO } from '../StalkerAPI/extensions/basic';
 import { Log, StalkerModBase } from '../StalkerModBase';
 import { HitInfo, World } from './World';
 import { ReloadAnims } from './Constants/WeaponAnimations';
 import { GetStimpack } from './Configs/Loot';
 import { CriticalBones } from './Constants/CritBones';
+import { CreateWorldPositionAtGO } from './Helpers/StalkerAPI';
 
 export class MonsterWorldMod extends StalkerModBase {
     public World: World;
@@ -33,12 +33,12 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected override OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
         super.OnMonsterNetSpawn(monster, serverObject);
-        this.World.GetMonster(monster.id());
+        this.World.GetMonster(monster);
     }
 
     protected override OnNpcNetSpawn(npc: game_object, serverObject: cse_alife_human_stalker): void {
         super.OnNpcNetSpawn(npc, serverObject);
-        this.World.GetMonster(npc.id());
+        this.World.GetMonster(npc);
     }
 
     protected override OnItemNetSpawn(item: game_object, serverObject: cse_alife_item): void {
@@ -128,7 +128,6 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected override OnActorFirstUpdate(): void {
         super.OnActorFirstUpdate();
-        EnableMutantLootingWithoutKnife();
         this.World.OnPlayerSpawned();
     }
 
@@ -173,7 +172,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (monsterGO.health <= 0 || shit.draftsman.id() != 0)// || (shit.type != HitType.fire_wound && shit.type != HitType.wound))
             return false;
 
-        let monster = this.World.GetMonster(monsterGO.id())
+        let monster = this.World.GetMonster(monsterGO)
         if (monster == undefined) 
             return false;
 

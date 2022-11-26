@@ -57,7 +57,7 @@ export class UIManager {
         ui_item.get_obj_desc = (obj) => this.UIGetItemDescription(obj, oldGetItemDesc(obj));
 
         const oldUICellItemUpdate = utils_ui.UICellItem.Update;
-        const newUICellItemUpdate = (s: any, obj: game_object): boolean => {
+        utils_ui.UICellItem.Update = (s: any, obj: game_object): boolean => {
             let res = oldUICellItemUpdate(s, obj);
 
             s.bar?.Show(false) //Condition bar
@@ -86,11 +86,10 @@ export class UIManager {
 
             return res;
         }
-        utils_ui.UICellItem.Update = newUICellItemUpdate
 
 
         const oldUIInfoItemUpdate = utils_ui.UIInfoItem.Update;
-        const newUIInfoItemUpdate = (s: any, obj: game_object, sec: Section, flags: any): void => {
+        utils_ui.UIInfoItem.Update = (s: any, obj: game_object, sec: Section, flags: any): void => {
             oldUIInfoItemUpdate(s, obj, sec, flags)
             if (!obj) 
                 return;
@@ -109,7 +108,6 @@ export class UIManager {
             s.value.Show(false)
             s.weight.Show(false)
         }
-        utils_ui.UIInfoItem.Update = newUIInfoItemUpdate
 
         const oldUISortBySizeKind = utils_ui.sort_by_sizekind; 
         utils_ui.sort_by_sizekind = (t, a, b) => { //Sorting by DPS > level > quality
@@ -274,10 +272,8 @@ export class UIManager {
             //Log(`UpdateTarget end - no targetObj`)
             return;
         }
-
-        let targetDist = level.get_target_dist();
-        let monster = MonsterWorld.GetMonster(targetObj.id())
-        if (targetDist < 300 && monster && monster.HP > 0){
+        let monster = MonsterWorld.GetMonster(targetObj)
+        if (monster && monster.HP > 0 && level.get_target_dist() < 300){
             this.ShowEnemyHealthUI(monster);
         }
         else {
@@ -301,8 +297,7 @@ export class UIManager {
         
         let player = MonsterWorld.Player
         let playerPos = player.GO.position();
-        let playerWeapon = player.Weapon;
-        let distance = playerWeapon?.GO.cast_Weapon().GetFireDistance() || 100000;
+        let distance = player.Weapon?.FireDistance || 100000;
         this.enemyHPOutOfDistanceNotice.Show(monster.GO.position().distance_to(playerPos) >= distance)
     }
 
@@ -501,7 +496,7 @@ export class UIManager {
         if (weapon == undefined)
             return 0;
 
-        return 60 / weapon.RPM; 
+        return 60 / weapon.TimeBetweenShots; 
     }
 
     UIGetWeaponAmmoMagSize(obj: game_object): number { 
@@ -517,7 +512,7 @@ export class UIManager {
         if (weapon == undefined)
             return 0;
 
-        return math.max(1, obj?.cast_Weapon()?.GetFireDistance() || 0); 
+        return weapon.FireDistance; 
     }
 }
 

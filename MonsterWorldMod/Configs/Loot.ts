@@ -1,4 +1,4 @@
-import { GetByWeightFromArray } from "../../StalkerAPI/extensions/basic";
+import { GetByWeightFromArray } from "../Helpers/Collections";
 import { EndColorTag } from "./UI";
 
 export const enum DropType {

@@ -14,7 +14,7 @@ export let PlayerXPForFirstLevel = 250;
 export let PlayerXPExp = 1.3;
 export let PlayerXPPct = 100;
 
-export let PlayerPointsPerLevelUp = 1;
+export let SkillPointsPerLevelUp = 5;
 
 //Monster params
 export let EnemyHPBase = 50;
@@ -31,8 +31,8 @@ export let EnemyXpRewardExpPerLevel = 1.25;
 export let EnemyXpRewardPctPerLevel = 50;
 
 export let EnemyHigherLevelChance = 5;
-export let EnemyEliteChance = 15;
-export let EnemyBossChance = 5;
+export let EnemyEliteChance = 12;
+export let EnemyBossChance = 3;
 
 export let EnemyHpMultsByRank: number[] = [1, 3, 10];
 export let EnemyXpMultsByRank: number[] = [1, 3, 10];

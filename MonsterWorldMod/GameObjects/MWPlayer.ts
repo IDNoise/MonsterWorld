@@ -41,7 +41,7 @@ export class MWPlayer extends BaseMWObject {
 
     private LevelUp(): void{
         this.Level++;
-        this.SkillPoints += cfg.PlayerPointsPerLevelUp;
+        this.SkillPoints += cfg.SkillPointsPerLevelUp;
         this.UpdateLevelBonuses();
         MonsterWorld.UIManager?.ShowLevelUpMessage(this.Level);
     }
@@ -80,12 +80,18 @@ export class MWPlayer extends BaseMWObject {
 
     override SetupSkills() {
         super.SetupSkills();
-        this.AddSkill(new SkillHealPlayerOnKill(`heal_on_kill`, this, (level) => 0.5 * level, PriceFormulaConstant(1), 10))
-        this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeed, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
-        this.AddSkill(new SkillPassiveStatBonus(`sprint_speed`, this, StatType.SprintSpeed, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
-        this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
-        this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 10 * level, PriceFormulaConstant(1), 10))
-        this.AddSkill(new SkillAuraOfDeath(`aura_of_death`, this, 3, (level: number) => 1 * level, (level: number) => 5 + 1 * level, PriceFormulaConstant(1), 10))
-        this.AddSkill(new SkillCriticalDeath(`crit_explosion`, this, (level: number) => 10 * level, (level: number) => 2.5 * level, (level: number) => 5 + 1 * level, PriceFormulaConstant(1), 5))
+        this.AddSkill(new SkillPassiveStatBonus(`max_hp`, this, StatType.MaxHP, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill(new SkillPassiveStatBonus(`hp_regen`, this, StatType.HPRegen, StatBonusType.Pct, (level: number) => 10 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeed, StatBonusType.Pct, (level: number) => 1 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 1 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
     }
+
+// this.AddSkill(new SkillHealPlayerOnKill(`heal_on_kill`, this, (level) => 0.5 * level, PriceFormulaConstant(1), 10))
+// this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeed, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
+// this.AddSkill(new SkillPassiveStatBonus(`sprint_speed`, this, StatType.SprintSpeed, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
+// this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 5 * level, PriceFormulaConstant(1), 10))
+// this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 10 * level, PriceFormulaConstant(1), 10))
+// this.AddSkill(new SkillAuraOfDeath(`aura_of_death`, this, 3, (level: number) => 1 * level, (level: number) => 5 + 1 * level, PriceFormulaConstant(1), 10))
+// this.AddSkill(new SkillCriticalDeath(`crit_explosion`, this, (level: number) => 10 * level, (level: number) => 2.5 * level, (level: number) => 5 + 1 * level, PriceFormulaConstant(1), 5))
 }
