@@ -12,6 +12,7 @@ public class ItemsGenerator : BaseGenerator
     protected override void InternalGenerate()
     {
         GenerateStimpacks();
+        GenerateArts();
     }
     
     public readonly record struct StimpackConfig(string SectionName, string ParentSectionName, float HealPct);
@@ -25,9 +26,11 @@ public class ItemsGenerator : BaseGenerator
             new("mw_stimpack_75", "stimpack_scientic", 75),
         };
         
+        var generatedStimpacks = new List<Section>();
+        
         foreach (var cfg in configs)
         {
-            Storage.MakeSection(cfg.SectionName, mwItems, new List<string>() { cfg.ParentSectionName }, properties: new
+            generatedStimpacks.Add(Storage.MakeSection(cfg.SectionName, mwItems, new List<string>() { cfg.ParentSectionName }, properties: new
             {
                 description = "",
                 inv_weight = 0.000001,
@@ -40,7 +43,30 @@ public class ItemsGenerator : BaseGenerator
                 eat_thirstiness = 0,
                 mw_heal_pct = cfg.HealPct,
                 max_uses = 1
-            });
+            }));
         }
+        
+        Storage.MakeSection($"stimpacks", mwItems, properties: generatedStimpacks.Select(s => s.Name));
+    }
+
+    void GenerateArts()
+    {
+        var junkArtefactsFile = Storage.GetFile("items_artefacts_junk");
+        var generatedArts = new List<Section>();
+
+        foreach (var artSection in junkArtefactsFile.Sections)
+        {
+            generatedArts.Add(Storage.MakeSection($"{artSection.Name}_mw", mwItems, new List<string>() { artSection.Name }, properties: new
+            {
+                description         = "",
+                inv_weight          = 0.000001,
+                jump_height	        = 0,
+                af_actor_properties = "off",
+                actor_properties    = "off",
+                tier                = 0,
+            }));
+        }
+        
+        Storage.MakeSection($"artefacts", mwItems, properties: generatedArts.Select(s => s.Name));
     }
 }

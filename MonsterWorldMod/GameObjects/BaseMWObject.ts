@@ -81,24 +81,39 @@ export abstract class BaseMWObject {
         this.Save<LuaTable<string, number>>(field, bonuses);
         this.RecalculateStatTotal(stat); 
     }
+
+    GetTotalFlatBonus(stat: StatType): number{
+        let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Flat), new LuaTable());
+        let value = 0;
+        for(let [_, bonusValue] of bonuses){
+            value += bonusValue;
+        }
+        return value;
+    }
+
+    GetTotalPctBonus(stat: StatType): number{
+        let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Pct), new LuaTable());
+        let value = 0;
+        for(let [_, bonusValue] of bonuses){
+            value += bonusValue;
+        }
+        return value;
+    }
+
+    GetTotalMultBonus(stat: StatType): number{
+        let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Pct), new LuaTable());
+        let value = 1;
+        for(let [_, bonusValue] of bonuses){
+            value *= bonusValue;
+        }
+        return value;
+    }
    
     RecalculateStatTotal(stat: StatType){
         let base = this.Load<number>(GetStatBaseField(stat), 0); 
-        let flatBonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Flat), new LuaTable());
-        let flatBonus = 0;
-        for(let [_, value] of flatBonuses){
-            flatBonus += value;
-        }
-        let pctBonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Pct), new LuaTable());
-        let pctBonus = 0;
-        for(let [_, value] of pctBonuses){
-            pctBonus += value;
-        }
-        let multBonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Mult), new LuaTable());
-        let multBonus = 1;
-        for(let [_, value] of multBonuses){
-            multBonus *= value;
-        }
+        let flatBonus = this.GetTotalFlatBonus(stat)
+        let pctBonus = this.GetTotalPctBonus(stat)
+        let multBonus = this.GetTotalMultBonus(stat)
 
         let total = (base + flatBonus) * (1 + pctBonus / 100) * multBonus;
         this.Save(GetStatTotalField(stat), total)

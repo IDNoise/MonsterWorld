@@ -14,13 +14,14 @@ import { ObjectOrId, GetId, CreateVector, CreateWorldPositionAtPosWithGO, Save }
 import { RandomFromArray } from './Helpers/Collections';
 import { IsPctRolled } from './Helpers/Random';
 import { TimerManager } from './Managers/TimerManager';
+import { BaseMWItem } from './GameObjects/BaseMWItem';
 
 declare global{
     let MonsterWorld: World;
 }
 
 export class World {
-    private weapons: LuaTable<Id, MWWeapon>
+    private items: LuaTable<Id, BaseMWItem>
     private enemyDamageMult: number = 1;
     private enemyDropChanceMult: number = 1;
 
@@ -35,38 +36,13 @@ export class World {
     constructor(public mod: MonsterWorldMod){
         MonsterWorld = this;
         this.Monsters = new LuaTable();
-        this.weapons = new LuaTable();
+        this.items = new LuaTable();
 
         this.SpawnManager = new SpawnManager();
         this.UIManager = new UIManager();
         this.Timers = new TimerManager();
 
-        bind_anomaly_field.dyn_anomalies_refresh = (_force) => {}
-        bind_anomaly_zone.anomaly_zone_binder.refresh = (s, from) => { 
-            s.disabled = true;
-            s.turn_off();
-        }
-        bind_anomaly_zone.anomaly_zone_binder.turn_on = (s) => {}
-        utils_item.get_upgrades_tree = (wpn, _t) => {};
-        game_setup.try_spawn_world_item = (ignore: any) => {};
-        treasure_manager.init_settings = () => {};
-        treasure_manager.try_spawn_treasure = (_ignore: any) => {};
-        treasure_manager.create_random_stash = (...args: any[]) => {};
-        death_manager.create_release_item = (_ignore: any) => {};
-        death_manager.create_item_list = (...args: any[]) => {};
-        let oldKeepItem = death_manager.keep_item;
-        death_manager.keep_item = (npc: game_object, item: game_object) => {
-            if (!item) return;
-	
-            let item_id = item.id()
-            let active_item = npc.active_item()
-	
-	        oldKeepItem(npc, item)
-
-            if (active_item != null && active_item.id() == item_id) {
-                npc.transfer_item(item, npc)
-            }
-        };
+        this.DoMonkeyPatch();
     }
 
     private player?: MWPlayer;
@@ -95,40 +71,49 @@ export class World {
         //Log(`GetMonster end: ${monsterId}`)
         return this.Monsters.get(monsterId);
     }
-
-    public GetWeapon(item: ObjectOrId): MWWeapon | undefined {
-        //Log(`GetWeapon: ${itemId}`)
+    
+    public GetItem(item: ObjectOrId): BaseMWItem | undefined {
         let itemId = GetId(item);
         let se_obj = alife_object(itemId);
         let go = level.object_by_id(itemId);
-        if (se_obj == null || go == null || !go.is_weapon())
+        if (se_obj == null || go == null)
             return undefined;
 
-        if (!this.weapons.has(itemId)){    
-            //Log(`GetWeapon crate new: ${itemId}`)
-            let weapon = new MWWeapon(itemId);
-            weapon.Initialize();
-            this.weapons.set(itemId, weapon);
+        if (!this.items.has(itemId)){   
+            let newItem: BaseMWItem | undefined = undefined;
+            if (go.is_weapon()){
+                newItem = new MWWeapon(itemId);
+            }
+            //Other item types
+
+
+            if (newItem != undefined){
+                newItem.Initialize();
+                this.items.set(itemId, newItem);
+            }
         }
 
-        //Log(`GetWeapon end: ${itemId}`)
-        return this.weapons.get(itemId);
+        return this.items.get(itemId);
+    }
+
+    public GetWeapon(item: ObjectOrId): MWWeapon | undefined {
+        return <MWWeapon>this.GetItem(item);
     }
 
     public DestroyObject(id:Id) {
-        this.CleanupItemData(id);
+        this.CleanupObjectTimersAndMinimapMarks(id);
         this.Monsters.delete(id);
-        this.weapons.delete(id);
+        this.items.delete(id);
     }
 
-    public OnTakeItem(item: game_object) {
+    public OnTakeItem(itemGO: game_object) {
         //Log(`OnTakeItem: ${item.id()}`)
-        let weapon = this.GetWeapon(item)
-        weapon?.OnWeaponPickedUp();
-        this.CleanupItemData(item.id());
+        let item = this.GetItem(itemGO)
+        item?.OnItemPickedUp();
+        this.CleanupObjectTimersAndMinimapMarks(itemGO.id());
     }
 
-    private CleanupItemData(id: Id){
+    private CleanupObjectTimersAndMinimapMarks(id: Id){
         this.RemoveTTLTimer(id)
         this.RemoveHighlight(id)
         level.map_remove_object_spot(id, SpotType.Body);
@@ -220,7 +205,7 @@ export class World {
         
         for(const [weapon, hits] of hitsByWeapon){
             let isCritByWeapon = IsPctRolled(this.GetStat(StatType.CritChancePct, weapon, this.Player))
-            let weaponDamage = weapon.DamagePerHit / hits.length;
+            let weaponDamage = weapon.Damage / hits.length;
 
             for(let [monster, isCritPartHit] of hits){
                 if (monster.IsDead) continue;
@@ -425,6 +410,35 @@ export class World {
             }
         }
         return result;
+    }
+
+    private DoMonkeyPatch() {
+        bind_anomaly_field.dyn_anomalies_refresh = (_force) => {}
+        bind_anomaly_zone.anomaly_zone_binder.refresh = (s, from) => { 
+            s.disabled = true;
+            s.turn_off();
+        }
+        bind_anomaly_zone.anomaly_zone_binder.turn_on = (s) => {}
+        utils_item.get_upgrades_tree = (wpn, _t) => {};
+        game_setup.try_spawn_world_item = (ignore: any) => {};
+        treasure_manager.init_settings = () => {};
+        treasure_manager.try_spawn_treasure = (_ignore: any) => {};
+        treasure_manager.create_random_stash = (...args: any[]) => {};
+        death_manager.create_release_item = (_ignore: any) => {};
+        death_manager.create_item_list = (...args: any[]) => {};
+        let oldKeepItem = death_manager.keep_item;
+        death_manager.keep_item = (npc: game_object, item: game_object) => {
+            if (!item) return;
+	
+            let item_id = item.id()
+            let active_item = npc.active_item()
+	
+	        oldKeepItem(npc, item)
+
+            if (active_item != null && active_item.id() == item_id) {
+                npc.transfer_item(item, npc)
+            }
+        };
     }
 }
 

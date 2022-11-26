@@ -1,9 +1,11 @@
 import { GetByWeightFromArray } from "../Helpers/Collections";
+import { StatType } from "./Stats";
 import { EndColorTag } from "./UI";
 
 export const enum DropType {
     Weapon = 0,
-    Stimpack
+    Stimpack,
+    Art
 }
 
 export let EnemyDropChanceByRank: number[] = [15, 100, 35];
@@ -31,6 +33,7 @@ export type DropConfig = {
 export let DropConfigs: DropConfig[] = [
     {type: DropType.Weapon, weight: 50},
     {type: DropType.Stimpack, weight: 10},
+    //{type: DropType.Art, weight: 500}, 
 ]
 
 export function GetDropType(): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.weight).type; }
@@ -61,79 +64,62 @@ export function GetDropParticles(type: DropType, quality: number): string {
     return "_samples_particles_\\holo_lines";
 }
 
-export enum WeaponBonusParamType{
-    Damage = "damage",
-    Rpm = "rpm",
-    MagSize = "mag_size",
-    FireMode = "fire_mode",
-    Dispersion = "dispersion",
-    Recoil = "recoil",
-    ReloadSpeed = "reload_speed",
-    BulletSpeed = "bullet_speed",
-    CritChance = "crit_chance",
-}
-
-export let ParamsForSelection = [
-    WeaponBonusParamType.Damage, 
-    WeaponBonusParamType.Rpm, 
-    WeaponBonusParamType.MagSize, 
-    WeaponBonusParamType.Dispersion, 
-    WeaponBonusParamType.Recoil, 
-    WeaponBonusParamType.ReloadSpeed, 
-    WeaponBonusParamType.CritChance
-]; 
-export let ParamsWithWeaponUpgradesSelection = [
-    WeaponBonusParamType.Rpm, 
-    WeaponBonusParamType.Dispersion, 
-    WeaponBonusParamType.Recoil, 
-    WeaponBonusParamType.BulletSpeed, 
-    WeaponBonusParamType.FireMode
+export let WeaponStatsForGeneration = [
+    StatType.Damage, 
+    StatType.RpmBonusPct, 
+    StatType.MagSize, 
+    StatType.DispersionBonusPct, 
+    StatType.RecoilBonusPct, 
+    StatType.ReloadSpeedBonusPct, 
+    StatType.CritChancePct
 ]; 
 
-let NegativeBonuses = [WeaponBonusParamType.Recoil];
-let HasNoValue = [WeaponBonusParamType.FireMode];
+export let WeaponStatsUsingUpgrades = [
+    StatType.RpmBonusPct, 
+    StatType.DispersionBonusPct, 
+    StatType.RecoilBonusPct, 
+    StatType.BulletSpeedBonusPct, 
+    StatType.AutoFireModeState
+]; 
 
-export let PctBonuses = [
-    WeaponBonusParamType.Damage, 
-    WeaponBonusParamType.Rpm, 
-    WeaponBonusParamType.MagSize, 
-    WeaponBonusParamType.Dispersion,  
-    WeaponBonusParamType.Recoil, 
-    WeaponBonusParamType.BulletSpeed, 
-    WeaponBonusParamType.ReloadSpeed, 
-    WeaponBonusParamType.CritChance
-];
+export function GetWeaponUpgradesByStat(weaponSection: Section, stat: StatType): Section[]{
+    let prefix = "";
+    switch(stat){
+        case StatType.RpmBonusPct: prefix = "rpm"; break; 
+        case StatType.DispersionBonusPct: prefix = "dispersion"; break; 
+        case StatType.RecoilBonusPct: prefix = "recoil"; break; 
+        case StatType.BulletSpeedBonusPct: prefix = "bullet_speed"; break; 
+        case StatType.AutoFireModeState: prefix = "fire_mode"; break; 
+    }
 
-export let SectionFields : {[key in WeaponBonusParamType]: string} = {
-    damage: "_NotUsed",
-    reload_speed: "_NotUsed",
-    crit_chance: "_NotUsed",
-    mag_size: "_NotUsed",
-    rpm: "rpm",
-    dispersion: "fire_dispersion_base",
-    recoil: "cam_max_angle",
-    bullet_speed: "bullet_speed",
-    fire_mode: "fire_mode",
+    if (prefix == ""){
+        return [];
+    }
+
+    let fieldName = `${prefix}_upgrades`;
+    if (ini_sys.r_string_ex(weaponSection, fieldName, "") != "") {
+        return ini_sys.r_list(weaponSection, fieldName, []);
+    }
+
+    return [];
 }
 
-let BonusDescriptions : {[key in WeaponBonusParamType]: string} = {
-    damage: "Damage",
-    rpm: "Fire Rate",
-    mag_size: "Mag size",
-    fire_mode: "AUTO fire mode enabled",
-    dispersion: "Accuracy",
-    recoil: "Recoil",
-    reload_speed: "Reload speed",
-    crit_chance: "Crit chance",
-    bullet_speed: "Flatness"
+export function GetWeaponSectinFieldNameByStat(stat: StatType): string {
+    switch(stat){
+        case StatType.RpmBonusPct: return "rpm"; 
+        case StatType.DispersionBonusPct: return "fire_dispersion_base"; 
+        case StatType.RecoilBonusPct: return "cam_max_angle";
+        case StatType.BulletSpeedBonusPct: return "bullet_speed"; 
+        case StatType.MagSize: return "ammo_mag_size"; 
+    }
+    return "";
 }
 
-export function GetBonusDescription(type: WeaponBonusParamType, bonus: number = 0): string{
-    if (HasNoValue.includes(type))
-        return `%c[255,255,255,0]${BonusDescriptions[type]}${EndColorTag}`;
-        //return BonusDescriptions[type];
-    
-    const valueStr = `${NegativeBonuses.includes(type) ? "-" : "+"}${math.floor(bonus)}${PctBonuses.includes(type) ? "\%" : ""}`;
-    //return `${BonusDescriptions[type]} ${valueStr}`
-    return `%c[255,56,166,209]${valueStr.padEnd(6, " ")}${EndColorTag} ${BonusDescriptions[type]}`
+export function GetWeaponBaseValueByStat(weaponSection: Section, stat: StatType): number {
+    let fieldName = GetWeaponSectinFieldNameByStat(stat);
+    if (fieldName == ""){
+        return 0;
+    }
+
+    return ini_sys.r_float_ex(weaponSection, fieldName, 0);
 }

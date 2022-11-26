@@ -464,7 +464,7 @@ export class UIManager {
         if (weapon == undefined)
             return "";
 
-        return weapon.GetBonusDescription();
+        return weapon.Description;
     }
 
     UIGetItemLevel(obj: game_object): number { 
@@ -488,7 +488,7 @@ export class UIManager {
         if (weapon == undefined)
             return 0;
 
-        return weapon.DamagePerHit; 
+        return weapon.Damage; 
     }
 
     UIGetWeaponRPM(obj: game_object): number { 
