@@ -1,4 +1,4 @@
-import { GetByWeightFromArray, TakeRandomElementFromArray } from '../Helpers/Collections';
+import { GetByWeightFromArray, TakeRandomElementFromArray, GetByWeightFromTable } from '../Helpers/Collections';
 import { StatType } from "./Stats";
 import { EndColorTag } from "./UI";
 
@@ -15,43 +15,41 @@ export let MaxQuality = 5;
 
 export let HigherLevelDropChancePct = 5;
 
-export let QualityWeights = [
-    {quality: 1, weight: 250},
-    {quality: 2, weight: 20},
-    {quality: 3, weight: 10},
-    {quality: 4, weight: 5},
-    {quality: 5, weight: 1},
-];
+export type QualityConfig = {
+    Weight: number,
+    Title: string,
+    TextColor: ARGBColor,
+    Particles: string,
+}
+
+export let QualityConfigs : LuaTable<number, QualityConfig> =  new LuaTable();
+QualityConfigs.set(1, {Weight: 250, Title: "Common",    TextColor: GetARGB(255,230,230,230), Particles: "explosions\\effects\\campfire_sparks"});
+QualityConfigs.set(2, {Weight: 20,  Title: "Uncommmon", TextColor: GetARGB(255,20,20,230),   Particles: "static\\effects\\net_base_green"});
+QualityConfigs.set(3, {Weight: 10,  Title: "Rare",      TextColor: GetARGB(255,20,230,20),   Particles: "static\\effects\\net_base_blue"});
+QualityConfigs.set(4, {Weight: 5,   Title: "Epic",      TextColor: GetARGB(255,230,20,20),   Particles: "static\\effects\\net_base_red"});
+QualityConfigs.set(5, {Weight: 1,   Title: "Legendary", TextColor: GetARGB(255,240,165,5),   Particles: "_samples_particles_\\holo_lines"});
 
 export function GetDropQuality(): number {
-    return GetByWeightFromArray(QualityWeights, (el) => el.weight).quality
+    return GetByWeightFromTable(QualityConfigs, (el) => el.Weight)
 }
 
 export type DropConfig = {
-    type: DropType,
-    weight: number
+    Type: DropType,
+    Weight: number
 }
 export let DropConfigs: DropConfig[] = [
-    {type: DropType.Weapon, weight: 50},
-    {type: DropType.Stimpack, weight: 10},
-    {type: DropType.Armor, weight: 10}, 
+    {Type: DropType.Weapon, Weight: 50},
+    {Type: DropType.Stimpack, Weight: 10},
+    {Type: DropType.Armor, Weight: 10}, 
     //{type: DropType.Art, weight: 500}, 
 ]
 
-export function GetDropType(): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.weight).type; }
+export function GetDropType(): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.Weight).Type; }
 
 export function GetStimpackByQuality(qualityLevel: number): Section {
     if (qualityLevel <= 2) return "mw_stimpack_25";
     if (qualityLevel <= 4) return "mw_stimpack_50";
     return "mw_stimpack_75"
-}
-
-export function GetDropParticles(type: DropType, quality: number): string {
-    if (quality == 1) return "explosions\\effects\\campfire_sparks";
-    if (quality == 2) return "static\\effects\\net_base_green";
-    if (quality == 3) return "static\\effects\\net_base_blue";
-    if (quality == 4) return "static\\effects\\net_base_red";
-    return "_samples_particles_\\holo_lines";
 }
 
 export let ArmorStatsForGeneration = [

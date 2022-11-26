@@ -84,11 +84,11 @@ export class MWPlayer extends MWObject {
     override SetupSkills() {
         super.SetupSkills();
         this.AddSkill(new SkillPassiveStatBonus(`max_hp`, this, StatType.MaxHP, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
-        this.AddSkill(new SkillPassiveStatBonus(`hp_regen`, this, StatType.HPRegen, StatBonusType.Pct, (level: number) => 10 * level, PriceFormulaConstant(1), 50))
-        this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeedMult, StatBonusType.Pct, (level: number) => 1 * level, PriceFormulaConstant(1), 50))
-        this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 1 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill(new SkillPassiveStatBonus(`hp_regen`, this, StatType.HPRegen, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeedMult, StatBonusType.Pct, (level: number) => 2 * level, PriceFormulaConstant(1), 25))
+        this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 2 * level, PriceFormulaConstant(1), 25))
         this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
-        this.AddSkill(new SkillPassiveStatBonus(`xp_gain`, this, StatType.XPGainMult, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 20))
+        this.AddSkill(new SkillPassiveStatBonus(`xp_gain`, this, StatType.XPGainMult, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 25))
     }
 
 // this.AddSkill(new SkillHealPlayerOnKill(`heal_on_kill`, this, (level) => 0.5 * level, PriceFormulaConstant(1), 10))

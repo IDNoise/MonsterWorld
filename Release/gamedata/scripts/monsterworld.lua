@@ -2860,6 +2860,150 @@ StalkerModBase.ModName = "StarlkerModBase"
 StalkerModBase.IsLogEnabled = true
 return ____exports
  end,
+["MonsterWorldMod.Configs.Levels"] = function(...) 
+local ____exports = {}
+function ____exports.GetCurrentLocationCfg()
+    return ____exports.LocationConfigs[level.name()]
+end
+function ____exports.GetCurrentLocationType()
+    return ____exports.GetCurrentLocationCfg().Type
+end
+local locationLevel = 1
+local ____locationLevel_0 = locationLevel
+locationLevel = ____locationLevel_0 + 1
+local ____temp_33 = {Level = ____locationLevel_0, Type = 1}
+local ____locationLevel_1 = locationLevel
+locationLevel = ____locationLevel_1 + 1
+local ____temp_34 = {Level = ____locationLevel_1, Type = 1}
+local ____locationLevel_2 = locationLevel
+locationLevel = ____locationLevel_2 + 1
+local ____temp_35 = {Level = ____locationLevel_2, Type = 1}
+local ____locationLevel_3 = locationLevel
+locationLevel = ____locationLevel_3 + 1
+local ____temp_36 = {Level = ____locationLevel_3, Type = 1}
+local ____locationLevel_4 = locationLevel
+locationLevel = ____locationLevel_4 + 1
+local ____temp_37 = {Level = ____locationLevel_4, Type = 1}
+local ____locationLevel_5 = locationLevel
+locationLevel = ____locationLevel_5 + 1
+local ____temp_38 = {Level = ____locationLevel_5, Type = 1}
+local ____locationLevel_6 = locationLevel
+locationLevel = ____locationLevel_6 + 1
+local ____temp_39 = {Level = ____locationLevel_6, Type = 1}
+local ____locationLevel_7 = locationLevel
+locationLevel = ____locationLevel_7 + 1
+local ____temp_40 = {Level = ____locationLevel_7, Type = 1}
+local ____locationLevel_8 = locationLevel
+locationLevel = ____locationLevel_8 + 1
+local ____temp_41 = {Level = ____locationLevel_8, Type = 1}
+local ____locationLevel_9 = locationLevel
+locationLevel = ____locationLevel_9 + 1
+local ____temp_42 = {Level = ____locationLevel_9, Type = 1}
+local ____locationLevel_10 = locationLevel
+locationLevel = ____locationLevel_10 + 1
+local ____temp_43 = {Level = ____locationLevel_10, Type = 1}
+local ____locationLevel_11 = locationLevel
+locationLevel = ____locationLevel_11 + 1
+local ____temp_44 = {Level = ____locationLevel_11, Type = 1}
+local ____locationLevel_12 = locationLevel
+locationLevel = ____locationLevel_12 + 1
+local ____temp_45 = {Level = ____locationLevel_12, Type = 1}
+local ____locationLevel_13 = locationLevel
+locationLevel = ____locationLevel_13 + 1
+local ____temp_46 = {Level = ____locationLevel_13, Type = 1}
+local ____locationLevel_14 = locationLevel
+locationLevel = ____locationLevel_14 + 1
+local ____temp_47 = {Level = ____locationLevel_14, Type = 1}
+local ____locationLevel_15 = locationLevel
+locationLevel = ____locationLevel_15 + 1
+local ____temp_48 = {Level = ____locationLevel_15, Type = 1}
+local ____locationLevel_16 = locationLevel
+locationLevel = ____locationLevel_16 + 1
+local ____temp_49 = {Level = ____locationLevel_16, Type = 1}
+local ____locationLevel_17 = locationLevel
+locationLevel = ____locationLevel_17 + 1
+local ____temp_50 = {Level = ____locationLevel_17, Type = 1}
+local ____locationLevel_18 = locationLevel
+locationLevel = ____locationLevel_18 + 1
+local ____temp_51 = {Level = ____locationLevel_18, Type = 1}
+local ____locationLevel_19 = locationLevel
+locationLevel = ____locationLevel_19 + 1
+local ____temp_52 = {Level = ____locationLevel_19, Type = 1}
+local ____locationLevel_20 = locationLevel
+locationLevel = ____locationLevel_20 + 1
+local ____temp_53 = {Level = ____locationLevel_20, Type = 1}
+local ____locationLevel_21 = locationLevel
+locationLevel = ____locationLevel_21 + 1
+local ____temp_54 = {Level = ____locationLevel_21, Type = 1}
+local ____locationLevel_22 = locationLevel
+locationLevel = ____locationLevel_22 + 1
+local ____temp_55 = {Level = ____locationLevel_22, Type = 1}
+local ____locationLevel_23 = locationLevel
+locationLevel = ____locationLevel_23 + 1
+local ____temp_56 = {Type = 2, Level = ____locationLevel_23}
+local ____locationLevel_24 = locationLevel
+locationLevel = ____locationLevel_24 + 1
+local ____temp_57 = {Type = 2, Level = ____locationLevel_24}
+local ____locationLevel_25 = locationLevel
+locationLevel = ____locationLevel_25 + 1
+local ____temp_58 = {Type = 2, Level = ____locationLevel_25}
+local ____locationLevel_26 = locationLevel
+locationLevel = ____locationLevel_26 + 1
+local ____temp_59 = {Type = 2, Level = ____locationLevel_26}
+local ____locationLevel_27 = locationLevel
+locationLevel = ____locationLevel_27 + 1
+local ____temp_60 = {Type = 2, Level = ____locationLevel_27}
+local ____locationLevel_28 = locationLevel
+locationLevel = ____locationLevel_28 + 1
+local ____temp_61 = {Type = 2, Level = ____locationLevel_28}
+local ____locationLevel_29 = locationLevel
+locationLevel = ____locationLevel_29 + 1
+local ____temp_62 = {Type = 4, Level = ____locationLevel_29}
+local ____locationLevel_30 = locationLevel
+locationLevel = ____locationLevel_30 + 1
+local ____temp_63 = {Type = 4, Level = ____locationLevel_30}
+local ____locationLevel_31 = locationLevel
+locationLevel = ____locationLevel_31 + 1
+local ____temp_64 = {Type = 4, Level = ____locationLevel_31}
+local ____locationLevel_32 = locationLevel
+locationLevel = ____locationLevel_32 + 1
+____exports.LocationConfigs = {
+    l01_escape = ____temp_33,
+    l02_garbage = ____temp_34,
+    k00_marsh = ____temp_35,
+    l03_agroprom = ____temp_36,
+    l04_darkvalley = ____temp_37,
+    k01_darkscape = ____temp_38,
+    l05_bar = ____temp_39,
+    l06_rostok = ____temp_40,
+    l08_yantar = ____temp_41,
+    l07_military = ____temp_42,
+    k02_trucks_cemetery = ____temp_43,
+    l09_deadcity = ____temp_44,
+    l10_limansk = ____temp_45,
+    l10_radar = ____temp_46,
+    l10_red_forest = ____temp_47,
+    pripyat = ____temp_48,
+    l11_pripyat = ____temp_49,
+    l12_stancia = ____temp_50,
+    l12_stancia_2 = ____temp_51,
+    l13_generators = ____temp_52,
+    y04_pole = ____temp_53,
+    jupiter = ____temp_54,
+    zaton = ____temp_55,
+    l03u_agr_underground = ____temp_56,
+    l10u_bunker = ____temp_57,
+    l11_hospital = ____temp_58,
+    jupiter_underground = ____temp_59,
+    l12u_control_monolith = ____temp_60,
+    l12u_sarcofag = ____temp_61,
+    l04u_labx18 = ____temp_62,
+    l08u_brainlab = ____temp_63,
+    l13u_warlab = ____temp_64,
+    labx8 = {Type = 4, Level = ____locationLevel_32}
+}
+return ____exports
+ end,
 ["MonsterWorldMod.Configs.Constants"] = function(...) 
 local ____exports = {}
 ____exports.PlayerHPBase = 100
@@ -2888,11 +3032,10 @@ ____exports.EnemyXpRewardPctPerLevel = 50
 ____exports.EnemyHigherLevelChance = 5
 ____exports.EnemyEliteChance = 12
 ____exports.EnemyBossChance = 3
-____exports.EnemyHpMultsByRank = {1, 3, 10}
-____exports.EnemyXpMultsByRank = {1, 3, 10}
-____exports.EnemyDamageMultsByRank = {1, 1.5, 3}
-____exports.EnemyDropLevelIncreaseChanceByRank = {1, 20, 50}
-____exports.EnemyDropQualityIncreaseChanceByRank = {1, 20, 50}
+____exports.EnemyLocationTypeMults = {}
+____exports.EnemyLocationTypeMults[1] = {HpMult = 1, XpMult = 1, DamageMult = 1, DropChanceMult = 1}
+____exports.EnemyLocationTypeMults[2] = {HpMult = 1.5, XpMult = 1.5, DamageMult = 1.5, DropChanceMult = 1.25}
+____exports.EnemyLocationTypeMults[4] = {HpMult = 2.5, XpMult = 2.5, DamageMult = 2.5, DropChanceMult = 2}
 ____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.5
 ____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel - 0.005
 ____exports.WeaponDPSPctPerQuality = 10
@@ -3030,430 +3173,8 @@ function ____exports.PriceFormulaLevel()
 end
 return ____exports
  end,
-["MonsterWorldMod.Configs.Levels"] = function(...) 
-local ____exports = {}
-local level = 1
-local ____level_0 = level
-level = ____level_0 + 1
-local ____temp_33 = {level = ____level_0, type = 1}
-local ____level_1 = level
-level = ____level_1 + 1
-local ____temp_34 = {level = ____level_1, type = 1}
-local ____level_2 = level
-level = ____level_2 + 1
-local ____temp_35 = {level = ____level_2, type = 1}
-local ____level_3 = level
-level = ____level_3 + 1
-local ____temp_36 = {level = ____level_3, type = 1}
-local ____level_4 = level
-level = ____level_4 + 1
-local ____temp_37 = {level = ____level_4, type = 1}
-local ____level_5 = level
-level = ____level_5 + 1
-local ____temp_38 = {level = ____level_5, type = 1}
-local ____level_6 = level
-level = ____level_6 + 1
-local ____temp_39 = {level = ____level_6, type = 1}
-local ____level_7 = level
-level = ____level_7 + 1
-local ____temp_40 = {level = ____level_7, type = 1}
-local ____level_8 = level
-level = ____level_8 + 1
-local ____temp_41 = {level = ____level_8, type = 1}
-local ____level_9 = level
-level = ____level_9 + 1
-local ____temp_42 = {level = ____level_9, type = 1}
-local ____level_10 = level
-level = ____level_10 + 1
-local ____temp_43 = {level = ____level_10, type = 1}
-local ____level_11 = level
-level = ____level_11 + 1
-local ____temp_44 = {level = ____level_11, type = 1}
-local ____level_12 = level
-level = ____level_12 + 1
-local ____temp_45 = {level = ____level_12, type = 1}
-local ____level_13 = level
-level = ____level_13 + 1
-local ____temp_46 = {level = ____level_13, type = 1}
-local ____level_14 = level
-level = ____level_14 + 1
-local ____temp_47 = {level = ____level_14, type = 1}
-local ____level_15 = level
-level = ____level_15 + 1
-local ____temp_48 = {level = ____level_15, type = 1}
-local ____level_16 = level
-level = ____level_16 + 1
-local ____temp_49 = {level = ____level_16, type = 1}
-local ____level_17 = level
-level = ____level_17 + 1
-local ____temp_50 = {level = ____level_17, type = 1}
-local ____level_18 = level
-level = ____level_18 + 1
-local ____temp_51 = {level = ____level_18, type = 1}
-local ____level_19 = level
-level = ____level_19 + 1
-local ____temp_52 = {level = ____level_19, type = 1}
-local ____level_20 = level
-level = ____level_20 + 1
-local ____temp_53 = {level = ____level_20, type = 1}
-local ____level_21 = level
-level = ____level_21 + 1
-local ____temp_54 = {level = ____level_21, type = 1}
-local ____level_22 = level
-level = ____level_22 + 1
-local ____temp_55 = {level = ____level_22, type = 1}
-local ____level_23 = level
-level = ____level_23 + 1
-local ____temp_56 = {type = 2, level = ____level_23}
-local ____level_24 = level
-level = ____level_24 + 1
-local ____temp_57 = {type = 2, level = ____level_24}
-local ____level_25 = level
-level = ____level_25 + 1
-local ____temp_58 = {type = 2, level = ____level_25}
-local ____level_26 = level
-level = ____level_26 + 1
-local ____temp_59 = {type = 2, level = ____level_26}
-local ____level_27 = level
-level = ____level_27 + 1
-local ____temp_60 = {type = 2, level = ____level_27}
-local ____level_28 = level
-level = ____level_28 + 1
-local ____temp_61 = {type = 2, level = ____level_28}
-local ____level_29 = level
-level = ____level_29 + 1
-local ____temp_62 = {type = 4, level = ____level_29}
-local ____level_30 = level
-level = ____level_30 + 1
-local ____temp_63 = {type = 4, level = ____level_30}
-local ____level_31 = level
-level = ____level_31 + 1
-local ____temp_64 = {type = 4, level = ____level_31}
-local ____level_32 = level
-level = ____level_32 + 1
-____exports.LocationConfigs = {
-    l01_escape = ____temp_33,
-    l02_garbage = ____temp_34,
-    k00_marsh = ____temp_35,
-    l03_agroprom = ____temp_36,
-    l04_darkvalley = ____temp_37,
-    k01_darkscape = ____temp_38,
-    l05_bar = ____temp_39,
-    l06_rostok = ____temp_40,
-    l08_yantar = ____temp_41,
-    l07_military = ____temp_42,
-    k02_trucks_cemetery = ____temp_43,
-    l09_deadcity = ____temp_44,
-    l10_limansk = ____temp_45,
-    l10_radar = ____temp_46,
-    l10_red_forest = ____temp_47,
-    pripyat = ____temp_48,
-    l11_pripyat = ____temp_49,
-    l12_stancia = ____temp_50,
-    l12_stancia_2 = ____temp_51,
-    l13_generators = ____temp_52,
-    y04_pole = ____temp_53,
-    jupiter = ____temp_54,
-    zaton = ____temp_55,
-    l03u_agr_underground = ____temp_56,
-    l10u_bunker = ____temp_57,
-    l11_hospital = ____temp_58,
-    jupiter_underground = ____temp_59,
-    l12u_control_monolith = ____temp_60,
-    l12u_sarcofag = ____temp_61,
-    l04u_labx18 = ____temp_62,
-    l08u_brainlab = ____temp_63,
-    l13u_warlab = ____temp_64,
-    labx8 = {type = 4, level = ____level_32}
-}
-return ____exports
- end,
-["MonsterWorldMod.Configs.Enemies"] = function(...) 
-local ____exports = {}
-____exports.MonsterConfigs = {}
-____exports.MonsterConfigs.Bandit = {
-    type = "Bandit",
-    level_start = 1,
-    level_end = 8,
-    level_type = 3,
-    hp_mult = 1.5,
-    xp_mult = 1.1,
-    damage_mult = 1.25,
-    squad_size_min = 8,
-    squad_size_max = 16,
-    common_section = "sim_default_bandit_2",
-    elite_section = "sim_default_bandit_3",
-    boss_section = "sim_default_bandit_4"
-}
-____exports.MonsterConfigs.Flesh = {
-    type = "Flesh",
-    level_start = 1,
-    level_end = 3,
-    level_type = 1,
-    hp_mult = 1.4,
-    xp_mult = 1.2,
-    squad_size_min = 5,
-    squad_size_max = 10,
-    common_section = "flesh_01a_weak",
-    elite_section = "flesh_02a_normal",
-    boss_section = "flesh_bolot"
-}
-____exports.MonsterConfigs.Dog = {
-    type = "Dog",
-    level_type = 1,
-    level_start = 1,
-    level_end = 7,
-    hp_mult = 0.5,
-    xp_mult = 0.4,
-    squad_size_min = 6,
-    squad_size_max = 12,
-    common_section = "dog_weak_white",
-    elite_section = "dog_strong_red",
-    boss_section = "dog_strong_black"
-}
-____exports.MonsterConfigs.Boar = {
-    type = "Boar",
-    level_type = 1,
-    level_start = 2,
-    level_end = 9,
-    hp_mult = 1.25,
-    squad_size_min = 4,
-    squad_size_max = 8,
-    common_section = "boar_01a_weak",
-    elite_section = "boar_02a_strong",
-    boss_section = "boar_02a_hard"
-}
-____exports.MonsterConfigs.Zombified = {
-    type = "Zombified",
-    level_type = 7,
-    level_start = 2,
-    hp_mult = 1.5,
-    xp_mult = 1,
-    damage_mult = 1.25,
-    squad_size_min = 10,
-    squad_size_max = 24,
-    common_section = "sim_default_zombied_2",
-    elite_section = "sim_default_zombied_3",
-    boss_section = "sim_default_zombied_4"
-}
-____exports.MonsterConfigs.Cat = {
-    type = "Cat",
-    level_start = 3,
-    level_end = 14,
-    level_type = 1,
-    hp_mult = 0.75,
-    xp_mult = 0.75,
-    squad_size_min = 4,
-    squad_size_max = 8,
-    common_section = "cat_normal_d",
-    elite_section = "cat_strong_b",
-    boss_section = "cat_strong_afro"
-}
-____exports.MonsterConfigs.Army = {
-    type = "Army",
-    level_start = 4,
-    level_type = 3,
-    hp_mult = 1.75,
-    xp_mult = 1.25,
-    damage_mult = 1.5,
-    squad_size_min = 8,
-    squad_size_max = 16,
-    common_section = "sim_default_military_1",
-    elite_section = "sim_default_military_2",
-    boss_section = "sim_default_military_3"
-}
-____exports.MonsterConfigs["Pseudo Dog"] = {
-    type = "Pseudo Dog",
-    level_start = 4,
-    level_type = 7,
-    hp_mult = 1.25,
-    damage_mult = 1.25,
-    xp_mult = 1.25,
-    squad_size_min = 3,
-    squad_size_max = 6,
-    common_section = "pseudodog_weak",
-    elite_section = "pseudodog_strong",
-    boss_section = "pseudodog_arena"
-}
-____exports.MonsterConfigs.Snork = {
-    type = "Snork",
-    level_start = 5,
-    level_type = 7,
-    hp_mult = 1.5,
-    xp_mult = 1.25,
-    squad_size_min = 4,
-    squad_size_max = 8,
-    common_section = "snork_weak3",
-    elite_section = "snork_strong2",
-    boss_section = "snork_strong_no_mask"
-}
-____exports.MonsterConfigs.Lurker = {
-    type = "Lurker",
-    level_start = 5,
-    level_type = 1,
-    hp_mult = 1.25,
-    damage_mult = 1.5,
-    xp_mult = 1.35,
-    squad_size_min = 3,
-    squad_size_max = 8,
-    common_section = "lurker_1_weak",
-    elite_section = "lurker_2_normal",
-    boss_section = "lurker_3_strong"
-}
-____exports.MonsterConfigs.Bloodsucker = {
-    type = "Bloodsucker",
-    level_start = 5,
-    level_type = bit.bor(2, 4),
-    hp_mult = 2.5,
-    damage_mult = 1.5,
-    xp_mult = 2,
-    squad_size_min = 2,
-    squad_size_max = 5,
-    common_section = "bloodsucker_green_weak",
-    elite_section = "bloodsucker_red_normal",
-    boss_section = "bloodsucker_strong_big"
-}
-____exports.MonsterConfigs.Fracture = {
-    type = "Fracture",
-    level_start = 6,
-    level_end = 16,
-    level_type = 3,
-    hp_mult = 1.75,
-    xp_mult = 1.35,
-    squad_size_min = 3,
-    squad_size_max = 7,
-    common_section = "fracture_weak",
-    elite_section = "fracture_2",
-    boss_section = "fracture_3"
-}
-____exports.MonsterConfigs.Burer = {
-    type = "Burer",
-    level_start = 7,
-    level_type = bit.bor(4, 2),
-    hp_mult = 2.5,
-    xp_mult = 1.5,
-    squad_size_min = 2,
-    squad_size_max = 5,
-    common_section = "burer_weak2",
-    elite_section = "burer_normal",
-    boss_section = "burer_blue_blue"
-}
-____exports.MonsterConfigs.Controller = {
-    type = "Controller",
-    level_start = 7,
-    level_type = 4,
-    hp_mult = 6,
-    xp_mult = 3,
-    squad_size_min = 1,
-    squad_size_max = 3,
-    max_squads_per_smart = 1,
-    common_section = "m_controller_normal666",
-    elite_section = "m_controller_normal777",
-    boss_section = "m_controller_normal1111"
-}
-____exports.MonsterConfigs.Sin = {
-    type = "Sin",
-    level_start = 8,
-    level_type = 3,
-    hp_mult = 2.1,
-    xp_mult = 1.5,
-    damage_mult = 1.6,
-    squad_size_min = 8,
-    squad_size_max = 16,
-    common_section = "sim_default_greh_2",
-    elite_section = "sim_default_greh_3",
-    boss_section = "sim_default_greh_4"
-}
-____exports.MonsterConfigs.Psysucker = {
-    type = "Psysucker",
-    level_start = 15,
-    level_type = bit.bor(4, 2),
-    hp_mult = 2,
-    damage_mult = 1.25,
-    xp_mult = 1.5,
-    squad_size_min = 3,
-    squad_size_max = 7,
-    common_section = "psysucker_white",
-    elite_section = "psysucker_brown",
-    boss_section = "psysucker_black"
-}
-____exports.MonsterConfigs.Giant = {
-    type = "Giant",
-    level_start = 12,
-    level_type = 1,
-    hp_mult = 8,
-    damage_mult = 2,
-    xp_mult = 3,
-    squad_size_min = 1,
-    squad_size_max = 3,
-    max_squads_per_smart = 1,
-    common_section = "gigant_weak",
-    elite_section = "gigant_normal",
-    boss_section = "gigant_strong"
-}
-____exports.MonsterConfigs.Mercenary = {
-    type = "Mercenary",
-    level_start = 12,
-    level_type = 3,
-    hp_mult = 2.25,
-    xp_mult = 1.5,
-    damage_mult = 1.75,
-    squad_size_min = 8,
-    squad_size_max = 16,
-    common_section = "sim_default_killer_2",
-    elite_section = "sim_default_killer_3",
-    boss_section = "sim_default_killer_4"
-}
-____exports.MonsterConfigs.Chimera = {
-    type = "Chimera",
-    level_start = 15,
-    level_type = 1,
-    hp_mult = 4,
-    damage_mult = 3,
-    xp_mult = 3,
-    squad_size_min = 2,
-    squad_size_max = 5,
-    max_squads_per_smart = 1,
-    common_section = "chimera_weak",
-    elite_section = "chimera_strong",
-    boss_section = "chimera_strong4"
-}
-____exports.MonsterConfigs.Monolith = {
-    type = "Monolith",
-    level_start = 15,
-    level_type = 7,
-    hp_mult = 2.5,
-    xp_mult = 1.75,
-    damage_mult = 2,
-    squad_size_min = 10,
-    squad_size_max = 20,
-    common_section = "sim_default_monolith_2",
-    elite_section = "sim_default_monolith_3",
-    boss_section = "sim_monolith_sniper"
-}
-return ____exports
- end,
 ["MonsterWorldMod.Configs.UI"] = function(...) 
 local ____exports = {}
-____exports.Qualities = {
-    [1] = "Common",
-    [2] = "Uncommon",
-    [3] = "Rare",
-    [4] = "Epic",
-    [5] = "Legendary"
-}
-____exports.QualityColors = {
-    [1] = GetARGB(255, 230, 230, 230),
-    [2] = GetARGB(255, 20, 20, 230),
-    [3] = GetARGB(255, 20, 230, 20),
-    [4] = GetARGB(255, 230, 20, 20),
-    [5] = GetARGB(255, 240, 165, 5)
-}
-____exports.MonsterRankColors = {
-    [0] = GetARGB(255, 120, 250, 30),
-    [1] = GetARGB(255, 20, 20, 240),
-    [2] = GetARGB(255, 240, 20, 20)
-}
 ____exports.EndColorTag = "%c[default]"
 return ____exports
  end,
@@ -3470,7 +3191,7 @@ ____exports.StatTitles = {
     [2] = "Max HP",
     [3] = "HP Regen",
     [4] = "XP Gain",
-    [5] = "Damage per Hit",
+    [5] = "Damage",
     [11] = "Reload Speed",
     [12] = "Crit Damage",
     [13] = "Crit Chance",
@@ -3569,10 +3290,16 @@ function ____exports.GetId(objOrId)
     if type(objOrId) == "number" then
         return objOrId
     end
+    if objOrId == nil then
+        return -1
+    end
     if type(objOrId.id) == "number" then
         return objOrId.id
     end
-    return objOrId:id()
+    if type(objOrId.id) == "function" then
+        return objOrId:id()
+    end
+    return -1
 end
 return ____exports
  end,
@@ -3981,29 +3708,54 @@ return ____exports
 local ____exports = {}
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
 local GetByWeightFromArray = ____Collections.GetByWeightFromArray
+local GetByWeightFromTable = ____Collections.GetByWeightFromTable
 ____exports.EnemyDropChanceByRank = {15, 100, 35}
 ____exports.MinQuality = 1
 ____exports.MaxQuality = 5
 ____exports.HigherLevelDropChancePct = 5
-____exports.QualityWeights = {
-    {quality = 1, weight = 250},
-    {quality = 2, weight = 20},
-    {quality = 3, weight = 10},
-    {quality = 4, weight = 5},
-    {quality = 5, weight = 1}
+____exports.QualityConfigs = {}
+____exports.QualityConfigs[1] = {
+    Weight = 250,
+    Title = "Common",
+    TextColor = GetARGB(255, 230, 230, 230),
+    Particles = "explosions\\effects\\campfire_sparks"
+}
+____exports.QualityConfigs[2] = {
+    Weight = 20,
+    Title = "Uncommmon",
+    TextColor = GetARGB(255, 20, 20, 230),
+    Particles = "static\\effects\\net_base_green"
+}
+____exports.QualityConfigs[3] = {
+    Weight = 10,
+    Title = "Rare",
+    TextColor = GetARGB(255, 20, 230, 20),
+    Particles = "static\\effects\\net_base_blue"
+}
+____exports.QualityConfigs[4] = {
+    Weight = 5,
+    Title = "Epic",
+    TextColor = GetARGB(255, 230, 20, 20),
+    Particles = "static\\effects\\net_base_red"
+}
+____exports.QualityConfigs[5] = {
+    Weight = 1,
+    Title = "Legendary",
+    TextColor = GetARGB(255, 240, 165, 5),
+    Particles = "_samples_particles_\\holo_lines"
 }
 function ____exports.GetDropQuality()
-    return GetByWeightFromArray(
-        ____exports.QualityWeights,
-        function(el) return el.weight end
-    ).quality
+    return GetByWeightFromTable(
+        ____exports.QualityConfigs,
+        function(el) return el.Weight end
+    )
 end
-____exports.DropConfigs = {{type = 0, weight = 50}, {type = 1, weight = 10}, {type = 3, weight = 10}}
+____exports.DropConfigs = {{Type = 0, Weight = 50}, {Type = 1, Weight = 10}, {Type = 3, Weight = 10}}
 function ____exports.GetDropType()
     return GetByWeightFromArray(
         ____exports.DropConfigs,
-        function(e) return e.weight end
-    ).type
+        function(e) return e.Weight end
+    ).Type
 end
 function ____exports.GetStimpackByQuality(qualityLevel)
     if qualityLevel <= 2 then
@@ -4013,21 +3765,6 @@ function ____exports.GetStimpackByQuality(qualityLevel)
         return "mw_stimpack_50"
     end
     return "mw_stimpack_75"
-end
-function ____exports.GetDropParticles(____type, quality)
-    if quality == 1 then
-        return "explosions\\effects\\campfire_sparks"
-    end
-    if quality == 2 then
-        return "static\\effects\\net_base_green"
-    end
-    if quality == 3 then
-        return "static\\effects\\net_base_blue"
-    end
-    if quality == 4 then
-        return "static\\effects\\net_base_red"
-    end
-    return "_samples_particles_\\holo_lines"
 end
 ____exports.ArmorStatsForGeneration = {17, 3}
 ____exports.WeaponStatsForGeneration = {
@@ -4049,29 +3786,29 @@ ____exports.WeaponStatsUsingUpgrades = {
 function ____exports.GetWeaponUpgradesByStat(weaponSection, stat)
     local prefix = ""
     repeat
-        local ____switch15 = stat
-        local ____cond15 = ____switch15 == 6
-        if ____cond15 then
+        local ____switch10 = stat
+        local ____cond10 = ____switch10 == 6
+        if ____cond10 then
             prefix = "rpm"
             break
         end
-        ____cond15 = ____cond15 or ____switch15 == 7
-        if ____cond15 then
+        ____cond10 = ____cond10 or ____switch10 == 7
+        if ____cond10 then
             prefix = "dispersion"
             break
         end
-        ____cond15 = ____cond15 or ____switch15 == 8
-        if ____cond15 then
+        ____cond10 = ____cond10 or ____switch10 == 8
+        if ____cond10 then
             prefix = "recoil"
             break
         end
-        ____cond15 = ____cond15 or ____switch15 == 9
-        if ____cond15 then
+        ____cond10 = ____cond10 or ____switch10 == 9
+        if ____cond10 then
             prefix = "bullet_speed"
             break
         end
-        ____cond15 = ____cond15 or ____switch15 == 10
-        if ____cond15 then
+        ____cond10 = ____cond10 or ____switch10 == 10
+        if ____cond10 then
             prefix = "fire_mode"
             break
         end
@@ -4087,25 +3824,25 @@ function ____exports.GetWeaponUpgradesByStat(weaponSection, stat)
 end
 function ____exports.GetWeaponSectinFieldNameByStat(stat)
     repeat
-        local ____switch19 = stat
-        local ____cond19 = ____switch19 == 6
-        if ____cond19 then
+        local ____switch14 = stat
+        local ____cond14 = ____switch14 == 6
+        if ____cond14 then
             return "rpm"
         end
-        ____cond19 = ____cond19 or ____switch19 == 7
-        if ____cond19 then
+        ____cond14 = ____cond14 or ____switch14 == 7
+        if ____cond14 then
             return "fire_dispersion_base"
         end
-        ____cond19 = ____cond19 or ____switch19 == 8
-        if ____cond19 then
+        ____cond14 = ____cond14 or ____switch14 == 8
+        if ____cond14 then
             return "cam_max_angle"
         end
-        ____cond19 = ____cond19 or ____switch19 == 9
-        if ____cond19 then
+        ____cond14 = ____cond14 or ____switch14 == 9
+        if ____cond14 then
             return "bullet_speed"
         end
-        ____cond19 = ____cond19 or ____switch19 == 16
-        if ____cond19 then
+        ____cond14 = ____cond14 or ____switch14 == 16
+        if ____cond14 then
             return "ammo_mag_size"
         end
     until true
@@ -4118,6 +3855,280 @@ function ____exports.GetWeaponBaseValueByStat(weaponSection, stat)
     end
     return ini_sys:r_float_ex(weaponSection, fieldName, 0)
 end
+return ____exports
+ end,
+["MonsterWorldMod.Configs.Enemies"] = function(...) 
+local ____exports = {}
+____exports.MonsterRankConfigs = {
+    {
+        Rank = 0,
+        HpMult = 1,
+        XpMult = 1,
+        DamageMult = 1,
+        DropLevelIncreaseChance = 1,
+        DropQualityIncreaseChance = 1,
+        TextColor = GetARGB(255, 120, 250, 30)
+    },
+    {
+        Rank = 1,
+        HpMult = 3,
+        XpMult = 2,
+        DamageMult = 1.5,
+        DropLevelIncreaseChance = 20,
+        DropQualityIncreaseChance = 20,
+        TextColor = GetARGB(255, 20, 20, 240)
+    },
+    {
+        Rank = 2,
+        HpMult = 10,
+        XpMult = 5,
+        DamageMult = 3,
+        DropLevelIncreaseChance = 50,
+        DropQualityIncreaseChance = 50,
+        TextColor = GetARGB(255, 240, 20, 20)
+    }
+}
+____exports.MonsterConfigs = {}
+____exports.MonsterConfigs.Bandit = {
+    LocationLevelStart = 1,
+    LocationLevelEnd = 8,
+    LocationType = 3,
+    HpMult = 1.5,
+    XpMult = 1.1,
+    DamageMult = 1.25,
+    SquadSizeMin = 8,
+    SquadSizeMax = 16,
+    CommonSection = "sim_default_bandit_2",
+    EliteSection = "sim_default_bandit_3",
+    BossSection = "sim_default_bandit_4"
+}
+____exports.MonsterConfigs.Flesh = {
+    LocationLevelStart = 1,
+    LocationLevelEnd = 3,
+    LocationType = 1,
+    HpMult = 1.4,
+    XpMult = 1.2,
+    SquadSizeMin = 5,
+    SquadSizeMax = 10,
+    CommonSection = "flesh_01a_weak",
+    EliteSection = "flesh_02a_normal",
+    BossSection = "flesh_bolot"
+}
+____exports.MonsterConfigs.Dog = {
+    LocationType = 1,
+    LocationLevelStart = 1,
+    LocationLevelEnd = 7,
+    HpMult = 0.5,
+    XpMult = 0.4,
+    SquadSizeMin = 6,
+    SquadSizeMax = 12,
+    CommonSection = "dog_weak_white",
+    EliteSection = "dog_strong_red",
+    BossSection = "dog_strong_black"
+}
+____exports.MonsterConfigs.Boar = {
+    LocationType = 1,
+    LocationLevelStart = 2,
+    LocationLevelEnd = 9,
+    HpMult = 1.25,
+    SquadSizeMin = 4,
+    SquadSizeMax = 8,
+    CommonSection = "boar_01a_weak",
+    EliteSection = "boar_02a_strong",
+    BossSection = "boar_02a_hard"
+}
+____exports.MonsterConfigs.Zombified = {
+    LocationType = 7,
+    LocationLevelStart = 2,
+    HpMult = 1.5,
+    XpMult = 1,
+    DamageMult = 1.25,
+    SquadSizeMin = 10,
+    SquadSizeMax = 24,
+    CommonSection = "sim_default_zombied_2",
+    EliteSection = "sim_default_zombied_3",
+    BossSection = "sim_default_zombied_4"
+}
+____exports.MonsterConfigs.Cat = {
+    LocationLevelStart = 3,
+    LocationLevelEnd = 14,
+    LocationType = 1,
+    HpMult = 0.75,
+    XpMult = 0.75,
+    SquadSizeMin = 4,
+    SquadSizeMax = 8,
+    CommonSection = "cat_normal_d",
+    EliteSection = "cat_strong_b",
+    BossSection = "cat_strong_afro"
+}
+____exports.MonsterConfigs.Army = {
+    LocationLevelStart = 4,
+    LocationType = 3,
+    HpMult = 1.75,
+    XpMult = 1.25,
+    DamageMult = 1.5,
+    SquadSizeMin = 8,
+    SquadSizeMax = 16,
+    CommonSection = "sim_default_military_1",
+    EliteSection = "sim_default_military_2",
+    BossSection = "sim_default_military_3"
+}
+____exports.MonsterConfigs["Pseudo Dog"] = {
+    LocationLevelStart = 4,
+    LocationType = 7,
+    HpMult = 1.25,
+    DamageMult = 1.25,
+    XpMult = 1.25,
+    SquadSizeMin = 3,
+    SquadSizeMax = 6,
+    CommonSection = "pseudodog_weak",
+    EliteSection = "pseudodog_strong",
+    BossSection = "pseudodog_arena"
+}
+____exports.MonsterConfigs.Snork = {
+    LocationLevelStart = 5,
+    LocationType = 7,
+    HpMult = 1.5,
+    XpMult = 1.25,
+    SquadSizeMin = 4,
+    SquadSizeMax = 8,
+    CommonSection = "snork_weak3",
+    EliteSection = "snork_strong2",
+    BossSection = "snork_strong_no_mask"
+}
+____exports.MonsterConfigs.Lurker = {
+    LocationLevelStart = 5,
+    LocationType = 1,
+    HpMult = 1.25,
+    DamageMult = 1.5,
+    XpMult = 1.35,
+    SquadSizeMin = 3,
+    SquadSizeMax = 8,
+    CommonSection = "lurker_1_weak",
+    EliteSection = "lurker_2_normal",
+    BossSection = "lurker_3_strong"
+}
+____exports.MonsterConfigs.Bloodsucker = {
+    LocationLevelStart = 5,
+    LocationType = bit.bor(2, 4),
+    HpMult = 2.5,
+    DamageMult = 1.5,
+    XpMult = 2,
+    SquadSizeMin = 2,
+    SquadSizeMax = 5,
+    CommonSection = "bloodsucker_green_weak",
+    EliteSection = "bloodsucker_red_normal",
+    BossSection = "bloodsucker_strong_big"
+}
+____exports.MonsterConfigs.Fracture = {
+    LocationLevelStart = 6,
+    LocationLevelEnd = 16,
+    LocationType = 3,
+    HpMult = 1.75,
+    XpMult = 1.35,
+    SquadSizeMin = 3,
+    SquadSizeMax = 7,
+    CommonSection = "fracture_weak",
+    EliteSection = "fracture_2",
+    BossSection = "fracture_3"
+}
+____exports.MonsterConfigs.Burer = {
+    LocationLevelStart = 7,
+    LocationType = bit.bor(4, 2),
+    HpMult = 2.5,
+    XpMult = 1.5,
+    SquadSizeMin = 2,
+    SquadSizeMax = 5,
+    CommonSection = "burer_weak2",
+    EliteSection = "burer_normal",
+    BossSection = "burer_blue_blue"
+}
+____exports.MonsterConfigs.Controller = {
+    LocationLevelStart = 7,
+    LocationType = 4,
+    HpMult = 6,
+    XpMult = 3,
+    SquadSizeMin = 1,
+    SquadSizeMax = 3,
+    MaxSquadsPerSmart = 1,
+    CommonSection = "m_controller_normal666",
+    EliteSection = "m_controller_normal777",
+    BossSection = "m_controller_normal1111"
+}
+____exports.MonsterConfigs.Sin = {
+    LocationLevelStart = 8,
+    LocationType = 3,
+    HpMult = 2.1,
+    XpMult = 1.5,
+    DamageMult = 1.6,
+    SquadSizeMin = 8,
+    SquadSizeMax = 16,
+    CommonSection = "sim_default_greh_2",
+    EliteSection = "sim_default_greh_3",
+    BossSection = "sim_default_greh_4"
+}
+____exports.MonsterConfigs.Psysucker = {
+    LocationLevelStart = 15,
+    LocationType = bit.bor(4, 2),
+    HpMult = 2,
+    DamageMult = 1.25,
+    XpMult = 1.5,
+    SquadSizeMin = 3,
+    SquadSizeMax = 7,
+    CommonSection = "psysucker_white",
+    EliteSection = "psysucker_brown",
+    BossSection = "psysucker_black"
+}
+____exports.MonsterConfigs.Giant = {
+    LocationLevelStart = 12,
+    LocationType = 1,
+    HpMult = 8,
+    DamageMult = 2,
+    XpMult = 3,
+    SquadSizeMin = 1,
+    SquadSizeMax = 3,
+    MaxSquadsPerSmart = 1,
+    CommonSection = "gigant_weak",
+    EliteSection = "gigant_normal",
+    BossSection = "gigant_strong"
+}
+____exports.MonsterConfigs.Mercenary = {
+    LocationLevelStart = 12,
+    LocationType = 3,
+    HpMult = 2.25,
+    XpMult = 1.5,
+    DamageMult = 1.75,
+    SquadSizeMin = 8,
+    SquadSizeMax = 16,
+    CommonSection = "sim_default_killer_2",
+    EliteSection = "sim_default_killer_3",
+    BossSection = "sim_default_killer_4"
+}
+____exports.MonsterConfigs.Chimera = {
+    LocationLevelStart = 15,
+    LocationType = 1,
+    HpMult = 4,
+    DamageMult = 3,
+    XpMult = 3,
+    SquadSizeMin = 2,
+    SquadSizeMax = 5,
+    MaxSquadsPerSmart = 1,
+    CommonSection = "chimera_weak",
+    EliteSection = "chimera_strong",
+    BossSection = "chimera_strong4"
+}
+____exports.MonsterConfigs.Monolith = {
+    LocationLevelStart = 15,
+    LocationType = 7,
+    HpMult = 2.5,
+    XpMult = 1.75,
+    DamageMult = 2,
+    SquadSizeMin = 10,
+    SquadSizeMax = 20,
+    CommonSection = "sim_default_monolith_2",
+    EliteSection = "sim_default_monolith_3",
+    BossSection = "sim_monolith_sniper"
+}
 return ____exports
  end,
 ["MonsterWorldMod.GameObjects.MWMonster"] = function(...) 
@@ -4133,6 +4144,11 @@ local constants = require("MonsterWorldMod.Configs.Constants")
 local loot = require("MonsterWorldMod.Configs.Loot")
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
 local MonsterConfigs = ____Enemies.MonsterConfigs
+local MonsterRankConfigs = ____Enemies.MonsterRankConfigs
+local ____Levels = require("MonsterWorldMod.Configs.Levels")
+local GetCurrentLocationType = ____Levels.GetCurrentLocationType
+local ____Constants = require("MonsterWorldMod.Configs.Constants")
+local EnemyLocationTypeMults = ____Constants.EnemyLocationTypeMults
 ____exports.MWMonster = __TS__Class()
 local MWMonster = ____exports.MWMonster
 MWMonster.name = "MWMonster"
@@ -4163,7 +4179,7 @@ __TS__SetDescriptor(
     MWMonster.prototype,
     "DropChance",
     {get = function(self)
-        return loot.EnemyDropChanceByRank[self.Rank + 1] * 100
+        return loot.EnemyDropChanceByRank[self.Rank + 1] * EnemyLocationTypeMults[GetCurrentLocationType()].DropChanceMult
     end},
     true
 )
@@ -4221,13 +4237,15 @@ __TS__SetDescriptor(
 )
 function MWMonster.prototype.OnFirstTimeInitialize(self)
     local spawnConfig = self:Load("SpawnParams")
-    self.MonsterType = spawnConfig.type
-    self.Level = spawnConfig.level
-    self.Rank = spawnConfig.rank
+    self.MonsterType = spawnConfig.Type
+    self.Level = spawnConfig.Level
+    self.Rank = spawnConfig.Rank
+    local locationMults = EnemyLocationTypeMults[GetCurrentLocationType()]
     local monsterCfg = MonsterConfigs[self.MonsterType]
-    local enemyHP = self:GetMaxHP(self.Level) * (monsterCfg.hp_mult or 1) * constants.EnemyHpMultsByRank[self.Rank + 1]
-    local xpReward = self:GetXPReward(self.Level) * (monsterCfg.xp_mult or 1) * constants.EnemyXpMultsByRank[self.Rank + 1]
-    local enemyDamage = self:GetDamage(self.Level) * (monsterCfg.damage_mult or 1) * constants.EnemyDamageMultsByRank[self.Rank + 1]
+    local monsterRankCfg = MonsterRankConfigs[self.Rank + 1]
+    local enemyHP = self:GetMaxHP(self.Level) * (monsterCfg.HpMult or 1) * monsterRankCfg.HpMult * locationMults.HpMult
+    local xpReward = self:GetXPReward(self.Level) * (monsterCfg.XpMult or 1) * monsterRankCfg.XpMult * locationMults.XpMult
+    local enemyDamage = self:GetDamage(self.Level) * (monsterCfg.DamageMult or 1) * monsterRankCfg.DamageMult * locationMults.DamageMult
     self:SetStatBase(2, enemyHP)
     self.Damage = enemyDamage
     self.XPReward = xpReward
@@ -4251,7 +4269,7 @@ function MWMonster.prototype.GetXPReward(self, level)
     return math.floor(xp)
 end
 function MWMonster.prototype.GetDamage(self, level)
-    local pctMult = 1 + constants.EnemyDamagePctPerLevel * level / 100
+    local pctMult = 1 + constants.EnemyDamagePctPerLevel / 100 * (level - 1)
     local expMult = math.pow(constants.EnemyDamageExpPerLevel, level - 1)
     return constants.EnemyDamageBase * pctMult * expMult
 end
@@ -4305,11 +4323,11 @@ __TS__SetDescriptor(
     true
 )
 function MWItem.prototype.OnFirstTimeInitialize(self)
-    local spawnCfg = self:Load("SpawnParams", {level = 1, quality = 1})
-    self.Level = spawnCfg.level
+    local spawnCfg = self:Load("SpawnParams", {Level = 1, Quality = 1})
+    self.Level = spawnCfg.Level
     self.Quality = math.max(
         MinQuality,
-        math.min(MaxQuality, spawnCfg.quality)
+        math.min(MaxQuality, spawnCfg.Quality)
     )
     self:GeneateStats()
 end
@@ -5131,7 +5149,7 @@ function MWPlayer.prototype.SetupSkills(self)
         self,
         3,
         1,
-        function(level) return 10 * level end,
+        function(level) return 5 * level end,
         PriceFormulaConstant(1),
         50
     ))
@@ -5141,9 +5159,9 @@ function MWPlayer.prototype.SetupSkills(self)
         self,
         0,
         1,
-        function(level) return 1 * level end,
+        function(level) return 2 * level end,
         PriceFormulaConstant(1),
-        50
+        25
     ))
     self:AddSkill(__TS__New(
         SkillPassiveStatBonus,
@@ -5151,9 +5169,9 @@ function MWPlayer.prototype.SetupSkills(self)
         self,
         11,
         0,
-        function(level) return 1 * level end,
+        function(level) return 2 * level end,
         PriceFormulaConstant(1),
-        50
+        25
     ))
     self:AddSkill(__TS__New(
         SkillPassiveStatBonus,
@@ -5173,7 +5191,7 @@ function MWPlayer.prototype.SetupSkills(self)
         1,
         function(level) return 5 * level end,
         PriceFormulaConstant(1),
-        20
+        25
     ))
 end
 return ____exports
@@ -5192,6 +5210,7 @@ local EnemyHigherLevelChance = ____Constants.EnemyHigherLevelChance
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
 local MonsterConfigs = ____Enemies.MonsterConfigs
 local ____Levels = require("MonsterWorldMod.Configs.Levels")
+local GetCurrentLocationCfg = ____Levels.GetCurrentLocationCfg
 local LocationConfigs = ____Levels.LocationConfigs
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
 local RandomFromArray = ____Collections.RandomFromArray
@@ -5265,17 +5284,17 @@ function SpawnManager.prototype.OnTryRespawn(self, smart)
         end
         smart.respawn_idle = respawnInterval
         smart.max_population = maxPopulation
-        local locationCfg = LocationConfigs[level.name()]
+        local locationCfg = GetCurrentLocationCfg()
         if not locationCfg then
             return false
         end
         local selectedMonsters = {}
         for monsterType, monsterCfg in pairs(MonsterConfigs) do
             do
-                if monsterCfg.level_start > locationCfg.level or (monsterCfg.level_end or 100) < locationCfg.level then
+                if monsterCfg.LocationLevelStart > locationCfg.Level or (monsterCfg.LocationLevelEnd or 100) < locationCfg.Level then
                     goto __continue17
                 end
-                if bit.band(monsterCfg.level_type, locationCfg.type) ~= locationCfg.type then
+                if bit.band(monsterCfg.LocationType, locationCfg.Type) ~= locationCfg.Type then
                     goto __continue17
                 end
                 selectedMonsters[#selectedMonsters + 1] = monsterType
@@ -5312,11 +5331,11 @@ function SpawnManager.prototype.OnSimSquadAddMember(self, obj, section, pos, lvi
     if monsterCfg == nil then
         Log("SPAWN PROBLEM  NO monsterCfg! " .. monsterType)
     end
-    local squadSize = math.random(monsterCfg.squad_size_min, monsterCfg.squad_size_max)
+    local squadSize = math.random(monsterCfg.SquadSizeMin, monsterCfg.SquadSizeMax)
     local isBossSpawned = false
     local elitesSpawned = 0
     local locCfg = LocationConfigs[level.name()]
-    local locLevel = locCfg.level or 1
+    local locLevel = locCfg.Level or 1
     if locLevel < 5 then
         squadSize = squadSize * (0.5 + 0.1 * locLevel)
     end
@@ -5327,11 +5346,11 @@ function SpawnManager.prototype.OnSimSquadAddMember(self, obj, section, pos, lvi
             enemyLvl = math.max(locLevel, playerLevel - 1)
         elseif locLevel <= 15 then
             enemyLvl = math.max(locLevel, playerLevel)
-        elseif locCfg.type == 1 then
+        elseif locCfg.Type == 1 then
             enemyLvl = math.max(locLevel, playerLevel + 1)
-        elseif locCfg.type == 2 then
+        elseif locCfg.Type == 2 then
             enemyLvl = math.max(locLevel, playerLevel + 3)
-        elseif locCfg.type == 4 then
+        elseif locCfg.Type == 4 then
             enemyLvl = math.max(locLevel, playerLevel + 5)
         end
     end
@@ -5351,11 +5370,11 @@ function SpawnManager.prototype.OnSimSquadAddMember(self, obj, section, pos, lvi
                     isBossSpawned = true
                     rank = 2
                 end
-                local section = monsterCfg.common_section
+                local section = monsterCfg.CommonSection
                 if rank == 1 then
-                    section = monsterCfg.elite_section
+                    section = monsterCfg.EliteSection
                 elseif rank == 2 then
-                    section = monsterCfg.boss_section
+                    section = monsterCfg.BossSection
                 end
                 local monsterId = defaultFunction(
                     obj,
@@ -5368,7 +5387,7 @@ function SpawnManager.prototype.OnSimSquadAddMember(self, obj, section, pos, lvi
                     Log("SPAWN PROBLEM  NO monster!")
                     goto __continue32
                 end
-                Save(monsterId, "MW_SpawnParams", {type = monsterType, level = squadMemberLevel, rank = rank})
+                Save(monsterId, "MW_SpawnParams", {Type = monsterType, Level = squadMemberLevel, Rank = rank})
                 i = i + 1
             end
             ::__continue32::
@@ -5384,12 +5403,12 @@ local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
-local ____UI = require("MonsterWorldMod.Configs.UI")
-local QualityColors = ____UI.QualityColors
-local MonsterRankColors = ____UI.MonsterRankColors
-local Qualities = ____UI.Qualities
 local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
 local ObjectType = ____MWObject.ObjectType
+local ____Loot = require("MonsterWorldMod.Configs.Loot")
+local QualityConfigs = ____Loot.QualityConfigs
+local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
+local MonsterRankConfigs = ____Enemies.MonsterRankConfigs
 ____exports.UIManager = __TS__Class()
 local UIManager = ____exports.UIManager
 UIManager.name = "UIManager"
@@ -5451,7 +5470,7 @@ function UIManager.prototype.____constructor(self)
             3,
             s.cell:GetHeight() - 14
         ))
-        s.mwLevel:TextControl():SetTextColor(QualityColors[item.Quality])
+        s.mwLevel:TextControl():SetTextColor(QualityConfigs[item.Quality].TextColor)
         s.mwLevel:Show(true)
         if item.Type == ObjectType.Weapon then
             s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "   DPS:") .. tostring(math.floor(item.DPS)))
@@ -5470,7 +5489,7 @@ function UIManager.prototype.____constructor(self)
         if not item then
             return
         end
-        s.name:SetTextColor(QualityColors[item.Quality])
+        s.name:SetTextColor(QualityConfigs[item.Quality].TextColor)
         s.ammo:Show(false)
         s.note:Show(false)
         s.value:Show(false)
@@ -5707,7 +5726,7 @@ function UIManager.prototype.ShowEnemyHealthUI(self, monster)
     self.enemyHP:Show(true)
     self.enemyHPBarProgress:SetProgressPos(clamp(monster.HP / monster.MaxHP, 0, 1) * 100)
     self.enemyHPBarName:SetText(monster.Name)
-    self.enemyHPBarName:SetTextColor(MonsterRankColors[monster.Rank])
+    self.enemyHPBarName:SetTextColor(MonsterRankConfigs[monster.Rank + 1].TextColor)
     self.enemyHPBarValue:SetText((tostring(math.floor(monster.HP)) .. " / ") .. tostring(math.floor(monster.MaxHP)))
     local player = MonsterWorld.Player
     local playerPos = player.GO:position()
@@ -5881,7 +5900,7 @@ function UIManager.prototype.UIGetItemName(self, obj, current)
     if item == nil then
         return ""
     end
-    return (((Qualities[item.Quality] .. " ") .. current) .. " L.") .. tostring(item.Level)
+    return (((QualityConfigs[item.Quality].Title .. " ") .. current) .. " L.") .. tostring(item.Level)
 end
 function UIManager.prototype.UIGetItemDescription(self, obj, current)
     local item = MonsterWorld:GetItem(obj)
@@ -6087,7 +6106,6 @@ local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
-local constants = require("MonsterWorldMod.Configs.Constants")
 local ____MWMonster = require("MonsterWorldMod.GameObjects.MWMonster")
 local MWMonster = ____MWMonster.MWMonster
 local ____MWPlayer = require("MonsterWorldMod.GameObjects.MWPlayer")
@@ -6106,8 +6124,8 @@ local GetDropType = ____Loot.GetDropType
 local HigherLevelDropChancePct = ____Loot.HigherLevelDropChancePct
 local MaxQuality = ____Loot.MaxQuality
 local GetDropQuality = ____Loot.GetDropQuality
-local GetDropParticles = ____Loot.GetDropParticles
 local GetStimpackByQuality = ____Loot.GetStimpackByQuality
+local QualityConfigs = ____Loot.QualityConfigs
 local ____StalkerAPI = require("MonsterWorldMod.Helpers.StalkerAPI")
 local GetId = ____StalkerAPI.GetId
 local CreateVector = ____StalkerAPI.CreateVector
@@ -6123,6 +6141,8 @@ local ____MWArmor = require("MonsterWorldMod.GameObjects.MWArmor")
 local MWArmor = ____MWArmor.MWArmor
 local ____MWArtefact = require("MonsterWorldMod.GameObjects.MWArtefact")
 local MWArtefact = ____MWArtefact.MWArtefact
+local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
+local MonsterRankConfigs = ____Enemies.MonsterRankConfigs
 ____exports.World = __TS__Class()
 local World = ____exports.World
 World.name = "World"
@@ -6138,6 +6158,7 @@ function World.prototype.____constructor(self, mod)
     self.UIManager = __TS__New(UIManager)
     self.Timers = __TS__New(TimerManager)
     self:DoMonkeyPatch()
+    self:ChangeQuickSlotItems()
 end
 __TS__SetDescriptor(
     World.prototype,
@@ -6292,7 +6313,7 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
         if ____weapon_is_weapon_result_8 then
             damage = damage * clamp(
                 weapon:cast_Weapon():RPM(),
-                0.4,
+                0.3,
                 1.25
             )
         end
@@ -6409,10 +6430,11 @@ function World.prototype.GetDropLevelAndQualityFromMonster(self, monster)
         dropLevel = dropLevel + 1
     end
     local qualityLevel = GetDropQuality()
-    if IsPctRolled(constants.EnemyDropLevelIncreaseChanceByRank[monster.Rank + 1]) then
+    local rankCfg = MonsterRankConfigs[monster.Rank + 1]
+    if IsPctRolled(rankCfg.DropLevelIncreaseChance) then
         dropLevel = dropLevel + 1
     end
-    if IsPctRolled(constants.EnemyDropQualityIncreaseChanceByRank[monster.Rank + 1]) then
+    if IsPctRolled(rankCfg.DropQualityIncreaseChance) then
         qualityLevel = qualityLevel + 1
     end
     return dropLevel, qualityLevel
@@ -6433,7 +6455,7 @@ function World.prototype.GenerateWeaponDrop(self, dropLevel, qualityLevel, pos)
         return nil
     end
     qualityLevel = math.min(qualityLevel, MaxQuality)
-    Save(sgo.id, "MW_SpawnParams", {level = dropLevel, quality = qualityLevel})
+    Save(sgo.id, "MW_SpawnParams", {Level = dropLevel, Quality = qualityLevel})
     return sgo
 end
 function World.prototype.GenerateStimpackDrop(self, dropLevel, qualityLevel, pos)
@@ -6457,7 +6479,7 @@ function World.prototype.GenerateArmorDrop(self, dropLevel, qualityLevel, pos)
         Log("GenerateWeaponDrop spawn failed")
         return nil
     end
-    Save(sgo.id, "MW_SpawnParams", {level = dropLevel, quality = qualityLevel})
+    Save(sgo.id, "MW_SpawnParams", {Level = dropLevel, Quality = qualityLevel})
     return sgo
 end
 function World.prototype.HighlightDroppedItem(self, id, ____type, quality)
@@ -6465,9 +6487,7 @@ function World.prototype.HighlightDroppedItem(self, id, ____type, quality)
         tostring(id) .. "_highlight",
         id,
         function(obj)
-            local particlesPath = GetDropParticles(____type, quality)
-            Log("Particles: " .. particlesPath)
-            local particles = particles_object(particlesPath)
+            local particles = particles_object(QualityConfigs[quality].Particles)
             self.highlightParticles[id] = particles
             local pos = obj:position()
             pos.y = pos.y - 0.1
@@ -6571,6 +6591,11 @@ function World.prototype.DoMonkeyPatch(self)
             npc:transfer_item(item, npc)
         end
     end
+end
+function World.prototype.ChangeQuickSlotItems(self)
+    exec_console_cmd("slot_0 " .. GetStimpackByQuality(0))
+    exec_console_cmd("slot_1 " .. GetStimpackByQuality(1))
+    exec_console_cmd("slot_2 " .. GetStimpackByQuality(2))
 end
 return ____exports
  end,

@@ -1,10 +1,11 @@
 import { Log } from '../../StalkerModBase';
 import { World } from '../World';
 import { MWMonster } from '../GameObjects/MWMonster';
-import { QualityColors, MonsterRankColors, Qualities } from '../Configs/UI';
 import { ObjectType } from '../GameObjects/MWObject';
 import { MWWeapon } from '../GameObjects/MWWeapon';
 import { MWArmor } from '../GameObjects/MWArmor';
+import { QualityConfigs } from '../Configs/Loot';
+import { MonsterRankConfigs } from '../Configs/Enemies';
 
 type DamageNumberEntry = {
     showTime: number;
@@ -83,7 +84,7 @@ export class UIManager {
             }
 
             s.mwLevel.SetWndPos(new vector2().set(3, s.cell.GetHeight() - 14))
-            s.mwLevel.TextControl().SetTextColor(QualityColors[item.Quality])
+            s.mwLevel.TextControl().SetTextColor(QualityConfigs.get(item.Quality).TextColor)
             s.mwLevel.Show(true)
 
             if (item.Type == ObjectType.Weapon){
@@ -107,7 +108,7 @@ export class UIManager {
             if (!item)
                 return;
             
-            s.name.SetTextColor(QualityColors[item.Quality])
+            s.name.SetTextColor(QualityConfigs.get(item.Quality).TextColor)
 
             //TODO Custom stats display for weapons and stimpacks and mb smth new
 
@@ -303,7 +304,7 @@ export class UIManager {
         this.enemyHP.Show(true);
         this.enemyHPBarProgress.SetProgressPos(clamp(monster.HP / monster.MaxHP, 0, 1) * 100);
         this.enemyHPBarName.SetText(monster.Name);
-        this.enemyHPBarName.SetTextColor(MonsterRankColors[monster.Rank]);
+        this.enemyHPBarName.SetTextColor(MonsterRankConfigs[monster.Rank].TextColor);
         this.enemyHPBarValue.SetText(`${math.floor(monster.HP)} / ${math.floor(monster.MaxHP)}`);
         
         let player = MonsterWorld.Player
@@ -470,7 +471,7 @@ export class UIManager {
             return "";
 
         //return `${cfg.QualityColors[weapon.Quality]}${cfg.Qualities[weapon.Quality]}${cfg.EndColorTag} ${current} ${cfg.LevelColor}L.${weapon.Level}${cfg.EndColorTag}`
-        return `${Qualities[item.Quality]} ${current} L.${item.Level}`
+        return `${QualityConfigs.get(item.Quality).Title} ${current} L.${item.Level}`
     }
 
     UIGetItemDescription(obj: game_object, current: string): string{

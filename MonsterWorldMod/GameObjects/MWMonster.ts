@@ -1,9 +1,10 @@
 import { MWObject, ObjectType } from './MWObject';
-import { World } from '../World';
 import * as constants from '../Configs/Constants'
 import * as loot from '../Configs/Loot'
-import { MonsterConfigs, MonsterRank, MonsterType } from '../Configs/Enemies';
+import { MonsterConfigs, MonsterRank, MonsterRankConfigs, MonsterType } from '../Configs/Enemies';
 import { StatType } from '../Configs/Stats';
+import { GetCurrentLocationType } from '../Configs/Levels';
+import { EnemyLocationTypeMults } from '../Configs/Constants';
 
 export class MWMonster extends MWObject{
     get Type(): ObjectType { return ObjectType.Monster }
@@ -11,15 +12,17 @@ export class MWMonster extends MWObject{
     override OnFirstTimeInitialize(): void {
         let spawnConfig = this.Load<MonsterSpawnParams>("SpawnParams")
 
-        this.MonsterType = spawnConfig.type;
-        this.Level = spawnConfig.level;
-        this.Rank = spawnConfig.rank;
+        this.MonsterType = spawnConfig.Type;
+        this.Level = spawnConfig.Level;
+        this.Rank = spawnConfig.Rank;
 
+        let locationMults = EnemyLocationTypeMults.get(GetCurrentLocationType())
         let monsterCfg = MonsterConfigs.get(this.MonsterType);
+        let monsterRankCfg = MonsterRankConfigs[this.Rank]
 
-        let enemyHP = this.GetMaxHP(this.Level) * (monsterCfg.hp_mult || 1) * constants.EnemyHpMultsByRank[this.Rank];
-        let xpReward = this.GetXPReward(this.Level) * (monsterCfg.xp_mult || 1) * constants.EnemyXpMultsByRank[this.Rank];
-        let enemyDamage = this.GetDamage(this.Level) * (monsterCfg.damage_mult || 1) * constants.EnemyDamageMultsByRank[this.Rank];
+        let enemyHP = this.GetMaxHP(this.Level) * (monsterCfg.HpMult || 1) * monsterRankCfg.HpMult * locationMults.HpMult;
+        let xpReward = this.GetXPReward(this.Level) * (monsterCfg.XpMult || 1) * monsterRankCfg.XpMult * locationMults.XpMult;
+        let enemyDamage = this.GetDamage(this.Level) * (monsterCfg.DamageMult || 1) * monsterRankCfg.DamageMult * locationMults.DamageMult;
 
         this.SetStatBase(StatType.MaxHP, enemyHP)
         this.Damage = enemyDamage;
@@ -43,7 +46,7 @@ export class MWMonster extends MWObject{
     }
 
     GetDamage(level: number) {
-        let pctMult = 1 + constants.EnemyDamagePctPerLevel * level / 100;
+        let pctMult = 1 + constants.EnemyDamagePctPerLevel / 100 * (level - 1);
         let expMult = math.pow(constants.EnemyDamageExpPerLevel, level - 1)
         return constants.EnemyDamageBase * pctMult * expMult;
     }
@@ -55,7 +58,7 @@ export class MWMonster extends MWObject{
         return nameInfo;
     }
 
-    get DropChance(): number { return loot.EnemyDropChanceByRank[this.Rank] * 100; }
+    get DropChance(): number { return loot.EnemyDropChanceByRank[this.Rank] * EnemyLocationTypeMults.get(GetCurrentLocationType()).DropChanceMult; }
 
     get XPReward(): number { return this.Load("XPReward"); }
     set XPReward(expReward: number) { this.Save("XPReward", expReward); }
@@ -71,7 +74,7 @@ export class MWMonster extends MWObject{
 }
 
 export type MonsterSpawnParams = {
-    type: MonsterType,
-    level: number,
-    rank: MonsterRank
+    Type: MonsterType,
+    Level: number,
+    Rank: MonsterRank
 };

@@ -82,6 +82,7 @@ declare function get_hud(): CUIGameCustom
 // declare function command_line()
 // declare function getFS()
 // declare function valid_saved_game(string)
+declare function exec_console_cmd(name: string): void;
 // declare function get_console()
 // declare function app_ready()
 // declare function IsDynamicMusic()

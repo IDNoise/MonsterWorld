@@ -41,9 +41,17 @@ export function GetId(objOrId: ObjectOrId): Id {
         return objOrId;
     }
 
+    if (objOrId == undefined){
+        return -1;
+    }
+
     if (typeof(objOrId.id) == "number"){
         return objOrId.id
     }
 
-    return objOrId.id();
+    if (typeof(objOrId.id) == "function"){
+        return objOrId.id();
+    }
+
+    return -1;
 }

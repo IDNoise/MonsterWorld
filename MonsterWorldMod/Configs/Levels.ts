@@ -1,150 +1,156 @@
-export const enum LevelType { 
+export const enum LocationType { 
     None = 0,
     Open = 1 << 0,
     Underground = 1 << 1,
     Lab = 1 << 2,
-    NonLab = LevelType.Open | LevelType.Underground,
+    NonLab = LocationType.Open | LocationType.Underground,
     All = Open | Underground | Lab,
 }
 
-export type LevelConfig = {
-    level: number;
-    type: LevelType;
+export type LocationConfig = {
+    Level: number;
+    Type: LocationType;
 }
 
-let level: number = 1;
-export const LocationConfigs: {[name: string]: LevelConfig} = {
+export function GetCurrentLocationCfg(): LocationConfig {
+    return LocationConfigs[level.name()];
+}
+
+export function GetCurrentLocationType() : LocationType { return GetCurrentLocationCfg().Type; }
+
+let locationLevel: number = 1;
+export const LocationConfigs: {[name: string]: LocationConfig} = {
     ["l01_escape"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l02_garbage"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["k00_marsh"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l03_agroprom"]			: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l04_darkvalley"]			: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["k01_darkscape"]			: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l05_bar"]					: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l06_rostok"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l08_yantar"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l07_military"]			: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["k02_trucks_cemetery"]		: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l09_deadcity"]			: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l10_limansk"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l10_radar"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l10_red_forest"]			: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["pripyat"]					: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l11_pripyat"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l12_stancia"]				: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l12_stancia_2"]			: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["l13_generators"]			: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["y04_pole"]				: { ///wtf is this?
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["jupiter"]					: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
     ["zaton"]					: {
-        level: level++,
-        type: LevelType.Open,
+        Level: locationLevel++,
+        Type: LocationType.Open,
     },
 
     ["l03u_agr_underground"]	: {
-        type: LevelType.Underground,
-        level: level++,
+        Type: LocationType.Underground,
+        Level: locationLevel++,
     },
     ["l10u_bunker"]				: {
-        type: LevelType.Underground,
-        level: level++,
+        Type: LocationType.Underground,
+        Level: locationLevel++,
     },
     ["l11_hospital"]			: {
-        type: LevelType.Underground,
-        level: level++,
+        Type: LocationType.Underground,
+        Level: locationLevel++,
     },
     ["jupiter_underground"]		: {
-        type: LevelType.Underground,
-        level: level++,
+        Type: LocationType.Underground,
+        Level: locationLevel++,
     },
     ["l12u_control_monolith"]	: {
-        type: LevelType.Underground,
-        level: level++,
+        Type: LocationType.Underground,
+        Level: locationLevel++,
     },
     ["l12u_sarcofag"]			: {
-        type: LevelType.Underground,
-        level: level++,
+        Type: LocationType.Underground,
+        Level: locationLevel++,
     },
     ["l04u_labx18"]				: {
-        type: LevelType.Lab,
-        level: level++,
+        Type: LocationType.Lab,
+        Level: locationLevel++,
     },
     ["l08u_brainlab"]			: {
-        type: LevelType.Lab,
-        level: level++,
+        Type: LocationType.Lab,
+        Level: locationLevel++,
     },
     ["l13u_warlab"]				: {
-        type: LevelType.Lab,
-        level: level++,
+        Type: LocationType.Lab,
+        Level: locationLevel++,
     },
     ["labx8"]					: {
-        type: LevelType.Lab,
-        level: level++,
+        Type: LocationType.Lab,
+        Level: locationLevel++,
     },
 }

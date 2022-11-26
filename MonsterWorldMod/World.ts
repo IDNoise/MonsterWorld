@@ -8,15 +8,16 @@ import { SpawnManager } from './Managers/SpawnManager';
 import { UIManager } from './Managers/UIManager';
 import { MWObject } from './GameObjects/MWObject';
 import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/Difficulty';
-import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, GetDropParticles, DropType, GetStimpackByQuality } from './Configs/Loot';
+import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, DropType, GetStimpackByQuality, QualityConfigs } from './Configs/Loot';
 import { StatType } from './Configs/Stats';
 import { ObjectOrId, GetId, CreateVector, CreateWorldPositionAtPosWithGO, Save } from './Helpers/StalkerAPI';
 import { RandomFromArray } from './Helpers/Collections';
 import { IsPctRolled } from './Helpers/Random';
 import { TimerManager } from './Managers/TimerManager';
-import { MWItem } from './GameObjects/MWItem';
+import { MWItem, ItemSpawnParams } from './GameObjects/MWItem';
 import { MWArmor } from './GameObjects/MWArmor';
 import { MWArtefact } from './GameObjects/MWArtefact';
+import { MonsterRankConfigs } from './Configs/Enemies';
 
 declare global{
     let MonsterWorld: World;
@@ -45,6 +46,7 @@ export class World {
         this.Timers = new TimerManager();
 
         this.DoMonkeyPatch();
+        this.ChangeQuickSlotItems();
     }
 
     private player?: MWPlayer;
@@ -201,7 +203,7 @@ export class World {
         if (attackerGO.is_stalker() && shit.weapon_id != 0 && shit.weapon_id != attackerGO.id()){
             let weapon = level.object_by_id(shit.weapon_id);
             if (weapon?.is_weapon())
-                damage *= clamp(weapon.cast_Weapon().RPM(), 0.4, 1.25); //limit on damage multiplier for slow firing enemies (can be overkill)
+                damage *= clamp(weapon.cast_Weapon().RPM(), 0.3, 1.25); //limit on damage multiplier for slow firing enemies (can be overkill)
         }
 
         damage = math.max(1, damage) * this.enemyDamageMult;
@@ -329,9 +331,10 @@ export class World {
         }
 
         let qualityLevel = GetDropQuality();
+        let rankCfg = MonsterRankConfigs[monster.Rank]
     
-        if (IsPctRolled(constants.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
-        if (IsPctRolled(constants.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
+        if (IsPctRolled(rankCfg.DropLevelIncreaseChance)) dropLevel++;
+        if (IsPctRolled(rankCfg.DropQualityIncreaseChance)) qualityLevel++;
 
         return $multi(dropLevel, qualityLevel)
     }
@@ -355,7 +358,7 @@ export class World {
 
         qualityLevel = math.min(qualityLevel, MaxQuality)
 
-        Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
+        Save<ItemSpawnParams>(sgo.id, "MW_SpawnParams", {Level: dropLevel, Quality: qualityLevel});
         return sgo;
         
     }
@@ -384,16 +387,14 @@ export class World {
             return undefined;
         }
 
-        Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
+        Save<ItemSpawnParams>(sgo.id, "MW_SpawnParams", {Level: dropLevel, Quality: qualityLevel});
         return sgo;
     }
 
     highlightParticles: LuaTable<Id, particles_object> = new LuaTable()
     HighlightDroppedItem(id: Id, type: DropType, quality: number) {
         this.Timers.AddOnObjectSpawn(`${id}_highlight`, id, (obj) => {
-            let particlesPath = GetDropParticles(type, quality);
-            Log(`Particles: ${particlesPath}`)
-            let particles = new particles_object(particlesPath);
+            let particles = new particles_object(QualityConfigs.get(quality).Particles);
             this.highlightParticles.set(id, particles)
             let pos = obj.position()
             pos.y -= 0.1;
@@ -480,6 +481,12 @@ export class World {
                 npc.transfer_item(item, npc)
             }
         };
+    }
+
+    private ChangeQuickSlotItems(){
+        exec_console_cmd(`slot_0 ${GetStimpackByQuality(0)}`)
+        exec_console_cmd(`slot_1 ${GetStimpackByQuality(1)}`)
+        exec_console_cmd(`slot_2 ${GetStimpackByQuality(2)}`)
     }
 }
 

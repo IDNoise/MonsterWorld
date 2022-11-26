@@ -33,7 +33,7 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.HPRegen]: "HP Regen",
     [StatType.XPGainMult]: "XP Gain",
 
-    [StatType.Damage]: "Damage per Hit",
+    [StatType.Damage]: "Damage",
     
     [StatType.ReloadSpeedBonusPct]: "Reload Speed",
     [StatType.CritDamagePct]: "Crit Damage",

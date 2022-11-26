@@ -1,3 +1,5 @@
+import { LocationType } from "./Levels";
+
 //Player params
 export let PlayerHPBase = 100;
 export let PlayerHPPerLevel = 10;
@@ -34,11 +36,17 @@ export let EnemyHigherLevelChance = 5;
 export let EnemyEliteChance = 12;
 export let EnemyBossChance = 3;
 
-export let EnemyHpMultsByRank: number[] = [1, 3, 10];
-export let EnemyXpMultsByRank: number[] = [1, 3, 10];
-export let EnemyDamageMultsByRank: number[] = [1, 1.5, 3];
-export let EnemyDropLevelIncreaseChanceByRank: number[] = [1, 20, 50];
-export let EnemyDropQualityIncreaseChanceByRank: number[] = [1, 20, 50];
+type EnemyLocationConfig = {
+    HpMult: number, 
+    XpMult: number, 
+    DamageMult: number, 
+    DropChanceMult: number
+}
+
+export let EnemyLocationTypeMults: LuaTable<number, EnemyLocationConfig> = new LuaTable();
+EnemyLocationTypeMults.set(LocationType.Open,        {HpMult: 1,   XpMult: 1,   DamageMult: 1,   DropChanceMult: 1});
+EnemyLocationTypeMults.set(LocationType.Underground, {HpMult: 1.5, XpMult: 1.5, DamageMult: 1.5, DropChanceMult: 1.25});
+EnemyLocationTypeMults.set(LocationType.Lab,         {HpMult: 2.5, XpMult: 2.5, DamageMult: 2.5, DropChanceMult: 2});
 
 //Weapons
 export let WeaponDPSBase = EnemyHPBase / 0.5;

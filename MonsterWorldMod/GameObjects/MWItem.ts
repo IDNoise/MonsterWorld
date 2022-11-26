@@ -11,10 +11,10 @@ export abstract class MWItem extends MWObject {
     set Quality(quality: number) { this.Save("Quality", quality); }
 
     override OnFirstTimeInitialize(): void {
-        let spawnCfg = this.Load<ItemSpawnParams>("SpawnParams", {level: 1, quality: 1})
+        let spawnCfg = this.Load<ItemSpawnParams>("SpawnParams", {Level: 1, Quality: 1})
 
-        this.Level = spawnCfg.level;
-        this.Quality = math.max(MinQuality, math.min(MaxQuality, spawnCfg.quality));
+        this.Level = spawnCfg.Level;
+        this.Quality = math.max(MinQuality, math.min(MaxQuality, spawnCfg.Quality));
 
         this.GeneateStats();
     }
@@ -50,6 +50,6 @@ export abstract class MWItem extends MWObject {
 }
 
 export type ItemSpawnParams = {
-    level: number;
-    quality: number;
+    Level: number;
+    Quality: number;
 }

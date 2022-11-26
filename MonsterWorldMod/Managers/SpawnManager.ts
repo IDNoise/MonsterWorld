@@ -1,7 +1,8 @@
 import { Log } from '../../StalkerModBase';
 import { EnemyEliteChance, EnemyBossChance, EnemyHigherLevelChance } from '../Configs/Constants';
 import { MonsterType, MonsterConfigs, MonsterRank } from '../Configs/Enemies';
-import { LevelType, LocationConfigs } from '../Configs/Levels';
+import { GetCurrentLocationCfg, LocationType, LocationConfigs } from '../Configs/Levels';
+import { MonsterSpawnParams } from '../GameObjects/MWMonster';
 import { RandomFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { Load, Save, NumberToCondList } from '../Helpers/StalkerAPI';
@@ -76,17 +77,17 @@ export class SpawnManager {
             smart.max_population = maxPopulation;
 
             //Log(`Level name: ${level.name()}`)
-            let locationCfg = LocationConfigs[level.name()];
+            let locationCfg = GetCurrentLocationCfg();
             if (!locationCfg)
                 return false;
 
             let selectedMonsters: MonsterType[] = [];
             for(const [monsterType, monsterCfg] of MonsterConfigs){
                 //Log(`Level check: ${monsterCfg.level_start} > ${locationCfg.level} = ${(monsterCfg.level_start > locationCfg.level)}`)
-                if (monsterCfg.level_start > locationCfg.level || (monsterCfg.level_end || 100) < locationCfg.level)
+                if (monsterCfg.LocationLevelStart > locationCfg.Level || (monsterCfg.LocationLevelEnd || 100) < locationCfg.Level)
                     continue;
                 //Log(`LevelType check: ${monsterCfg.level_type} & ${locationCfg.type} = ${(monsterCfg.level_type & locationCfg.type)}`)
-                if ((monsterCfg.level_type & locationCfg.type) != locationCfg.type)
+                if ((monsterCfg.LocationType & locationCfg.Type) != locationCfg.Type)
                     continue;
                 selectedMonsters.push(monsterType);
             }
@@ -134,12 +135,12 @@ export class SpawnManager {
             Log(`SPAWN PROBLEM  NO monsterCfg! ${monsterType}`)
         }
 
-        let squadSize = math.random(monsterCfg.squad_size_min, monsterCfg.squad_size_max);
+        let squadSize = math.random(monsterCfg.SquadSizeMin, monsterCfg.SquadSizeMax);
         let isBossSpawned = false;
         let elitesSpawned = 0;
 
         let locCfg = LocationConfigs[level.name()];
-        let locLevel = locCfg.level || 1;
+        let locLevel = locCfg.Level || 1;
 
         if (locLevel < 5){
             squadSize *= 0.5 + 0.1 * locLevel
@@ -152,11 +153,11 @@ export class SpawnManager {
                 enemyLvl = math.max(locLevel, playerLevel - 1);
             else if (locLevel <= 15)
                 enemyLvl = math.max(locLevel, playerLevel);
-            else if (locCfg.type == LevelType.Open)
+            else if (locCfg.Type == LocationType.Open)
                 enemyLvl = math.max(locLevel, playerLevel + 1);
-            else if (locCfg.type == LevelType.Underground)
+            else if (locCfg.Type == LocationType.Underground)
                 enemyLvl = math.max(locLevel, playerLevel + 3);
-            else if (locCfg.type == LevelType.Lab)
+            else if (locCfg.Type == LocationType.Lab)
                 enemyLvl = math.max(locLevel, playerLevel + 5);
         }
 
@@ -176,9 +177,9 @@ export class SpawnManager {
                 rank = MonsterRank.Boss;
             }
 
-            let section = monsterCfg.common_section;
-            if (rank == MonsterRank.Elite) section = monsterCfg.elite_section;
-            else if (rank == MonsterRank.Boss) section = monsterCfg.boss_section;
+            let section = monsterCfg.CommonSection;
+            if (rank == MonsterRank.Elite) section = monsterCfg.EliteSection;
+            else if (rank == MonsterRank.Boss) section = monsterCfg.BossSection;
 
             let monsterId = defaultFunction(obj, section, pos, lvid, gvid);
             if (monsterId == undefined){
@@ -186,10 +187,10 @@ export class SpawnManager {
                 continue;
             }
 
-            Save(monsterId, "MW_SpawnParams", {
-                type: monsterType,
-                level: squadMemberLevel,
-                rank: rank
+            Save<MonsterSpawnParams>(monsterId, "MW_SpawnParams", {
+                Type: monsterType,
+                Level: squadMemberLevel,
+                Rank: rank
             });
             i++;
         }
