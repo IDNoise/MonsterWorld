@@ -164,8 +164,7 @@ export class UIManager {
     }
 
     public ShowDamage(damage: number, isCrit: boolean = false, isKillHit: boolean = false){
-        for(let i = 0; i < this.damageNumbers.length; i++){
-            let entry = this.damageNumbers[i];
+        for(let entry of this.damageNumbers){
             if (entry.text.IsShown()) continue;
 
             let msg = `${math.max(1, math.floor(damage))}`
@@ -182,8 +181,7 @@ export class UIManager {
     }
 
     public ShowXPReward(reward: number){
-        for(let i = 0; i < this.xpRewardNumbers.length; i++){
-            let entry = this.xpRewardNumbers[i];
+        for(let entry of this.xpRewardNumbers){
             if (entry.text.IsShown()) continue;
             let msg = `+ ${math.floor(reward)} XP`
             entry.text.SetWndPos(new vector2().set(math.random(-30, 30), math.random(-3, 3)))
@@ -310,8 +308,7 @@ export class UIManager {
 
     private UpdateDamageNumbers(){
         let now = time_global();
-        for(let i = 0; i < this.damageNumbers.length; i++){
-            let entry = this.damageNumbers[i];
+        for(let entry of this.damageNumbers){
             let text = entry.text;
             if (now - entry.showTime > 750){
                 text.Show(false);
@@ -326,8 +323,7 @@ export class UIManager {
 
     private UpdateXpRewardNumbers(){
         let now = time_global();
-        for(let i = 0; i < this.xpRewardNumbers.length; i++){
-            let entry = this.xpRewardNumbers[i];
+        for(let entry of this.xpRewardNumbers){
             let text = entry.text;
             if (now - entry.showTime > 1500){
                 text.Show(false);

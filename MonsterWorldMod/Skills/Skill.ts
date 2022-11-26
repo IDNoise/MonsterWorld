@@ -6,12 +6,9 @@ import { BaseMWObject } from '../GameObjects/BaseMWObject';
 export abstract class Skill {
     private level: number = 0;
 
-    public World: World;
-
     public OnLevelUpHandlers: ((skill: Skill) => void)[] = [];
 
     constructor(public Id: string, public Owner: BaseMWObject, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
-        this.World = this.Owner.World;
     }
 
     Init(): void {
@@ -33,7 +30,7 @@ export abstract class Skill {
         if (!this.CanBeUpgraded)
             return;
 
-        let player = this.World.Player;
+        let player = MonsterWorld.Player;
         let price = this.UpgradePrice;
 
         if (player.SkillPoints >= price) {
@@ -59,7 +56,7 @@ export abstract class Skill {
 
     get CanBeUpgraded(): boolean { return !this.IsMaxLevelReached && this.PlayerHasMoney; }
 
-    get PlayerHasMoney(): boolean { return this.UpgradePrice <= this.World.Player.SkillPoints; }
+    get PlayerHasMoney(): boolean { return this.UpgradePrice <= MonsterWorld.Player.SkillPoints; }
 
     get IsMaxLevelReached(): boolean { return this.MaxLevel != -1 && this.Level >= this.MaxLevel; }
 

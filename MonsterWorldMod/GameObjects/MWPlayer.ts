@@ -37,18 +37,20 @@ export class MWPlayer extends BaseMWObject {
         this.Save("CurrentXP", exp); 
     }
 
-    get Weapon(): MWWeapon | undefined { return this.World.GetWeapon(this.GO.active_item())}
+    get Weapon(): MWWeapon | undefined { return MonsterWorld.GetWeapon(this.GO.active_item())}
 
     private LevelUp(): void{
         this.Level++;
         this.SkillPoints += cfg.PlayerPointsPerLevelUp;
         this.UpdateLevelBonuses();
-        this.World.UIManager?.ShowLevelUpMessage(this.Level);
+        MonsterWorld.UIManager?.ShowLevelUpMessage(this.Level);
     }
 
     protected override OnInitialize(): void {
         super.OnInitialize();
         this.UpdateLevelBonuses();
+        this.GO.set_actor_max_weight(100000);
+        this.GO.set_actor_max_walk_weight(100000);
     }
 
     override Update(deltaTime: number): void {

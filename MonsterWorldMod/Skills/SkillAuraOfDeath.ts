@@ -20,22 +20,15 @@ export class SkillAuraOfDeath extends Skill {
         if (this.timePassed < this.Interval)
             return;
 
-        let weapon = this.World.Player.Weapon;
+        let weapon = MonsterWorld.Player.Weapon;
         if (weapon == undefined)
             return;
 
         this.timePassed -= this.Interval;
-        let playerPos = this.World.Player.GO.position();
-        let rangeSqr = this.Range * this.Range;
+        let playerPos = MonsterWorld.Player.GO.position();
         let damage = weapon.DPS * this.DpsPct / 100;
-
-        for (let [_, monster] of this.World.Monsters) {
-            if (monster.GO == undefined || monster.IsDead)
-                continue;
-            let distanceSqr = monster.GO.position().distance_to_sqr(playerPos);
-            if (distanceSqr <= rangeSqr) {
-                this.World.DamageMonster(monster, damage, false);
-            }
+        for (let monster of MonsterWorld.GetMonstersInRange(playerPos, this.Range)){
+            MonsterWorld.DamageMonster(monster, damage, false);
         }
     }
 }

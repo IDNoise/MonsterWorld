@@ -54,12 +54,22 @@ export function RandomFromArray<T>(array: T[]): T{
     return array[index];
 }
 
-export function TakeRandomFromArray<T>(array: T[]): T {
+export function TakeRandomElementFromArray<T>(array: T[]): T {
     const index = math.random(0, array.length - 1);
     const element = array[index];
     array.splice(index, 1);
     return element;
 }
+
+export function TakeRandomUniqueElementsFromArray<T>(array: T[], count: number): T[] {
+    let result: T[] = [];
+    count = math.min(count, array.length)
+    for(let i = 0; i < count; i++){
+        result.push(TakeRandomElementFromArray(array))
+    }
+    return result;
+}
+
 
 export function NumberToCondList(value: number) : Condlist{
     return xr_logic.parse_condlist(null, null, null, `${value}`)
@@ -67,15 +77,13 @@ export function NumberToCondList(value: number) : Condlist{
 
 export function GetByWeightFromArray<T>(array: T[], weightGetter: (element:T) => number) : T {
     let totalWeight = 0;
-    for(let i = 0; i < array.length; i++){
-        totalWeight += weightGetter(array[i]);
+    for(let element of array){
+        totalWeight += weightGetter(element);
     }
 
     let randValue = math.random(1, totalWeight);
     let weightStartCheck = 0;
-    for(let i = 0; i < array.length; i++){
-        let element = array[i]
-
+    for(let element of array){
         weightStartCheck += weightGetter(element);
 
         if (randValue <= weightStartCheck){

@@ -7,7 +7,7 @@ import { StatType, StatBonusType, PctStats } from '../Configs/Stats';
 export abstract class BaseMWObject {
     Skills: Map<string, Skill> = new Map();
 
-    constructor(public World: World, public id: Id) {
+    constructor(public id: Id) {
         
     }
 

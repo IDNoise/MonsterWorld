@@ -7,8 +7,8 @@ import { MonsterConfigs, MonsterRank, MonsterType } from '../Configs/Enemies';
 import { StatType } from '../Configs/Stats';
 
 export class MWMonster extends BaseMWObject{
-    constructor(public World: World, public id: Id) {
-        super(World, id);
+    constructor(public id: Id) {
+        super(id);
     }
 
     override OnFirstTimeInitialize(): void {

@@ -1,4 +1,4 @@
-import { TakeRandomFromArray, IsPctRolled } from '../../StalkerAPI/extensions/basic';
+import { IsPctRolled, TakeRandomUniqueElementsFromArray } from '../../StalkerAPI/extensions/basic';
 import { Log } from '../../StalkerModBase';
 import { BaseMWObject } from './BaseMWObject';
 import { World } from '../World';
@@ -8,8 +8,8 @@ import { StatType, StatBonusType } from '../Configs/Stats';
 
 export class MWWeapon extends BaseMWObject {
     
-    constructor(public World: World, public id: Id) {
-        super(World, id);
+    constructor(public id: Id) {
+        super(id);
     }
 
     override OnFirstTimeInitialize(): void {
@@ -59,7 +59,7 @@ export class MWWeapon extends BaseMWObject {
     }
 
     OnReloadStart(anim_table: AnimationTable) {
-        let mult = 1 + this.World.GetStat(StatType.ReloadSpeedBonusPct, this, this.World.Player) / 100;
+        let mult = 1 + MonsterWorld.GetStat(StatType.ReloadSpeedBonusPct, this, MonsterWorld.Player) / 100;
         Log(`OnReloadStart. Bonus: x${mult}`)
         anim_table.anm_speed *= mult
     }
@@ -88,18 +88,15 @@ export class MWWeapon extends BaseMWObject {
 
         let weaponUpgradesByBonusType: LuaTable<WeaponBonusParamType, string[]> = new LuaTable();
 
-        for (let i = 0; i < ParamsWithWeaponUpgradesSelection.length; i++) {
-            let uType = ParamsWithWeaponUpgradesSelection[i];
+        for (let uType of ParamsWithWeaponUpgradesSelection) {
             let upgrades = this.GetUpgradesByType(uType)
             //Log(`weaponUpgradesByBonusType ${uType}:${upgrades.length}`)
             if (upgrades.length != 0)
                 weaponUpgradesByBonusType.set(uType, upgrades);
         }
 
-        let selectedUpgradeTypes: WeaponBonusParamType[] = [];
         let availableBonuses: WeaponBonusParamType[] = [];
-        for(let i = 0; i < ParamsForSelection.length; i++){
-            let type = ParamsForSelection[i];
+        for(let type of ParamsForSelection){
             if (!ParamsWithWeaponUpgradesSelection.includes(type) || weaponUpgradesByBonusType.has(type)){
                 availableBonuses.push(type)
                 //Log(`availableBonuses ${type}`)
@@ -108,11 +105,7 @@ export class MWWeapon extends BaseMWObject {
 
         let upgradeTypesToAdd = 1 + this.Quality + math.floor(this.Level / 5);
         const upgradeTypesToSelect = math.min(availableBonuses.length, upgradeTypesToAdd);
-        for (let i = 0; i < upgradeTypesToSelect; i++) {
-            const type = TakeRandomFromArray(availableBonuses);
-            selectedUpgradeTypes.push(type);
-            //Log(`selectedUpgradeTypes ${type}`)
-        }
+        let selectedUpgradeTypes = TakeRandomUniqueElementsFromArray(availableBonuses, upgradeTypesToSelect);
 
         if (!selectedUpgradeTypes.includes(WeaponBonusParamType.MagSize)){
             selectedUpgradeTypes.push(WeaponBonusParamType.MagSize);
@@ -131,9 +124,7 @@ export class MWWeapon extends BaseMWObject {
         
         let damageBonusPct = 0;
         let allSelectedUpgrades: string[] = [];
-        for (let upgradeTypeIndex = 0; upgradeTypeIndex < selectedUpgradeTypes.length; upgradeTypeIndex++) {
-            
-            let paramType = selectedUpgradeTypes[upgradeTypeIndex];
+        for (let paramType of selectedUpgradeTypes) {
             if (paramType == WeaponBonusParamType.Damage) {
                 damageBonusPct += math.random(5 + 10 * (this.Quality - 1), (15 + 15 * (this.Quality - 1)) * this.Quality)
             }
@@ -194,8 +185,8 @@ export class MWWeapon extends BaseMWObject {
         }
 
         //Log(`Base DPS: ${baseDPS} DPS: ${this.DPS}. Damage per hit: ${damagePerHit}. Fire rate: ${fireRate}`)
-        for (let i = 0; i < allSelectedUpgrades.length; i++) {
-            let upgrade = allSelectedUpgrades[i].replace("mwu", "mwe");
+        for (let upgrade of allSelectedUpgrades) {
+            upgrade = upgrade.replace("mwu", "mwe");
             //Log(`Installing upgrade: ${upgrade}`)
             this.GO.install_upgrade(upgrade);
         }

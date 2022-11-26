@@ -92,6 +92,12 @@ public class WeaponsGenerator : BaseGenerator
                 // inv_name_short = $"\'{ammoConfig.Name}\'",
                 tier = 1,
                 cost = 1,
+                impair = 1,
+                k_air_resistance = 1,
+                k_dist = 1,
+                k_bullet_speed = 1,
+                k_disp = wType == WeaponType.Shotgun ? 17.5 : 1,
+                buck_shot = wType == WeaponType.Shotgun ? 25 : 1,
             });
         }
     }
@@ -134,11 +140,11 @@ public class WeaponsGenerator : BaseGenerator
     Dictionary<WeaponType, int> weaponFireDistanceByType = new Dictionary<WeaponType, int>()
     {
         { WeaponType.Shotgun, 25},
-        { WeaponType.Pistol, 40},
-        { WeaponType.SMG, 50},
-        { WeaponType.AssaultRifle, 75},
-        { WeaponType.MachineGun, 75},
-        { WeaponType.SniperRifle, 100},
+        { WeaponType.Pistol, 50},
+        { WeaponType.SMG, 75},
+        { WeaponType.AssaultRifle, 100},
+        { WeaponType.MachineGun, 100},
+        { WeaponType.SniperRifle, 150},
     };
     
     void GenerateWeapons()
@@ -169,7 +175,6 @@ public class WeaponsGenerator : BaseGenerator
                 upgrades = string.Join(",", upgradesByType.Values.SelectMany(u => u).Select(s => s.Name)),
                 rpm_upgrades = string.Join(",", upgradesByType[UpgradeType.Rpm].Select(s => s.Name)),
                 dispersion_upgrades = string.Join(",", upgradesByType[UpgradeType.Dispersion].Select(s => s.Name)),
-                inertion_upgrades = string.Join(",", upgradesByType[UpgradeType.Inertion].Select(s => s.Name)),
                 recoil_upgrades = string.Join(",", upgradesByType[UpgradeType.Recoil].Select(s => s.Name)),
                 fire_mode_upgrades = string.Join(",", upgradesByType[UpgradeType.FireMode].Select(s => s.Name)),
                 bullet_speed_upgrades = string.Join(",", upgradesByType[UpgradeType.BulletSpeed].Select(s => s.Name)),
@@ -215,7 +220,6 @@ public class WeaponsGenerator : BaseGenerator
     {
         var result = new Dictionary<UpgradeType, List<Section>>();
         result.Add(UpgradeType.Dispersion, new List<Section>());
-        result.Add(UpgradeType.Inertion, new List<Section>());
         result.Add(UpgradeType.Recoil, new List<Section>());
         result.Add(UpgradeType.Rpm, new List<Section>());
         result.Add(UpgradeType.BulletSpeed, new List<Section>());
@@ -253,58 +257,85 @@ public class WeaponsGenerator : BaseGenerator
             }
         }
         
-        {
-            var camDispersion = weapon.GetFloat("cam_dispersion"); // Recoil
-            var cam_step_angle_horz = weapon.GetFloat("cam_step_angle_horz"); // Recoil
-            var zoom_cam_dispersion = weapon.GetFloat("zoom_cam_dispersion"); // Recoil
-            var zoom_cam_step_angle_horz = weapon.GetFloat("zoom_cam_step_angle_horz"); // Recoil
-            if (camDispersion > 0.2f) {
-                float valuePerStep_camDispersion = -GetValuePerStep(camDispersion, 5);
+        {// Recoil
+            var crosshair_inertion = weapon.GetFloat("crosshair_inertion");
+            var cam_max_angle = weapon.GetFloat("cam_max_angle"); 
+            var cam_max_angle_horz = weapon.GetFloat("cam_max_angle_horz");
+            var cam_step_angle_horz = weapon.GetFloat("cam_step_angle_horz"); 
+            var zoom_cam_max_angle = weapon.GetFloat("zoom_cam_max_angle");
+            var zoom_cam_max_angle_horz = weapon.GetFloat("zoom_cam_max_angle_horz"); 
+            var zoom_cam_step_angle_horz = weapon.GetFloat("zoom_cam_step_angle_horz");
+            if (cam_max_angle > 1f) {
+                float valuePerStep_cam_max_angle = -GetValuePerStep(cam_max_angle, 5);
+                float valuePerStep_cam_max_angle_horz = -GetValuePerStep(cam_max_angle_horz, 5);
                 float valuePerStep_cam_step_angle_horz = -GetValuePerStep(cam_step_angle_horz, 5);
-                float valuePerStep_zoom_cam_dispersion = -GetValuePerStep(zoom_cam_dispersion, 5);
+                float valuePerStep_zoom_cam_max_angle = -GetValuePerStep(zoom_cam_max_angle, 5);
+                float valuePerStep_zoom_cam_max_angle_horz = -GetValuePerStep(zoom_cam_max_angle_horz, 5);
                 float valuePerStep_zoom_cam_step_angle_horz = -GetValuePerStep(zoom_cam_step_angle_horz, 5);
+                float valuePerStep_crosshair_intertion = -GetValuePerStep(crosshair_inertion, 5);
+                
                 for (int i = 0; i < steps; i++) {
                     result[UpgradeType.Recoil].Add(GenerateUpgrade(new {
-                        cam_dispersion = ToUpgradeValue(valuePerStep_camDispersion),
-                        cam_step_angle_horz = ToUpgradeValue(valuePerStep_cam_step_angle_horz),
-                        zoom_cam_dispersion = ToUpgradeValue(valuePerStep_zoom_cam_dispersion),
-                        zoom_cam_step_angle_horz = ToUpgradeValue(valuePerStep_zoom_cam_step_angle_horz),
+                        cam_max_angle             = ToUpgradeValue(valuePerStep_cam_max_angle),
+                        cam_max_angle_horz        = ToUpgradeValue(valuePerStep_cam_max_angle_horz),
+                        cam_step_angle_horz       = ToUpgradeValue(valuePerStep_cam_step_angle_horz),
+                        zoom_cam_max_angle        = ToUpgradeValue(valuePerStep_zoom_cam_max_angle),
+                        zoom_cam_max_angle_horz   = ToUpgradeValue(valuePerStep_zoom_cam_max_angle_horz),
+                        zoom_cam_step_angle_horz  = ToUpgradeValue(valuePerStep_zoom_cam_step_angle_horz),
+                        crosshair_intertion       = ToUpgradeValue(valuePerStep_crosshair_intertion),
                     }));
                 }
             }
         }
-
-        {
-            var crosshairInertion = weapon.GetFloat("crosshair_inertion"); // Inertion
-            var PDM_disp_base = weapon.GetFloat("PDM_disp_base"); 
-            var PDM_disp_vel_factor = weapon.GetFloat("PDM_disp_vel_factor"); 
+        
+        {// Accuracy
+            var fireDispersionBase = weapon.GetFloat("fire_dispersion_base"); 
+            var cam_relax_speed = weapon.GetFloat("cam_relax_speed"); 
+            var zoom_cam_relax_speed = weapon.GetFloat("zoom_cam_relax_speed"); 
+            var cam_dispersion = weapon.GetFloat("cam_dispersion"); 
+            var cam_dispersion_frac = weapon.GetFloat("cam_dispersion_frac"); 
+            var cam_dispersion_inc = weapon.GetFloat("cam_dispersion_inc"); 
+            var zoom_cam_dispersion = weapon.GetFloat("zoom_cam_dispersion"); 
+            var zoom_cam_dispersion_frac = weapon.GetFloat("zoom_cam_dispersion_frac"); 
+            var zoom_cam_dispersion_inc = weapon.GetFloat("zoom_cam_dispersion_inc"); 
             var PDM_disp_accel_factor = weapon.GetFloat("PDM_disp_accel_factor"); 
-            if (crosshairInertion > 0.1)
-            {
-                float valuePerStep_crosshairInertion = -GetValuePerStep(crosshairInertion, 5);
-                float valuePerStep_PDM_disp_base = -GetValuePerStep(PDM_disp_base, 5);
-                float valuePerStep_PDM_disp_vel_factor = -GetValuePerStep(PDM_disp_vel_factor, 5);
+            var PDM_disp_base = weapon.GetFloat("PDM_disp_base"); 
+            var PDM_disp_crouch = weapon.GetFloat("PDM_disp_crouch"); 
+            var PDM_disp_crouch_no_acc = weapon.GetFloat("PDM_disp_crouch_no_acc"); 
+            var PDM_disp_vel_factor = weapon.GetFloat("PDM_disp_vel_factor"); 
+            
+            if (fireDispersionBase > 0.025) {
+                float valuePerStep_fire_dispersion_base = -GetValuePerStep(fireDispersionBase, 5);
+                float valuePerStep_cam_relax_speed = GetValuePerStep(cam_relax_speed, 5);
+                float valuePerStep_zoom_cam_relax_speed = GetValuePerStep(zoom_cam_relax_speed, 5);
+                float valuePerStep_cam_dispersion = -GetValuePerStep(cam_dispersion, 5);
+                float valuePerStep_cam_dispersion_frac = -GetValuePerStep(cam_dispersion_frac, 5);
+                float valuePerStep_cam_dispersion_inc = -GetValuePerStep(cam_dispersion_inc, 5);
+                float valuePerStep_zoom_cam_dispersion = -GetValuePerStep(zoom_cam_dispersion, 5);
+                float valuePerStep_zoom_cam_dispersion_frac = -GetValuePerStep(zoom_cam_dispersion_frac, 5);
+                float valuePerStep_zoom_cam_dispersion_inc = -GetValuePerStep(zoom_cam_dispersion_inc, 5);
                 float valuePerStep_PDM_disp_accel_factor = -GetValuePerStep(PDM_disp_accel_factor, 5);
-                for (int i = 0; i < steps; i++)
-                {
-                    result[UpgradeType.Inertion].Add(GenerateUpgrade(new
-                    {
-                        crosshair_inertion = ToUpgradeValue(valuePerStep_crosshairInertion),
-                        PDM_disp_base = ToUpgradeValue(valuePerStep_PDM_disp_base),
-                        PDM_disp_vel_factor = ToUpgradeValue(valuePerStep_PDM_disp_vel_factor),
-                        PDM_disp_accel_factor = ToUpgradeValue(valuePerStep_PDM_disp_accel_factor),
-                    }));
-                }
-            }
-        }
-
-        {
-            var fireDispersionBase = weapon.GetFloat("fire_dispersion_base"); // Dispersion
-            if (fireDispersionBase > 0.1) {
-                float valuePerStep = -GetValuePerStep(fireDispersionBase, 5);
+                float valuePerStep_PDM_disp_base = -GetValuePerStep(PDM_disp_base, 5);
+                float valuePerStep_PDM_disp_crouch = -GetValuePerStep(PDM_disp_crouch, 5);
+                float valuePerStep_PDM_disp_crouch_no_acc = -GetValuePerStep(PDM_disp_crouch_no_acc, 5);
+                float valuePerStep_PDM_disp_vel_factor = -GetValuePerStep(PDM_disp_vel_factor, 5);
+                
                 for (int i = 0; i < steps; i++) {
                     result[UpgradeType.Dispersion].Add(GenerateUpgrade(new {
-                        fire_dispersion_base = ToUpgradeValue(valuePerStep)
+                        fire_dispersion_base      = ToUpgradeValue(valuePerStep_fire_dispersion_base),
+                        cam_relax_speed           = ToUpgradeValue(valuePerStep_cam_relax_speed),
+                        zoom_cam_relax_speed      = ToUpgradeValue(valuePerStep_zoom_cam_relax_speed),
+                        cam_dispersion            = ToUpgradeValue(valuePerStep_cam_dispersion),
+                        cam_dispersion_frac       = ToUpgradeValue(valuePerStep_cam_dispersion_frac),
+                        cam_dispersion_inc        = ToUpgradeValue(valuePerStep_cam_dispersion_inc),
+                        zoom_cam_dispersion       = ToUpgradeValue(valuePerStep_zoom_cam_dispersion),
+                        zoom_cam_dispersion_frac  = ToUpgradeValue(valuePerStep_zoom_cam_dispersion_frac),
+                        zoom_cam_dispersion_inc   = ToUpgradeValue(valuePerStep_zoom_cam_dispersion_inc),
+                        PDM_disp_accel_factor     = ToUpgradeValue(valuePerStep_PDM_disp_accel_factor),
+                        PDM_disp_base             = ToUpgradeValue(valuePerStep_PDM_disp_base),
+                        PDM_disp_crouch           = ToUpgradeValue(valuePerStep_PDM_disp_crouch),
+                        PDM_disp_crouch_no_acc    = ToUpgradeValue(valuePerStep_PDM_disp_crouch_no_acc),
+                        PDM_disp_vel_factor       = ToUpgradeValue(valuePerStep_PDM_disp_vel_factor),
                     }));
                 }
             }
@@ -397,7 +428,6 @@ public class WeaponsGenerator : BaseGenerator
     {
         Rpm,
         Dispersion,
-        Inertion,
         Recoil,
         FireMode,
         BulletSpeed

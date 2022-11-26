@@ -21,20 +21,14 @@ export class SkillCriticalDeath extends Skill {
             return;
 
         let monsterPos = monster.GO.position();
-        let rangeSqr = this.Range * this.Range;
         let damage = monster.MaxHP * this.HpPct / 100;
 
         let hits = 0;
-        for (let [_, nearbyMonster] of this.World.Monsters) {
-            if (nearbyMonster == monster || nearbyMonster.GO == undefined || nearbyMonster.IsDead)
-                continue;
-            let distanceSqr = nearbyMonster.GO.position().distance_to_sqr(monsterPos);
-            if (distanceSqr <= rangeSqr) {
-                this.World.DamageMonster(nearbyMonster, damage, false);
-                hits++;
-            }
+        for (let nearbyMonster of MonsterWorld.GetMonstersInRange(monsterPos, this.Range)){
+            MonsterWorld.DamageMonster(nearbyMonster, damage, false);
+            hits++;
         }
-
+        
         if (hits > 0) {
             let particles = new particles_object("anomaly2\\body_tear_00");
             particles.play_at_pos(monsterPos);

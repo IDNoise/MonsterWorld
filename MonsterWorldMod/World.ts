@@ -61,7 +61,7 @@ export class World {
     private player?: MWPlayer;
     get Player(): MWPlayer{
         if (this.player == undefined){
-            this.player = new MWPlayer(this, 0);
+            this.player = new MWPlayer(0);
             this.player.Initialize();
         }
         return this.player;
@@ -89,7 +89,7 @@ export class World {
 
         if (!this.Monsters.has(monsterId)){
             //Log(`GetMonster crate new: ${monsterId}`)
-            let monster = new MWMonster(this, monsterId);
+            let monster = new MWMonster(monsterId);
             monster.Initialize();
             this.Monsters.set(monsterId, monster);
         }
@@ -118,7 +118,7 @@ export class World {
 
         if (!this.weapons.has(itemId)){    
             //Log(`GetWeapon crate new: ${itemId}`)
-            let weapon = new MWWeapon(this, itemId);
+            let weapon = new MWWeapon(itemId);
             weapon.Initialize();
             this.weapons.set(itemId, weapon);
         }
@@ -232,8 +232,7 @@ export class World {
             let isCritByWeapon = IsPctRolled(this.GetStat(StatType.CritChancePct, weapon, this.Player))
             let weaponDamage = weapon.DamagePerHit / hits.length;
 
-            for(let i = 0; i < hits.length; i++){
-                const [monster, isCritPartHit] = hits[i];
+            for(let [monster, isCritPartHit] of hits){
                 if (monster.IsDead) continue;
 
                 let monsterDamage = weaponDamage;
@@ -269,8 +268,8 @@ export class World {
 
     GetStat(stat: StatType, ...sources: BaseMWObject[]){
         let value = 0;
-        for(let i = 0; i < sources.length; i++){
-            value += sources[i].GetStat(stat);
+        for(let source of sources){
+            value += source.GetStat(stat);
         }
         return value;
     }
@@ -431,6 +430,20 @@ export class World {
     RemoveTTLTimer(id: Id){ 
         //Log(`remove ttl timer: ${id}`)
         RemoveTimeEvent(id, "ttl"); 
+    }
+
+    public GetMonstersInRange(pos: vector, range: number) : MWMonster[] {
+        let result: MWMonster[] = [];
+        let rangeSqr = range * range
+        for (let [_, monster] of MonsterWorld.Monsters) {
+            if (monster.GO == undefined || monster.IsDead)
+                continue;
+            let distanceSqr = monster.GO.position().distance_to_sqr(pos);
+            if (distanceSqr <= rangeSqr) {
+                result.push(monster)
+            }
+        }
+        return result;
     }
 }
 

@@ -12,7 +12,7 @@ export class SkillHealPlayerOnKill extends Skill {
     get Description(): string { return `+${this.HPOnKill} HP on kill`; }
 
     OnMonsterKill(monster: MWMonster, isCrit: boolean): void {
-        this.World.Player.HP += this.HPOnKill;
+        MonsterWorld.Player.HP += this.HPOnKill;
     }
 
     get HPOnKill(): number { return this.HpPerLevel(this.Level); }

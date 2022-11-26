@@ -67,7 +67,6 @@ export enum WeaponBonusParamType{
     MagSize = "mag_size",
     FireMode = "fire_mode",
     Dispersion = "dispersion",
-    Inertion = "inertion",
     Recoil = "recoil",
     ReloadSpeed = "reload_speed",
     BulletSpeed = "bullet_speed",
@@ -79,7 +78,6 @@ export let ParamsForSelection = [
     WeaponBonusParamType.Rpm, 
     WeaponBonusParamType.MagSize, 
     WeaponBonusParamType.Dispersion, 
-    WeaponBonusParamType.Inertion, 
     WeaponBonusParamType.Recoil, 
     WeaponBonusParamType.ReloadSpeed, 
     WeaponBonusParamType.CritChance
@@ -87,7 +85,6 @@ export let ParamsForSelection = [
 export let ParamsWithWeaponUpgradesSelection = [
     WeaponBonusParamType.Rpm, 
     WeaponBonusParamType.Dispersion, 
-    WeaponBonusParamType.Inertion, 
     WeaponBonusParamType.Recoil, 
     WeaponBonusParamType.BulletSpeed, 
     WeaponBonusParamType.FireMode
@@ -100,8 +97,7 @@ export let PctBonuses = [
     WeaponBonusParamType.Damage, 
     WeaponBonusParamType.Rpm, 
     WeaponBonusParamType.MagSize, 
-    WeaponBonusParamType.Dispersion, 
-    WeaponBonusParamType.Inertion, 
+    WeaponBonusParamType.Dispersion,  
     WeaponBonusParamType.Recoil, 
     WeaponBonusParamType.BulletSpeed, 
     WeaponBonusParamType.ReloadSpeed, 
@@ -115,8 +111,7 @@ export let SectionFields : {[key in WeaponBonusParamType]: string} = {
     mag_size: "_NotUsed",
     rpm: "rpm",
     dispersion: "fire_dispersion_base",
-    inertion: "crosshair_inertion",
-    recoil: "cam_dispersion",
+    recoil: "cam_max_angle",
     bullet_speed: "bullet_speed",
     fire_mode: "fire_mode",
 }
@@ -127,7 +122,6 @@ let BonusDescriptions : {[key in WeaponBonusParamType]: string} = {
     mag_size: "Mag size",
     fire_mode: "AUTO fire mode enabled",
     dispersion: "Accuracy",
-    inertion: "Handling",
     recoil: "Recoil",
     reload_speed: "Reload speed",
     crit_chance: "Crit chance",
