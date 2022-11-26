@@ -41,6 +41,12 @@ export class World {
         this.UIManager = new UIManager();
         this.Timers = new TimerManager();
 
+        bind_anomaly_field.dyn_anomalies_refresh = (_force) => {}
+        bind_anomaly_zone.anomaly_zone_binder.refresh = (s, from) => { 
+            s.disabled = true;
+            s.turn_off();
+        }
+        bind_anomaly_zone.anomaly_zone_binder.turn_on = (s) => {}
         utils_item.get_upgrades_tree = (wpn, _t) => {};
         game_setup.try_spawn_world_item = (ignore: any) => {};
         treasure_manager.init_settings = () => {};
@@ -193,6 +199,9 @@ export class World {
         }
 
         damage = math.max(1, damage) * this.enemyDamageMult;
+        if (this.Player.HP > this.Player.MaxHP * 0.5 && damage >= this.Player.HP){ //Disable one hit kills if we have 50%+ hp
+            damage = this.Player.HP - 1;
+        }
         this.Player.HP -= damage;
 
         Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage}) in ${boneId}`)
@@ -239,8 +248,11 @@ export class World {
 
     DamageMonster(monster: MWMonster, damage: number, isCrit: boolean): number{
         let realDamage = math.min(monster.HP, damage)
+        if (realDamage < monster.HP && (monster.HP - realDamage) < 3){ //Don't leave enemies with 1-2 hp (just not fun :D)
+            realDamage = monster.HP;
+        }
         monster.HP -= realDamage;
-        
+
         if (monster.IsDead){
             this.OnMonsterKilled(monster, isCrit)
         }

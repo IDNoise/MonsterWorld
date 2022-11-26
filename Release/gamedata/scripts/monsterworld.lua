@@ -5732,6 +5732,8 @@ function World.prototype.____constructor(self, mod)
     self.SpawnManager = __TS__New(SpawnManager)
     self.UIManager = __TS__New(UIManager)
     self.Timers = __TS__New(TimerManager)
+    bind_anomaly_field.bind_anomaly_field = function(_)
+    end
     utils_item.get_upgrades_tree = function(wpn, _t)
     end
     game_setup.try_spawn_world_item = function(ignore)
@@ -5912,7 +5914,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
             local isCritPartHit = ____value[2]
             do
                 if monster.IsDead then
-                    goto __continue43
+                    goto __continue44
                 end
                 local monsterDamage = weaponDamage
                 if monster.GO:is_stalker() then
@@ -5929,7 +5931,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
                 self.UIManager:ShowDamage(realDamage, isCrit, monster.IsDead)
                 self.Player:IterateSkills(function(s) return s:OnMonsterHit(monster, isCrit) end)
             end
-            ::__continue43::
+            ::__continue44::
         end
     end
 end
@@ -6101,14 +6103,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue87
+                goto __continue88
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue87::
+        ::__continue88::
     end
     return result
 end
