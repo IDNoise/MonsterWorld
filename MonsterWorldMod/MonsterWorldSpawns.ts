@@ -141,16 +141,29 @@ export class MonsterWorldSpawns {
         let locCfg = cfg.LocationConfigs[level.name()];
         let locLevel = locCfg.level || 1;
 
-        if (locLevel < 10){
-            squadSize *= 0.5 + 0.05 * locLevel
+        if (locLevel < 5){
+            squadSize *= 0.5 + 0.1 * locLevel
+        }
+
+        let playerLevel = this.world.Player.Level
+        let enemyLvl = locLevel;
+        if (locLevel < playerLevel){
+            if (locLevel <= 5)
+                enemyLvl = math.max(locLevel, playerLevel - 1);
+            else if (locLevel <= 15)
+                enemyLvl = math.max(locLevel, playerLevel);
+            else if (locCfg.type == LevelType.Open)
+                enemyLvl = math.max(locLevel, playerLevel + 1);
+            else if (locCfg.type == LevelType.Underground)
+                enemyLvl = math.max(locLevel, playerLevel + 3);
+            else if (locCfg.type == LevelType.Lab)
+                enemyLvl = math.max(locLevel, playerLevel + 5);
         }
 
         for(let i = 0; i < squadSize;){
-            
-            let enemyLvl = math.max(locLevel, this.world.Player.Level - 3);
-
+            let squadMemberLevel = enemyLvl;
             if (IsPctRolled(cfg.EnemyHigherLevelChance))
-                enemyLvl++;
+            squadMemberLevel++;
 
             let rank = MonsterRank.Common;
 
@@ -175,7 +188,7 @@ export class MonsterWorldSpawns {
 
             Save(monsterId, "MW_SpawnParams", {
                 type: monsterType,
-                level: enemyLvl,
+                level: squadMemberLevel,
                 rank: rank
             });
             i++;

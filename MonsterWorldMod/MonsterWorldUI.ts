@@ -101,6 +101,14 @@ export class MonsterWorldUI {
                 return;
             
             s.name.SetTextColor(cfg.QualityColors[weapon.Quality])
+
+            //TODO Custom stats display for weapons and stimpacks and mb smth new
+
+            //Hide info not needed in mod
+            s.ammo.Show(false)
+            s.note.Show(false)
+            s.value.Show(false)
+            s.weight.Show(false)
         }
         utils_ui.UIInfoItem.Update = newUIInfoItemUpdate
 

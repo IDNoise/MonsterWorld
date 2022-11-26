@@ -553,9 +553,7 @@ export let WeaponDPSExpPerLevel = EnemyHPExpPerLevel - 0.005;
 export let WeaponDPSPctPerQuality = 10;
 
 //Drops
-export let EnemyDropChance = 15;
-export let EnemyBossDropChance = 100;
-export let EnemyEliteDropChance = 25;
+export let EnemyDropChanceByRank: number[] = [15, 100, 35];
 export let MinQuality = 1;
 export let MaxQuality = 5;
 
@@ -596,8 +594,6 @@ export let MonsterRankColors: {[key in MonsterRank]: ARGBColor} = {
 };
 
 export let EndColorTag: string = "%c[default]"
-
-export let LevelColor: string = "%c[255,104,210,26]"; //greenish
 
 export enum DropType {
     Weapon,

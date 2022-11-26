@@ -56,11 +56,7 @@ export class MWMonster extends BaseMWObject{
         return nameInfo;
     }
 
-    get DropChance(): number {
-        if (this.Rank == MonsterRank.Boss) return cfg.EnemyBossDropChance;
-        if (this.Rank == MonsterRank.Elite) return cfg.EnemyEliteDropChance;
-        return cfg.EnemyDropChance
-    }
+    get DropChance(): number { return cfg.EnemyDropChanceByRank[this.Rank]; }
 
     get XPReward(): number { return this.Load("XPReward"); }
     set XPReward(expReward: number) { this.Save("XPReward", expReward); }
