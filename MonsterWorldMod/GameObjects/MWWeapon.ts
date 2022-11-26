@@ -24,9 +24,9 @@ export class MWWeapon extends MWItem {
         result += GetBonusDescription(StatType.Rpm, this.GetTotalPctBonus(StatType.Rpm), true);
         result += GetBonusDescription(StatType.MagSize, this.GetStatDiffWithBase(StatType.MagSize));
         result += GetBonusDescription(StatType.ReloadSpeedBonusPct, this.GetTotalFlatBonus(StatType.ReloadSpeedBonusPct));
-        result += GetBonusDescription(StatType.Dispersion, this.GetTotalPctBonus(StatType.Dispersion), true);
+        result += GetBonusDescription(StatType.Accuracy, this.GetTotalPctBonus(StatType.Accuracy), true);
         result += GetBonusDescription(StatType.Recoil, this.GetTotalPctBonus(StatType.Recoil), true);
-        result += GetBonusDescription(StatType.BulletSpeed, this.GetTotalPctBonus(StatType.BulletSpeed), true);
+        result += GetBonusDescription(StatType.Flatness, this.GetTotalPctBonus(StatType.Flatness), true);
         result += GetBonusDescription(StatType.CritChancePct, this.GetStat(StatType.CritChancePct));
         result += GetBonusDescription(StatType.AutoFireMode, this.GetStat(StatType.AutoFireMode));
 
@@ -67,9 +67,9 @@ export class MWWeapon extends MWItem {
         this.SetStatBase(StatType.Damage, damagePerHit)
         this.SetStatBase(StatType.Rpm, rpm);
         this.SetStatBase(StatType.MagSize, magSize)
-        this.SetStatBase(StatType.Dispersion, GetWeaponBaseValueByStat(this.Section, StatType.Dispersion));
+        this.SetStatBase(StatType.Accuracy, GetWeaponBaseValueByStat(this.Section, StatType.Accuracy));
         this.SetStatBase(StatType.Recoil, GetWeaponBaseValueByStat(this.Section, StatType.Recoil));
-        this.SetStatBase(StatType.BulletSpeed, GetWeaponBaseValueByStat(this.Section, StatType.BulletSpeed));
+        this.SetStatBase(StatType.Flatness, GetWeaponBaseValueByStat(this.Section, StatType.Flatness));
 
         let weaponUpgradesByBonusType: LuaTable<StatType, string[]> = new LuaTable();
 
@@ -88,23 +88,22 @@ export class MWWeapon extends MWItem {
             }
         }        
 
-        let upgradeTypesToAdd = 1 + this.Quality + math.floor(this.Level / 10);
-        const upgradeTypesToSelect = math.min(availableBonuses.length, upgradeTypesToAdd);
-        let selectedUpgradeStats = TakeRandomUniqueElementsFromArray(availableBonuses, upgradeTypesToSelect);
+        let statsToSelect = math.min(availableBonuses.length, 1 + this.Quality + math.floor(this.Level / 10));
+        let selectedStats = TakeRandomUniqueElementsFromArray(availableBonuses, statsToSelect);
 
-        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.BulletSpeed)){ //Bullet speed is additional random bonus
-            selectedUpgradeStats.push(StatType.BulletSpeed);
+        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.Flatness)){ //Bullet speed is additional random bonus
+            selectedStats.push(StatType.Flatness);
             //Log(`selectedUpgradeTypes ${BonusParams.Type.BulletSpeed}`)
         }
 
         if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.AutoFireMode)){ //Auto fire is additional random bonus
-            selectedUpgradeStats.push(StatType.AutoFireMode);
+            selectedStats.push(StatType.AutoFireMode);
             //Log(`selectedUpgradeTypes ${BonusParams.Type.FireMode}`)
         }
 
         let damageBonusPct = 0;
         let allSelectedUpgrades: string[] = [];
-        for (let stat of selectedUpgradeStats) {
+        for (let stat of selectedStats) {
             if (stat == StatType.Damage) {
                 damageBonusPct += math.random(3 + 7 * (this.Quality - 1), (15 + 15 * (this.Quality - 1)) * this.Quality)
             }

@@ -18,11 +18,7 @@ export class MWPlayer extends MWObject {
         this.Level = 0;
         this.CurrentXP = 0;
         this.SetStatBase(StatType.MaxHP, cfg.PlayerHPBase)
-        this.SetStatBase(StatType.RunSpeed, 1)
-        this.SetStatBase(StatType.SprintSpeed, 1)
         this.SetStatBase(StatType.HPRegen, cfg.PlayerHPRegenBase)
-
-        this.SetStatBase(StatType.CritDamagePct, 0)
         this.AddStatBonus(StatType.CritDamagePct, StatBonusType.Flat, cfg.PlayerDefaultCritDamagePct, "initial")
     }
 
@@ -35,6 +31,7 @@ export class MWPlayer extends MWObject {
 
     get CurrentXP(): number { return this.Load("CurrentXP", 0); }
     set CurrentXP(exp: number) { 
+        exp *= this.GetStat(StatType.XPGainMult);
         while (exp >= this.RequeiredXP){
             exp -= this.RequeiredXP;
             this.LevelUp();
@@ -67,7 +64,7 @@ export class MWPlayer extends MWObject {
     UpdateLevelBonuses(): void{
         this.AddStatBonus(StatType.MaxHP, StatBonusType.Pct, cfg.PlayerHPPerLevel * this.Level, "level_bonus");
         this.AddStatBonus(StatType.HPRegen, StatBonusType.Pct, cfg.PlayerHPRegenPctPerLevel * this.Level, "level_bonus");
-        this.AddStatBonus(StatType.RunSpeed, StatBonusType.Pct, cfg.PlayerRunSpeedPctPerLevel * this.Level, "level_bonus");
+        this.AddStatBonus(StatType.RunSpeedMult, StatBonusType.Pct, cfg.PlayerRunSpeedPctPerLevel * this.Level, "level_bonus");
     }
 
     get SkillPoints(): number { return this.Load("SkillPoints", 0); }
@@ -75,11 +72,11 @@ export class MWPlayer extends MWObject {
 
     protected override OnStatChanged(stat: StatType, total: number): void {
         super.OnStatChanged(stat, total);
-        if (stat == StatType.RunSpeed){
+        if (stat == StatType.RunSpeedMult){
             db.actor.set_actor_run_coef(cfg.PlayerRunSpeedCoeff * total)
             db.actor.set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * total)
         }
-        else if (stat == StatType.SprintSpeed){
+        else if (stat == StatType.SprintSpeedMult){
             db.actor.set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * total)
         }
     }
@@ -88,9 +85,10 @@ export class MWPlayer extends MWObject {
         super.SetupSkills();
         this.AddSkill(new SkillPassiveStatBonus(`max_hp`, this, StatType.MaxHP, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
         this.AddSkill(new SkillPassiveStatBonus(`hp_regen`, this, StatType.HPRegen, StatBonusType.Pct, (level: number) => 10 * level, PriceFormulaConstant(1), 50))
-        this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeed, StatBonusType.Pct, (level: number) => 1 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill(new SkillPassiveStatBonus(`run_speed`, this, StatType.RunSpeedMult, StatBonusType.Pct, (level: number) => 1 * level, PriceFormulaConstant(1), 50))
         this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 1 * level, PriceFormulaConstant(1), 50))
         this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill(new SkillPassiveStatBonus(`xp_gain`, this, StatType.XPGainMult, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 20))
     }
 
 // this.AddSkill(new SkillHealPlayerOnKill(`heal_on_kill`, this, (level) => 0.5 * level, PriceFormulaConstant(1), 10))

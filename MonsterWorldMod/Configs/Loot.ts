@@ -16,7 +16,7 @@ export let MaxQuality = 5;
 export let HigherLevelDropChancePct = 5;
 
 export let QualityWeights = [
-    {quality: 1, weight: 100},
+    {quality: 1, weight: 250},
     {quality: 2, weight: 20},
     {quality: 3, weight: 10},
     {quality: 4, weight: 5},
@@ -34,7 +34,7 @@ export type DropConfig = {
 export let DropConfigs: DropConfig[] = [
     {type: DropType.Weapon, weight: 50},
     {type: DropType.Stimpack, weight: 10},
-    {type: DropType.Armor, weight: 50}, 
+    {type: DropType.Armor, weight: 10}, 
     //{type: DropType.Art, weight: 500}, 
 ]
 
@@ -54,11 +54,16 @@ export function GetDropParticles(type: DropType, quality: number): string {
     return "_samples_particles_\\holo_lines";
 }
 
+export let ArmorStatsForGeneration = [
+    StatType.DamageResistancePct,
+    StatType.HPRegen,
+]
+
 export let WeaponStatsForGeneration = [
     StatType.Damage, 
     StatType.Rpm, 
     StatType.MagSize, 
-    StatType.Dispersion, 
+    StatType.Accuracy, 
     StatType.Recoil, 
     StatType.ReloadSpeedBonusPct, 
     StatType.CritChancePct
@@ -66,9 +71,9 @@ export let WeaponStatsForGeneration = [
 
 export let WeaponStatsUsingUpgrades = [
     StatType.Rpm, 
-    StatType.Dispersion, 
+    StatType.Accuracy, 
     StatType.Recoil, 
-    StatType.BulletSpeed, 
+    StatType.Flatness, 
     StatType.AutoFireMode
 ]; 
 
@@ -76,9 +81,9 @@ export function GetWeaponUpgradesByStat(weaponSection: Section, stat: StatType):
     let prefix = "";
     switch(stat){
         case StatType.Rpm: prefix = "rpm"; break; 
-        case StatType.Dispersion: prefix = "dispersion"; break; 
+        case StatType.Accuracy: prefix = "dispersion"; break; 
         case StatType.Recoil: prefix = "recoil"; break; 
-        case StatType.BulletSpeed: prefix = "bullet_speed"; break; 
+        case StatType.Flatness: prefix = "bullet_speed"; break; 
         case StatType.AutoFireMode: prefix = "fire_mode"; break; 
     }
 
@@ -97,9 +102,9 @@ export function GetWeaponUpgradesByStat(weaponSection: Section, stat: StatType):
 export function GetWeaponSectinFieldNameByStat(stat: StatType): string {
     switch(stat){
         case StatType.Rpm: return "rpm"; 
-        case StatType.Dispersion: return "fire_dispersion_base"; 
+        case StatType.Accuracy: return "fire_dispersion_base"; 
         case StatType.Recoil: return "cam_max_angle";
-        case StatType.BulletSpeed: return "bullet_speed"; 
+        case StatType.Flatness: return "bullet_speed"; 
         case StatType.MagSize: return "ammo_mag_size"; 
     }
     return "";

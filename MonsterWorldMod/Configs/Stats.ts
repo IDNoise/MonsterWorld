@@ -1,12 +1,19 @@
 import { EndColorTag } from "./UI";
 
 export const enum StatType{
-    RunSpeed = 0, //Player only
-    SprintSpeed, //Player only
+    RunSpeedMult = 0, //Player only
+    SprintSpeedMult, //Player only
     MaxHP, //Player only
     HPRegen, //Player only
+    XPGainMult, //Player only
 
     Damage, //Weapon only
+
+    Rpm, //Weapon - only from upgrades
+    Accuracy, //Weapon - only from upgrades
+    Recoil, //Weapon - only from upgrades
+    Flatness, //Weapon - only from upgrades
+    AutoFireMode, //Weapon - only from upgrades
 
     ReloadSpeedBonusPct, //Player + Weapon
     CritDamagePct, //Player + Weapon
@@ -14,23 +21,17 @@ export const enum StatType{
     DamageToStalkersBonusPct, //Player + Weapon
     DamageToMutantssBonusPct, //Player + Weapon
     MagSize, //Player + Weapon
-    Rpm, //Weapon - only from upgrades
-    Dispersion, //Weapon - only from upgrades
-    Recoil, //Weapon - only from upgrades
-    BulletSpeed, //Weapon - only from upgrades
-    AutoFireMode, //Weapon - only from upgrades
 
     DamageResistancePct, //Armor
-
-    //Predefined by armor quality
-    ArtefactSlots
+    ArtefactSlots // Armor - Predefined by quality    
 }
 
 export let StatTitles: {[key in StatType]: string} = {
-    [StatType.RunSpeed]: "Run Speed",
-    [StatType.SprintSpeed]: "Sprint Speed",
+    [StatType.RunSpeedMult]: "Run Speed",
+    [StatType.SprintSpeedMult]: "Sprint Speed",
     [StatType.MaxHP]: "Max HP",
     [StatType.HPRegen]: "HP Regen",
+    [StatType.XPGainMult]: "XP Gain",
 
     [StatType.Damage]: "Damage per Hit",
     
@@ -41,9 +42,9 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.DamageToMutantssBonusPct]: "Damage to Mutants",
     [StatType.MagSize]: "Ammo",
     [StatType.Rpm]: "Fire rate",
-    [StatType.Dispersion]: "Accuracy",
+    [StatType.Accuracy]: "Accuracy",
     [StatType.Recoil]: "Recoil",
-    [StatType.BulletSpeed]: "Flatness",
+    [StatType.Flatness]: "Flatness",
     [StatType.AutoFireMode]:  "AUTO Fire mode enabled",
 
     [StatType.DamageResistancePct]: "Damage Resistance",
@@ -65,6 +66,12 @@ export let PctStats: StatType[] = [
     StatType.ReloadSpeedBonusPct,
     StatType.DamageResistancePct,
 ];
+
+export let MultStats: StatType[] = [
+    StatType.RunSpeedMult,
+    StatType.SprintSpeedMult,
+    StatType.XPGainMult,
+]
 
 export let NoValueStats: StatType[] = [
     StatType.AutoFireMode

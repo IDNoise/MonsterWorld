@@ -26,12 +26,7 @@ export abstract class MWItem extends MWObject {
         this.GO.set_condition(100)
     }
 
-    public GetPlayerStatBonusesOnEquip(): StatType[] {
-        return [
-            StatType.MaxHP,
-            StatType.DamageResistancePct,
-        ];
-    }
+    public GetPlayerStatBonusesOnEquip(): StatType[] { return [] }
 
     public OnItemEquipped(){
         let source = `${this.id}`;

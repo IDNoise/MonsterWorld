@@ -1,7 +1,7 @@
 import { Log } from '../../StalkerModBase';
 import { World } from '../World';
 import { Skill } from '../Skills/Skill';
-import { StatType, StatBonusType, PctStats } from '../Configs/Stats';
+import { StatType, StatBonusType, PctStats, MultStats } from '../Configs/Stats';
 import { Save, Load } from '../Helpers/StalkerAPI';
 import { SumTable } from '../Helpers/Collections';
 
@@ -54,9 +54,13 @@ export abstract class MWObject {
 
     get Section(): string { return this.ServerGO.section_name(); }
 
-    GetStat(stat: StatType): number{ return this.Load<number>(GetStatTotalField(stat), 0); }
-    GetStatBase(stat: StatType): number { return this.Load<number>(GetStatBaseField(stat), 0); }
-    GetStatDiffWithBase(stat: StatType): number { return this.GetStat(stat) - this.GetStatBase(stat); }
+    GetStat(stat: StatType): number{ return this.Load<number>(GetStatTotalField(stat), MultStats.includes(stat) ? 1 : 0); }
+    GetStatBase(stat: StatType): number { return this.Load<number>(GetStatBaseField(stat), MultStats.includes(stat) ? 1 : 0 ); }
+    GetStatDiffWithBase(stat: StatType): number { 
+        return MultStats.includes(stat) 
+            ? this.GetStat(stat) / this.GetStatBase(stat)
+            : this.GetStat(stat) - this.GetStatBase(stat); 
+    }
 
     SetStatBase(stat: StatType, baseValue: number): void{ 
         this.Save<number>(GetStatBaseField(stat), baseValue); 
@@ -113,7 +117,7 @@ export abstract class MWObject {
     }
    
     RecalculateStatTotal(stat: StatType){
-        let base = this.Load<number>(GetStatBaseField(stat), 0); 
+        let base = this.GetStatBase(stat); 
         let flatBonus = this.GetTotalFlatBonus(stat)
         let pctBonus = this.GetTotalPctBonus(stat)
         let multBonus = this.GetTotalMultBonus(stat)
