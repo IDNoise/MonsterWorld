@@ -1,13 +1,12 @@
 import { EnableMutantLootingWithoutKnife, CreateWorldPositionAtGO } from '../StalkerAPI/extensions/basic';
 import { Log, StalkerModBase } from '../StalkerModBase';
-import { HitInfo, MonsterWorld } from './MonsterWorld';
-import { CriticalBones } from './MonsterWorldBones';
-import { MWMonster } from './MWMonster';
-import { ReloadAnims } from './MonsterWorldAnims';
-import { GetStimpack } from './MonsterWorldConfig';
+import { HitInfo, World } from './World';
+import { ReloadAnims } from './Constants/WeaponAnimations';
+import { GetStimpack } from './Configs/Loot';
+import { CriticalBones } from './Constants/CritBones';
 
 export class MonsterWorldMod extends StalkerModBase {
-    public World: MonsterWorld;
+    public World: World;
 
     private playerHitsThisFrame: LuaSet<Id> = new LuaSet();
     private monsterHitsThisFrame: Map<Id, HitInfo> = new Map();
@@ -18,7 +17,7 @@ export class MonsterWorldMod extends StalkerModBase {
         StalkerModBase.ModName = "MonsterWorldMod";
         StalkerModBase.IsLogEnabled = true;
 
-        this.World = new MonsterWorld(this);
+        this.World = new World(this);
         this.RegisterCallbacks();
     }
 

@@ -1,5 +1,5 @@
-import { BaseMWObject } from "../BaseMWObject";
-import { StatType, StatBonusType, StatTitles, PctStats } from "../MonsterWorldConfig";
+import { StatType, StatBonusType, StatTitles, PctStats } from "../Configs/Stats";
+import { BaseMWObject } from "../GameObjects/BaseMWObject";
 import { Skill } from "./Skill";
 
 export class SkillPassiveStatBonus extends Skill {

@@ -1,33 +1,40 @@
 import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save, CreateWorldPositionAtGO, CreateVector, CreateWorldPositionAtPosWithGO } from '../StalkerAPI/extensions/basic';
 import { Log } from '../StalkerModBase';
-import * as cfg from './MonsterWorldConfig';
+import * as constants from './Configs/Constants';
 import { MonsterWorldMod } from './MonsterWorldMod';
-import { MWMonster } from './MWMonster';
-import { MWPlayer } from './MWPlayer';
-import { MWWeapon } from './MWWeapon';
-import { MonsterConfig, LevelType, MonsterType, MonsterRank, StatType } from './MonsterWorldConfig';
-import { MonsterWorldSpawns } from './MonsterWorldSpawns';
-import { MonsterWorldUI } from './MonsterWorldUI';
-import { CriticalBones } from './MonsterWorldBones';
-import { BaseMWObject } from './BaseMWObject';
+import { MWMonster } from './GameObjects/MWMonster';
+import { MWPlayer } from './GameObjects/MWPlayer';
+import { MWWeapon } from './GameObjects/MWWeapon';
+import { SpawnManager } from './Managers/SpawnManager';
+import { UIManager } from './Managers/UIManager';
+import { BaseMWObject } from './GameObjects/BaseMWObject';
+import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/Difficulty';
+import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, GetStimpack, GetDropParticles, DropType } from './Configs/Loot';
+import { StatType } from './Configs/Stats';
 
-export class MonsterWorld {
+declare global{
+    let MonsterWorld: World;
+}
+
+export class World {
     private weapons: LuaTable<Id, MWWeapon>
     private enemyDamageMult: number = 1;
     private enemyDropChanceMult: number = 1;
 
     public Monsters: LuaTable<Id, MWMonster>
 
-    public SpawnManager: MonsterWorldSpawns;
-    public UIManager: MonsterWorldUI;
+    public SpawnManager: SpawnManager;
+    public UIManager: UIManager;
+
     public DeltaTime: number;
 
     constructor(public mod: MonsterWorldMod){
+        MonsterWorld = this;
         this.Monsters = new LuaTable();
         this.weapons = new LuaTable();
 
-        this.SpawnManager = new MonsterWorldSpawns(this);
-        this.UIManager = new MonsterWorldUI(this);
+        this.SpawnManager = new SpawnManager();
+        this.UIManager = new UIManager();
 
         utils_item.get_upgrades_tree = (wpn, _t) => {};
         game_setup.try_spawn_world_item = (ignore: any) => {};
@@ -160,8 +167,8 @@ export class MonsterWorld {
     }
 
     public OnPlayerSpawned():void{
-        this.enemyDamageMult = cfg.GetDifficultyDamageMult();
-        this.enemyDropChanceMult = cfg.GetDifficultyDropChanceMult()
+        this.enemyDamageMult = GetDifficultyDamageMult();
+        this.enemyDropChanceMult = GetDifficultyDropChanceMult()
         // db.actor.inventory_for_each((item) => {
         //     if (item.is_weapon())
         //         this.GetWeapon(item.id());
@@ -201,7 +208,7 @@ export class MonsterWorld {
         if (attackerGO.is_stalker() && shit.weapon_id != 0 && shit.weapon_id != attackerGO.id()){
             let weapon = level.object_by_id(shit.weapon_id);
             if (weapon?.is_weapon())
-                damage *= clamp(weapon.cast_Weapon().RPM(), 0.3, 2); //limit on damage multiplier
+                damage *= clamp(weapon.cast_Weapon().RPM(), 0.25, 1.25); //limit on damage multiplier for slow firing enemies (can be overkill)
         }
 
         damage = math.max(1, damage) * this.enemyDamageMult;
@@ -288,14 +295,14 @@ export class MonsterWorld {
 
     GenerateDrop(monster: MWMonster) {
         Log(`GenerateDrop`)
-        let type = cfg.GetDropType();
+        let type = GetDropType();
 
         let sgo: cse_alife_object | undefined = undefined;
         let quality = 1;
-        if (type == cfg.DropType.Weapon){
+        if (type == DropType.Weapon){
             [sgo, quality] = this.GenerateWeaponDropFromMonster(monster);
         }
-        else if (type == cfg.DropType.Stimpack){
+        else if (type == DropType.Stimpack){
             [sgo, quality] = this.GenerateStimpackDropFromMonster(monster);
         }
 
@@ -323,7 +330,7 @@ export class MonsterWorld {
         let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
         let selectedVariant = RandomFromArray(weaponVariants)
         
-        if (IsPctRolled(cfg.HigherLevelDropChancePct)){
+        if (IsPctRolled(HigherLevelDropChancePct)){
             dropLevel++;
         }
 
@@ -334,7 +341,7 @@ export class MonsterWorld {
             return undefined;
         }
 
-        qualityLevel = math.min(qualityLevel, cfg.MaxQuality)
+        qualityLevel = math.min(qualityLevel, MaxQuality)
 
         Save(sgo.id, "MW_SpawnParams", {level: dropLevel, quality: qualityLevel});
         return sgo;
@@ -343,10 +350,10 @@ export class MonsterWorld {
 
     GenerateWeaponDropFromMonster(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
         let dropLevel = monster.Level;
-        let qualityLevel = cfg.GetDropQuality();
+        let qualityLevel = GetDropQuality();
     
-        if (IsPctRolled(cfg.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
-        if (IsPctRolled(cfg.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
+        if (IsPctRolled(constants.EnemyDropLevelIncreaseChanceByRank[monster.Rank])) dropLevel++;
+        if (IsPctRolled(constants.EnemyDropQualityIncreaseChanceByRank[monster.Rank])) qualityLevel++;
         return $multi(this.GenerateWeaponDrop(dropLevel, qualityLevel, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO)), qualityLevel)
     }
 
@@ -360,31 +367,31 @@ export class MonsterWorld {
     }
 
     GenerateStimpackDropFromMonster(monster: MWMonster): LuaMultiReturn<[cse_alife_object | undefined, number]> {
-        let [stimpackSection, quality] = cfg.GetStimpack();
+        let [stimpackSection, quality] = GetStimpack();
         Log(`Spawning ${stimpackSection}`)
         
         return $multi(this.GenerateStimpackDrop(stimpackSection, CreateWorldPositionAtPosWithGO(CreateVector(0, 0.2, 0), monster.GO)), quality);
     }
 
     highlightParticles: LuaTable<Id, particles_object> = new LuaTable()
-    HighlightDroppedItem(id: Id, type: cfg.DropType, quality: number) {
+    HighlightDroppedItem(id: Id, type: DropType, quality: number) {
         CreateTimeEvent(id, "highlight", 0.3, (): boolean => {
             let obj = level.object_by_id(id);
             if (obj == undefined){
                 return false;
             }
 
-            let particles = new particles_object(cfg.GetDropParticles(type, quality));
+            let particles = new particles_object(GetDropParticles(type, quality));
             this.highlightParticles.set(id, particles)
             let pos = obj.position()
             pos.y -= 0.1;
             particles.play_at_pos(pos)
 
             let spotType = SpotType.Body;
-            if (type == cfg.DropType.Stimpack){
+            if (type == DropType.Stimpack){
                 level.map_add_object_spot_ser(id, SpotType.Friend, "")
             }
-            else if (type == cfg.DropType.Weapon){
+            else if (type == DropType.Weapon){
                 if (quality == 3 || quality == 4)
                     spotType = SpotType.Friend;
                 if (quality == 5)

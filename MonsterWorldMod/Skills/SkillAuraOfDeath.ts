@@ -1,4 +1,4 @@
-import { BaseMWObject } from '../BaseMWObject';
+import { BaseMWObject } from '../GameObjects/BaseMWObject';
 import { Skill } from './Skill';
 
 

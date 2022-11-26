@@ -1,12 +1,12 @@
-import { MWMonster } from '../MWMonster';
-import { MonsterWorld } from '../MonsterWorld';
-import { BaseMWObject } from '../BaseMWObject';
+import { MWMonster } from '../GameObjects/MWMonster';
+import { World } from '../World';
+import { BaseMWObject } from '../GameObjects/BaseMWObject';
 
 
 export abstract class Skill {
     private level: number = 0;
 
-    public World: MonsterWorld;
+    public World: World;
 
     public OnLevelUpHandlers: ((skill: Skill) => void)[] = [];
 

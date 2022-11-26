@@ -1,13 +1,14 @@
-import { TakeRandomFromArray, IsPctRolled } from '../StalkerAPI/extensions/basic';
-import { Log } from '../StalkerModBase';
+import { TakeRandomFromArray, IsPctRolled } from '../../StalkerAPI/extensions/basic';
+import { Log } from '../../StalkerModBase';
 import { BaseMWObject } from './BaseMWObject';
-import { MonsterWorld } from './MonsterWorld';
-import * as cfg from './MonsterWorldConfig';
-import { WeaponSpawnParams, StatType, WeaponBonusParamType, StatBonusType} from './MonsterWorldConfig';
+import { World } from '../World';
+import * as cfg from '../Configs/Constants';
+import { MinQuality, MaxQuality, WeaponBonusParamType, ParamsWithWeaponUpgradesSelection, GetBonusDescription, ParamsForSelection, PctBonuses, SectionFields} from '../Configs/Loot';
+import { StatType, StatBonusType } from '../Configs/Stats';
 
 export class MWWeapon extends BaseMWObject {
     
-    constructor(public World: MonsterWorld, public id: Id) {
+    constructor(public World: World, public id: Id) {
         super(World, id);
     }
 
@@ -15,7 +16,7 @@ export class MWWeapon extends BaseMWObject {
         let spawnCfg = this.Load<WeaponSpawnParams>("SpawnParams", {level: 1, quality: 1})
 
         this.Level = spawnCfg.level;
-        this.Quality = math.max(cfg.MinQuality, math.min(cfg.MaxQuality, spawnCfg.quality));
+        this.Quality = math.max(MinQuality, math.min(MaxQuality, spawnCfg.quality));
         this.DescriptionBonuses = new LuaTable();
 
         if (this.Section.indexOf("knife") >= 0){
@@ -42,10 +43,10 @@ export class MWWeapon extends BaseMWObject {
     public GetBonusDescription(): string{
         let result = "";
 
-        for(const type of cfg.ParamsForSelection){
+        for(const type of ParamsForSelection){
             const value = this.DescriptionBonuses.get(type) || 0;
             if (value != 0)
-                result += cfg.GetBonusDescription(type, value) + " \\n";
+                result += GetBonusDescription(type, value) + " \\n";
         }
 
         return result;
@@ -87,8 +88,8 @@ export class MWWeapon extends BaseMWObject {
 
         let weaponUpgradesByBonusType: LuaTable<WeaponBonusParamType, string[]> = new LuaTable();
 
-        for (let i = 0; i < cfg.ParamsWithWeaponUpgradesSelection.length; i++) {
-            let uType = cfg.ParamsWithWeaponUpgradesSelection[i];
+        for (let i = 0; i < ParamsWithWeaponUpgradesSelection.length; i++) {
+            let uType = ParamsWithWeaponUpgradesSelection[i];
             let upgrades = this.GetUpgradesByType(uType)
             //Log(`weaponUpgradesByBonusType ${uType}:${upgrades.length}`)
             if (upgrades.length != 0)
@@ -97,9 +98,9 @@ export class MWWeapon extends BaseMWObject {
 
         let selectedUpgradeTypes: WeaponBonusParamType[] = [];
         let availableBonuses: WeaponBonusParamType[] = [];
-        for(let i = 0; i < cfg.ParamsForSelection.length; i++){
-            let type = cfg.ParamsForSelection[i];
-            if (!cfg.ParamsWithWeaponUpgradesSelection.includes(type) || weaponUpgradesByBonusType.has(type)){
+        for(let i = 0; i < ParamsForSelection.length; i++){
+            let type = ParamsForSelection[i];
+            if (!ParamsWithWeaponUpgradesSelection.includes(type) || weaponUpgradesByBonusType.has(type)){
                 availableBonuses.push(type)
                 //Log(`availableBonuses ${type}`)
             }
@@ -169,12 +170,12 @@ export class MWWeapon extends BaseMWObject {
                 for(let i = 0; i < upgradesToSelect; i++){
                     const upgrade = upgrades[i];
                     allSelectedUpgrades.push(upgrade);
-                    bonusValue += ini_sys.r_float_ex(upgrade.replace("mwu", "mwb"), cfg.SectionFields[paramType], 0);
+                    bonusValue += ini_sys.r_float_ex(upgrade.replace("mwu", "mwb"), SectionFields[paramType], 0);
                 }
 
                 if (bonusValue != 0) {
-                    if (cfg.PctBonuses.includes(paramType)) {
-                        let defaultValue = ini_sys.r_float_ex(this.Section, cfg.SectionFields[paramType], 1);
+                    if (PctBonuses.includes(paramType)) {
+                        let defaultValue = ini_sys.r_float_ex(this.Section, SectionFields[paramType], 1);
                         if (defaultValue == 0) 
                             defaultValue = 1;
                         //Log(`Bonus ${t}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
@@ -207,4 +208,9 @@ export class MWWeapon extends BaseMWObject {
     RefillMagazine(){
         this.GO?.cast_Weapon().SetAmmoElapsed(this.MagSize)
     }
+}
+
+export type  WeaponSpawnParams = {
+    level: number;
+    quality: number;
 }

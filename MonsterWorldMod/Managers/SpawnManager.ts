@@ -1,17 +1,13 @@
-import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save } from '../StalkerAPI/extensions/basic';
-import { Log } from '../StalkerModBase';
-import * as cfg from './MonsterWorldConfig';
-import { MonsterWorldMod } from './MonsterWorldMod';
-import { MWMonster } from './MWMonster';
-import { MWPlayer } from './MWPlayer';
-import { MWWeapon } from './MWWeapon';
-import { MonsterConfig, LevelType, MonsterType, MonsterRank } from './MonsterWorldConfig';
-import { MonsterWorld } from './MonsterWorld';
+import { IsPctRolled, Load, NumberToCondList, RandomFromArray, Save } from '../../StalkerAPI/extensions/basic';
+import { Log } from '../../StalkerModBase';
+import { EnemyEliteChance, EnemyBossChance, EnemyHigherLevelChance } from '../Configs/Constants';
+import { MonsterType, MonsterConfigs, MonsterRank } from '../Configs/Enemies';
+import { LevelType, LocationConfigs } from '../Configs/Levels';
 
-export class MonsterWorldSpawns {
+export class SpawnManager {
     private safeSmarts: LuaSet<Id>
 
-    constructor(public world: MonsterWorld) {
+    constructor() {
         this.safeSmarts = new LuaSet();
 
         const oldSimSquadAddSquadMember = sim_squad_scripted.sim_squad_scripted.add_squad_member;
@@ -79,12 +75,12 @@ export class MonsterWorldSpawns {
             smart.max_population = maxPopulation;
 
             //Log(`Level name: ${level.name()}`)
-            let locationCfg = cfg.LocationConfigs[level.name()];
+            let locationCfg = LocationConfigs[level.name()];
             if (!locationCfg)
                 return false;
 
             let selectedMonsters: MonsterType[] = [];
-            for(const [monsterType, monsterCfg] of cfg.MonsterConfigs){
+            for(const [monsterType, monsterCfg] of MonsterConfigs){
                 //Log(`Level check: ${monsterCfg.level_start} > ${locationCfg.level} = ${(monsterCfg.level_start > locationCfg.level)}`)
                 if (monsterCfg.level_start > locationCfg.level || (monsterCfg.level_end || 100) < locationCfg.level)
                     continue;
@@ -110,6 +106,9 @@ export class MonsterWorldSpawns {
             Save(smart.id, "MW_Initialized", true);
         }
 
+        if (MonsterWorld.Monsters.length() > 150) //Limit amount of enemies on map
+            return false;
+
         //Log(`Spawning for: ${smart.name()}`)
 
         return true;
@@ -129,7 +128,7 @@ export class MonsterWorldSpawns {
 
         let monsterTypes = Load<MonsterType[]>(obj.smart_id, "MW_MonsterTypes");
         let monsterType = RandomFromArray(monsterTypes);
-        let monsterCfg = cfg.MonsterConfigs.get(monsterType);
+        let monsterCfg = MonsterConfigs.get(monsterType);
         if (monsterCfg == undefined){
             Log(`SPAWN PROBLEM  NO monsterCfg! ${monsterType}`)
         }
@@ -138,14 +137,14 @@ export class MonsterWorldSpawns {
         let isBossSpawned = false;
         let elitesSpawned = 0;
 
-        let locCfg = cfg.LocationConfigs[level.name()];
+        let locCfg = LocationConfigs[level.name()];
         let locLevel = locCfg.level || 1;
 
         if (locLevel < 5){
             squadSize *= 0.5 + 0.1 * locLevel
         }
 
-        let playerLevel = this.world.Player.Level
+        let playerLevel = MonsterWorld.Player.Level
         let enemyLvl = locLevel;
         if (locLevel < playerLevel){
             if (locLevel <= 5)
@@ -162,16 +161,16 @@ export class MonsterWorldSpawns {
 
         for(let i = 0; i < squadSize;){
             let squadMemberLevel = enemyLvl;
-            if (IsPctRolled(cfg.EnemyHigherLevelChance))
+            if (IsPctRolled(EnemyHigherLevelChance))
             squadMemberLevel++;
 
             let rank = MonsterRank.Common;
 
-            if (!isBossSpawned && IsPctRolled(cfg.EnemyEliteChance)) {
+            if (!isBossSpawned && IsPctRolled(EnemyEliteChance)) {
                 elitesSpawned++;
                 rank = MonsterRank.Elite;
             }
-            else if (!isBossSpawned && elitesSpawned == 0 && IsPctRolled(cfg.EnemyBossChance)) {
+            else if (!isBossSpawned && elitesSpawned == 0 && IsPctRolled(EnemyBossChance)) {
                 isBossSpawned = true
                 rank = MonsterRank.Boss;
             }

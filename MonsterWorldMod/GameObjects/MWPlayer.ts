@@ -1,12 +1,12 @@
 import { BaseMWObject } from './BaseMWObject';
 import { MWWeapon } from './MWWeapon';
-import * as cfg from './MonsterWorldConfig';
-import { StatType, StatBonusType } from './MonsterWorldConfig';
-import { PriceFormulaConstant, PriceFormulaLevel, Skill } from "./Skills/Skill";
-import { SkillPassiveStatBonus } from "./Skills/SkillPassiveStatBonus";
-import { SkillAuraOfDeath } from "./Skills/SkillAuraOfDeath";
-import { SkillHealPlayerOnKill } from "./Skills/SkillHealPlayerOnKill";
-import { SkillCriticalDeath } from './Skills/SkillCriticalDeath';
+import * as cfg from '../Configs/Constants';
+import { PriceFormulaConstant, PriceFormulaLevel, Skill } from "../Skills/Skill";
+import { SkillPassiveStatBonus } from "../Skills/SkillPassiveStatBonus";
+import { SkillAuraOfDeath } from "../Skills/SkillAuraOfDeath";
+import { SkillHealPlayerOnKill } from "../Skills/SkillHealPlayerOnKill";
+import { SkillCriticalDeath } from '../Skills/SkillCriticalDeath';
+import { StatType, StatBonusType } from '../Configs/Stats';
 
 export class MWPlayer extends BaseMWObject {
     override OnFirstTimeInitialize(): void {

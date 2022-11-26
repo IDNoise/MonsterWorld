@@ -1,8 +1,7 @@
-import { Log } from '../StalkerModBase';
-import { MonsterWorld } from './MonsterWorld';
-import * as cfg from './MonsterWorldConfig';
-import { StatType } from './MonsterWorldConfig';
-import { MWMonster } from './MWMonster';
+import { Log } from '../../StalkerModBase';
+import { World } from '../World';
+import { MWMonster } from '../GameObjects/MWMonster';
+import { QualityColors, MonsterRankColors, Qualities } from '../Configs/UI';
 
 type DamageNumberEntry = {
     showTime: number;
@@ -14,7 +13,7 @@ type XPNumberEntry = {
     text: CUITextWnd;
 }
 
-export class MonsterWorldUI {
+export class UIManager {
     private damageNumbersContainer: CUIStatic;
     private xpRewardNumbersContainer: CUIStatic;
     private damageNumbers: DamageNumberEntry[] = [];
@@ -38,7 +37,7 @@ export class MonsterWorldUI {
 
     private lastEnemyHpShowTime: number = 0;
 
-    constructor(public World: MonsterWorld) {
+    constructor() {
         const oldPrepareStatsTable = utils_ui.prepare_stats_table;
         utils_ui.prepare_stats_table = () => this.PrepareUIItemStatsTable(oldPrepareStatsTable);
 
@@ -69,7 +68,7 @@ export class MonsterWorldUI {
             if (!res || !obj) 
                 return res;
 
-            let weapon = this.World.GetWeapon(obj);
+            let weapon = MonsterWorld.GetWeapon(obj);
             if (!weapon)
                 return res;
 
@@ -82,7 +81,7 @@ export class MonsterWorldUI {
 
             s.mwLevel.SetWndPos(new vector2().set(3, s.cell.GetHeight() - 14))
             s.mwLevel.TextControl().SetText(`L.${weapon.Level}   DPS:${math.floor(weapon.DPS)}`)
-            s.mwLevel.TextControl().SetTextColor(cfg.QualityColors[weapon.Quality])
+            s.mwLevel.TextControl().SetTextColor(QualityColors[weapon.Quality])
             s.mwLevel.Show(true)
 
             return res;
@@ -96,11 +95,11 @@ export class MonsterWorldUI {
             if (!obj) 
                 return;
 
-            let weapon = this.World.GetWeapon(obj);
+            let weapon = MonsterWorld.GetWeapon(obj);
             if (!weapon)
                 return;
             
-            s.name.SetTextColor(cfg.QualityColors[weapon.Quality])
+            s.name.SetTextColor(QualityColors[weapon.Quality])
 
             //TODO Custom stats display for weapons and stimpacks and mb smth new
 
@@ -116,8 +115,8 @@ export class MonsterWorldUI {
         utils_ui.sort_by_sizekind = (t, a, b) => { //Sorting by DPS > level > quality
             let objA = t.get(a);
             let objB = t.get(b);
-            let weaponA = this.World.GetWeapon(objA)
-            let weaponB = this.World.GetWeapon(objB)
+            let weaponA = MonsterWorld.GetWeapon(objA)
+            let weaponB = MonsterWorld.GetWeapon(objB)
             if (weaponA != null && weaponB != null && weaponA != weaponB){
                 if (weaponA.DPS != weaponB.DPS)
                     return weaponA.DPS > weaponB.DPS;
@@ -279,7 +278,7 @@ export class MonsterWorldUI {
         }
 
         let targetDist = level.get_target_dist();
-        let monster = this.World.GetMonster(targetObj.id())
+        let monster = MonsterWorld.GetMonster(targetObj.id())
         if (targetDist < 300 && monster && monster.HP > 0){
             this.ShowEnemyHealthUI(monster);
         }
@@ -299,10 +298,10 @@ export class MonsterWorldUI {
         this.enemyHP.Show(true);
         this.enemyHPBarProgress.SetProgressPos(clamp(monster.HP / monster.MaxHP, 0, 1) * 100);
         this.enemyHPBarName.SetText(monster.Name);
-        this.enemyHPBarName.SetTextColor(cfg.MonsterRankColors[monster.Rank]);
+        this.enemyHPBarName.SetTextColor(MonsterRankColors[monster.Rank]);
         this.enemyHPBarValue.SetText(`${math.floor(monster.HP)} / ${math.floor(monster.MaxHP)}`);
         
-        let player = this.World.Player
+        let player = MonsterWorld.Player
         let playerPos = player.GO.position();
         let playerWeapon = player.Weapon;
         let distance = playerWeapon?.GO.cast_Weapon().GetFireDistance() || 100000;
@@ -353,7 +352,7 @@ export class MonsterWorldUI {
     }
 
     private UpdatePlayerLevelBar(){
-        let player = this.World.Player;
+        let player = MonsterWorld.Player;
         let levelInfo =`Level: ${player.Level}`;
         if (player.SkillPoints > 0){
             levelInfo += ` (SP: ${player.SkillPoints})`
@@ -384,7 +383,7 @@ export class MonsterWorldUI {
         this.playerSkillsScrollView = xml.InitScrollView("player_skills:list", this.playerSkills)
         this.playerSkillTotalSP = xml.InitTextWnd("player_skills:total_sp", this.playerSkills)
 
-        for(let [skillId, skill] of this.World.Player.Skills){
+        for(let [skillId, skill] of MonsterWorld.Player.Skills){
             let skillEntry = xml.InitStatic("player_skills:skill", undefined);
             xml.InitStatic("player_skills:skill:background_frame", skillEntry)
             xml.InitStatic("player_skills:skill:background", skillEntry)
@@ -405,7 +404,7 @@ export class MonsterWorldUI {
 
     OnSkillUpgrade(skillId: string): void{
         Log(`On skill upgrade ${skillId}`)
-        let player = this.World.Player;
+        let player = MonsterWorld.Player;
         let skill = player.Skills.get(skillId)
         skill?.Upgrade();
     }
@@ -413,8 +412,8 @@ export class MonsterWorldUI {
     UpdateSkills(){
         if (!this.playerSkills || !this.playerSkills.IsShown()) return;
 
-        this.playerSkillTotalSP.SetText(`Available SP: ${this.World.Player.SkillPoints}`)
-        for(let [_, skill] of this.World.Player.Skills){
+        this.playerSkillTotalSP.SetText(`Available SP: ${MonsterWorld.Player.SkillPoints}`)
+        for(let [_, skill] of MonsterWorld.Player.Skills){
             skill.UpdateUpgradeButton();
         }
     }
@@ -461,16 +460,16 @@ export class MonsterWorldUI {
     }
 
     UIGetItemName(obj: game_object, current: string): string{
-        let weapon = this.World.GetWeapon(obj);
+        let weapon = MonsterWorld.GetWeapon(obj);
         if (weapon == undefined)
             return "";
 
         //return `${cfg.QualityColors[weapon.Quality]}${cfg.Qualities[weapon.Quality]}${cfg.EndColorTag} ${current} ${cfg.LevelColor}L.${weapon.Level}${cfg.EndColorTag}`
-        return `${cfg.Qualities[weapon.Quality]} ${current} L.${weapon.Level}`
+        return `${Qualities[weapon.Quality]} ${current} L.${weapon.Level}`
     }
 
     UIGetItemDescription(obj: game_object, current: string): string{
-        let weapon = this.World.GetWeapon(obj);
+        let weapon = MonsterWorld.GetWeapon(obj);
         if (weapon == undefined)
             return "";
 
@@ -478,7 +477,7 @@ export class MonsterWorldUI {
     }
 
     UIGetItemLevel(obj: game_object): number { 
-        let weapon = this.World.GetWeapon(obj);
+        let weapon = MonsterWorld.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
@@ -486,7 +485,7 @@ export class MonsterWorldUI {
     }
 
     UIGetWeaponDPS(obj: game_object): number { 
-        let weapon = this.World.GetWeapon(obj);
+        let weapon = MonsterWorld.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
@@ -494,7 +493,7 @@ export class MonsterWorldUI {
     }
 
     UIGetWeaponDamagePerHit(obj: game_object): number { 
-        let weapon = this.World.GetWeapon(obj);
+        let weapon = MonsterWorld.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
@@ -502,7 +501,7 @@ export class MonsterWorldUI {
     }
 
     UIGetWeaponRPM(obj: game_object): number { 
-        let weapon = this.World.GetWeapon(obj);
+        let weapon = MonsterWorld.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
@@ -510,7 +509,7 @@ export class MonsterWorldUI {
     }
 
     UIGetWeaponAmmoMagSize(obj: game_object): number { 
-        let weapon = this.World.GetWeapon(obj);
+        let weapon = MonsterWorld.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 
@@ -518,7 +517,7 @@ export class MonsterWorldUI {
     }
 
     UIGetWeaponFireDistance(obj: game_object): number { 
-        let weapon = this.World.GetWeapon(obj);
+        let weapon = MonsterWorld.GetWeapon(obj);
         if (weapon == undefined)
             return 0;
 

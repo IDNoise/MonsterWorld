@@ -1,13 +1,13 @@
-import { Load, Save } from '../StalkerAPI/extensions/basic';
-import { Log } from '../StalkerModBase';
-import { MonsterWorld } from './MonsterWorld';
-import { PctStats, StatBonusType, StatType } from './MonsterWorldConfig';
-import { Skill } from './Skills/Skill';
+import { Load, Save } from '../../StalkerAPI/extensions/basic';
+import { Log } from '../../StalkerModBase';
+import { World } from '../World';
+import { Skill } from '../Skills/Skill';
+import { StatType, StatBonusType, PctStats } from '../Configs/Stats';
 
 export abstract class BaseMWObject {
     Skills: Map<string, Skill> = new Map();
 
-    constructor(public World: MonsterWorld, public id: Id) {
+    constructor(public World: World, public id: Id) {
         
     }
 
