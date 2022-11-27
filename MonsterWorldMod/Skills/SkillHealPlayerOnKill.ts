@@ -4,10 +4,9 @@ import { Skill } from "./Skill";
 
 
 export class SkillHealPlayerOnKill extends Skill {
-    constructor(public Id: string, public Owner: MWObject, public HpPerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
-        super(Id, Owner, PriceFormula, MaxLevel);
+    constructor(public HpPerLevel: (level: number) => number, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
+        super(PriceFormula, MaxLevel);
     }
-
 
     get Description(): string { return `+${this.HPOnKill} HP on kill`; }
 

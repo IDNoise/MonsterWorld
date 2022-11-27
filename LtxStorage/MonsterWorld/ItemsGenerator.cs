@@ -1,8 +1,6 @@
 ﻿namespace LtxStorage.MonsterWorld;
 
 public class ItemsGenerator : BaseGenerator {
-    private readonly File mwItems;
-
     private readonly Dictionary<int, int> costQuality = new() {
         { 1, 0 },
         { 2, 35000 },
@@ -11,12 +9,31 @@ public class ItemsGenerator : BaseGenerator {
         { 5, 180000 }
     };
 
+    private readonly File mwItems;
+
     private readonly Dictionary<int, List<Section>> outfitsByQuality = new() {
         { 1, new List<Section>() },
         { 2, new List<Section>() },
         { 3, new List<Section>() },
         { 4, new List<Section>() },
         { 5, new List<Section>() }
+    };
+
+    private readonly List<string> IgnoredArtefacts = new() {
+        "af_skull_miser",
+        "af_fonar",
+        "af_ear",
+        "af_repei",
+        "af_moh",
+        "af_chelust",
+        "af_signet",
+        "af_atom",
+        "af_elektron",
+        "af_tapeworm",
+        "af_kogot",
+        "af_dragon_eye",
+        "af_zhelch",
+        "af_sandstone"
     };
 
     public ItemsGenerator(string gameDataPath, string outputDir) : base(gameDataPath, outputDir) {
@@ -51,7 +68,7 @@ public class ItemsGenerator : BaseGenerator {
                 eat_thirstiness = 0,
                 mw_heal_pct = cfg.HealPct,
                 max_uses = 1,
-                ph_mass = 100000,
+                ph_mass = 100000
             }));
 
         Storage.MakeSection("stimpacks", mwItems, properties: generatedStimpacks.Select(s => s.Name));
@@ -61,16 +78,19 @@ public class ItemsGenerator : BaseGenerator {
         var junkArtefactsFile = Storage.GetFile("items_artefacts_junk");
         var generatedArts = new List<Section>();
 
-        foreach (var artSection in junkArtefactsFile.Sections)
-            generatedArts.Add(Storage.MakeSection($"{artSection.Name}_mw", mwItems, new List<string> { artSection.Name }, new {
-                description = "",
-                inv_weight = 0.000001,
-                jump_height = 0,
-                ph_mass = 100000,
-                af_actor_properties = "off",
-                actor_properties = "off",
-                tier = 0
-            }));
+        var baseParamsSection = Storage.MakeSection("mw_art_base", mwItems, properties: new {
+            description = "",
+            inv_weight = 0.000001,
+            jump_height = 0,
+            ph_mass = 100000,
+            af_actor_properties = "off",
+            actor_properties = "off",
+            tier = 0
+        });
+
+        foreach (var artSection in junkArtefactsFile.Sections.Where(s => !IgnoredArtefacts.Contains(s.Name)))
+            for (var i = 0; i < 50; i++)
+                generatedArts.Add(Storage.MakeSection($"{artSection.Name}_{i}_mw", mwItems, new List<string> { artSection.Name, baseParamsSection.Name }, new { }));
 
         Storage.MakeSection("artefacts_mw", mwItems, properties: generatedArts.Select(s => s.Name));
     }

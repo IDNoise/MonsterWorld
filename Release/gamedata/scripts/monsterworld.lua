@@ -3064,12 +3064,10 @@ local ____exports = {}
 ____exports.Skill = __TS__Class()
 local Skill = ____exports.Skill
 Skill.name = "Skill"
-function Skill.prototype.____constructor(self, Id, Owner, PriceFormula, MaxLevel)
+function Skill.prototype.____constructor(self, PriceFormula, MaxLevel)
     if MaxLevel == nil then
         MaxLevel = -1
     end
-    self.Id = Id
-    self.Owner = Owner
     self.PriceFormula = PriceFormula
     self.MaxLevel = MaxLevel
     self.level = 0
@@ -3088,7 +3086,7 @@ __TS__SetDescriptor(
             if level > oldLevel then
                 self:OnLevelUp(oldLevel, level)
             end
-            self.Owner:SetSkillLevel(self.Id, self.Level)
+            self:Save("Level", self.Level)
         end
     },
     true
@@ -3132,9 +3130,17 @@ __TS__SetDescriptor(
     end},
     true
 )
-function Skill.prototype.Init(self)
-    self.level = self.Owner:GetSkillLevel(self.Id)
+function Skill.prototype.Init(self, id, owner)
+    self.Id = id
+    self.Owner = owner
+    self.level = self:Load("Level", 0)
     self:UpdateLevelBonuses()
+end
+function Skill.prototype.Save(self, varname, val)
+    self.Owner:SaveSkillData(self.Id, varname, val)
+end
+function Skill.prototype.Load(self, varname, def)
+    return self.Owner:LoadSkillData(self.Id, varname, def)
 end
 function Skill.prototype.Upgrade(self)
     if not self.CanBeUpgraded then
@@ -3181,6 +3187,11 @@ end
 function Skill.prototype.OnOwnerEquip(self)
 end
 function Skill.prototype.OnOwnerUnequip(self)
+end
+function Skill.prototype.OnPlayerHit(self, monster, damage)
+end
+function Skill.prototype.OnMonsterBeforeHit(self, monster, isCrit, damage)
+    return damage
 end
 function Skill.prototype.OnMonsterHit(self, monster, isCrit)
 end
@@ -3530,7 +3541,7 @@ function ____exports.TableToMap(tbl)
     end
     return result
 end
-function ____exports.RandomFromArray(array)
+function ____exports.GetRandomFromArray(array)
     local index = math.random(0, #array - 1)
     return array[index + 1]
 end
@@ -3540,17 +3551,32 @@ function ____exports.TakeRandomElementFromArray(array)
     __TS__ArraySplice(array, index, 1)
     return element
 end
-function ____exports.TakeRandomUniqueElementsFromArray(array, count)
+function ____exports.GetRandomUniqueElementsFromArray(array, count)
+    local arrayCopy = {}
+    do
+        local i = 0
+        while i < #array do
+            arrayCopy[#arrayCopy + 1] = array[i + 1]
+            i = i + 1
+        end
+    end
     local result = {}
-    count = math.min(count, #array)
+    count = math.min(count, #arrayCopy)
     do
         local i = 0
         while i < count do
-            result[#result + 1] = ____exports.TakeRandomElementFromArray(array)
+            result[#result + 1] = ____exports.TakeRandomElementFromArray(arrayCopy)
             i = i + 1
         end
     end
     return result
+end
+function ____exports.GetRandomUniqueKeysFromTable(____table, count)
+    local keys = {}
+    for k, v in pairs(____table) do
+        keys[#keys + 1] = k
+    end
+    return ____exports.GetRandomUniqueElementsFromArray(keys, count)
 end
 function ____exports.GetByWeightFromArray(array, weightGetter)
     local totalWeight = 0
@@ -3580,14 +3606,14 @@ function ____exports.GetByWeightFromTable(tbl, weightGetter)
         do
             local weight = weightGetter(v)
             if weight <= 0 then
-                goto __continue18
+                goto __continue21
             end
             weightStartCheck = weightStartCheck + weight
             if randValue <= weightStartCheck then
                 return k
             end
         end
-        ::__continue18::
+        ::__continue21::
     end
     return keys[1]
 end
@@ -3900,17 +3926,17 @@ function MWObject.prototype.OnStatChanged(self, stat, prev, current)
         end
     end
 end
-function MWObject.prototype.SetSkillLevel(self, skillId, level)
-    self:Save("SkillLevel_" .. skillId, level)
+function MWObject.prototype.SaveSkillData(self, skillId, varname, val)
+    self:Save((("Skill_" .. skillId) .. "_") .. varname, val)
 end
-function MWObject.prototype.GetSkillLevel(self, skillId)
-    return self:Load("SkillLevel_" .. skillId, 0)
+function MWObject.prototype.LoadSkillData(self, skillId, varname, def)
+    return self:Load((("Skill_" .. skillId) .. "_") .. varname, def)
 end
 function MWObject.prototype.SetupSkills(self)
     Log("SetupSkills: " .. self.SectionId)
 end
-function MWObject.prototype.AddSkill(self, skill)
-    skill:Init()
+function MWObject.prototype.AddSkill(self, skilLId, skill)
+    skill:Init(skilLId, self)
     self.Skills:set(skill.Id, skill)
 end
 function MWObject.prototype.IterateSkills(self, iterator, onlyWithLevel)
@@ -4642,7 +4668,7 @@ local ____Stats = require("MonsterWorldMod.Configs.Stats")
 local GetStatBonusForObject = ____Stats.GetStatBonusForObject
 local GetBonusDescriptionByType = ____Stats.GetBonusDescriptionByType
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
-local TakeRandomUniqueElementsFromArray = ____Collections.TakeRandomUniqueElementsFromArray
+local GetRandomUniqueElementsFromArray = ____Collections.GetRandomUniqueElementsFromArray
 local ____Random = require("MonsterWorldMod.Helpers.Random")
 local IsPctRolled = ____Random.IsPctRolled
 local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
@@ -4797,7 +4823,7 @@ function MWWeapon.prototype.GenerateStats(self)
         #availableBonuses,
         1 + self.Quality + math.floor(self.Level / 10)
     )
-    local selectedStats = TakeRandomUniqueElementsFromArray(availableBonuses, statsToSelect)
+    local selectedStats = GetRandomUniqueElementsFromArray(availableBonuses, statsToSelect)
     if IsPctRolled(30) and weaponUpgradesByBonusType.Flatness ~= nil then
         selectedStats[#selectedStats + 1] = "Flatness"
         Log("selectedUpgradeTypes " .. "Flatness")
@@ -4910,19 +4936,11 @@ ____exports.SkillPassiveStatBonus = __TS__Class()
 local SkillPassiveStatBonus = ____exports.SkillPassiveStatBonus
 SkillPassiveStatBonus.name = "SkillPassiveStatBonus"
 __TS__ClassExtends(SkillPassiveStatBonus, Skill)
-function SkillPassiveStatBonus.prototype.____constructor(self, Id, Owner, Stat, BonusType, ValuePerLevel, PriceFormula, MaxLevel)
+function SkillPassiveStatBonus.prototype.____constructor(self, Stat, BonusType, ValuePerLevel, PriceFormula, MaxLevel)
     if MaxLevel == nil then
         MaxLevel = -1
     end
-    Skill.prototype.____constructor(
-        self,
-        Id,
-        Owner,
-        PriceFormula,
-        MaxLevel
-    )
-    self.Id = Id
-    self.Owner = Owner
+    Skill.prototype.____constructor(self, PriceFormula, MaxLevel)
     self.Stat = Stat
     self.BonusType = BonusType
     self.ValuePerLevel = ValuePerLevel
@@ -4970,19 +4988,11 @@ ____exports.SkillAuraOfDeath = __TS__Class()
 local SkillAuraOfDeath = ____exports.SkillAuraOfDeath
 SkillAuraOfDeath.name = "SkillAuraOfDeath"
 __TS__ClassExtends(SkillAuraOfDeath, Skill)
-function SkillAuraOfDeath.prototype.____constructor(self, Id, Owner, Interval, DpsPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
+function SkillAuraOfDeath.prototype.____constructor(self, Interval, DpsPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
     if MaxLevel == nil then
         MaxLevel = -1
     end
-    Skill.prototype.____constructor(
-        self,
-        Id,
-        Owner,
-        PriceFormula,
-        MaxLevel
-    )
-    self.Id = Id
-    self.Owner = Owner
+    Skill.prototype.____constructor(self, PriceFormula, MaxLevel)
     self.Interval = Interval
     self.DpsPctPerLevel = DpsPctPerLevel
     self.RangePerLevel = RangePerLevel
@@ -4994,7 +5004,7 @@ __TS__SetDescriptor(
     SkillAuraOfDeath.prototype,
     "Description",
     {get = function(self)
-        return ((((((("Every " .. tostring(self.Interval)) .. " ") .. (self.Interval == 1 and "second" or "seconds")) .. " damage all enemies in ") .. tostring(self.Range)) .. "m range for ") .. tostring(self.DpsPct)) .. "% of active weapon DPS"
+        return ((((((("Every " .. tostring(self.Interval)) .. " ") .. (self.Interval == 1 and "second" or "seconds")) .. " damage all enemies in ") .. tostring(self.Range)) .. "m range for ") .. tostring(self.DpsPct)) .. "% of active weaponDPS"
     end},
     true
 )
@@ -5045,19 +5055,11 @@ ____exports.SkillHealPlayerOnKill = __TS__Class()
 local SkillHealPlayerOnKill = ____exports.SkillHealPlayerOnKill
 SkillHealPlayerOnKill.name = "SkillHealPlayerOnKill"
 __TS__ClassExtends(SkillHealPlayerOnKill, Skill)
-function SkillHealPlayerOnKill.prototype.____constructor(self, Id, Owner, HpPerLevel, PriceFormula, MaxLevel)
+function SkillHealPlayerOnKill.prototype.____constructor(self, HpPerLevel, PriceFormula, MaxLevel)
     if MaxLevel == nil then
         MaxLevel = -1
     end
-    Skill.prototype.____constructor(
-        self,
-        Id,
-        Owner,
-        PriceFormula,
-        MaxLevel
-    )
-    self.Id = Id
-    self.Owner = Owner
+    Skill.prototype.____constructor(self, PriceFormula, MaxLevel)
     self.HpPerLevel = HpPerLevel
     self.PriceFormula = PriceFormula
     self.MaxLevel = MaxLevel
@@ -5096,19 +5098,11 @@ ____exports.SkillCriticalDeath = __TS__Class()
 local SkillCriticalDeath = ____exports.SkillCriticalDeath
 SkillCriticalDeath.name = "SkillCriticalDeath"
 __TS__ClassExtends(SkillCriticalDeath, Skill)
-function SkillCriticalDeath.prototype.____constructor(self, Id, Owner, ChancePctPerLevel, HpPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
+function SkillCriticalDeath.prototype.____constructor(self, ChancePctPerLevel, HpPctPerLevel, RangePerLevel, PriceFormula, MaxLevel)
     if MaxLevel == nil then
         MaxLevel = -1
     end
-    Skill.prototype.____constructor(
-        self,
-        Id,
-        Owner,
-        PriceFormula,
-        MaxLevel
-    )
-    self.Id = Id
-    self.Owner = Owner
+    Skill.prototype.____constructor(self, PriceFormula, MaxLevel)
     self.ChancePctPerLevel = ChancePctPerLevel
     self.HpPctPerLevel = HpPctPerLevel
     self.RangePerLevel = RangePerLevel
@@ -5182,8 +5176,8 @@ local GetStatBonusForObject = ____Stats.GetStatBonusForObject
 local DamageBonusesByEnemyType = ____Stats.DamageBonusesByEnemyType
 local GetBonusDescriptionByType = ____Stats.GetBonusDescriptionByType
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
-local TakeRandomUniqueElementsFromArray = ____Collections.TakeRandomUniqueElementsFromArray
-local RandomFromArray = ____Collections.RandomFromArray
+local GetRandomUniqueElementsFromArray = ____Collections.GetRandomUniqueElementsFromArray
+local GetRandomFromArray = ____Collections.GetRandomFromArray
 local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
 local MWItem = ____MWItem.MWItem
 ____exports.MWArmor = __TS__Class()
@@ -5242,10 +5236,10 @@ function MWArmor.prototype.GenerateStats(self)
     for ____, stat in ipairs(ArmorStatsForGeneration) do
         availableStats[#availableStats + 1] = stat
     end
-    availableStats[#availableStats + 1] = RandomFromArray(WeaponTypeDamageBonuses)
-    availableStats[#availableStats + 1] = RandomFromArray(DamageBonusesByEnemyType)
+    availableStats[#availableStats + 1] = GetRandomFromArray(WeaponTypeDamageBonuses)
+    availableStats[#availableStats + 1] = GetRandomFromArray(DamageBonusesByEnemyType)
     local statsToSelect = math.min(#availableStats, 1 + self.Quality)
-    local selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect)
+    local selectedStats = GetRandomUniqueElementsFromArray(availableStats, statsToSelect)
     selectedStats[#selectedStats + 1] = "MaxHP"
     for ____, stat in ipairs(selectedStats) do
         local bonusType = (__TS__ArrayIncludes(PctStats, stat) or stat == "MaxHP") and "flat" or "pct"
@@ -5407,66 +5401,72 @@ function MWPlayer.prototype.OnStatChanged(self, stat, prev, current)
 end
 function MWPlayer.prototype.SetupSkills(self)
     MWObject.prototype.SetupSkills(self)
-    self:AddSkill(__TS__New(
-        SkillPassiveStatBonus,
-        "max_hp",
-        self,
-        "MaxHP",
-        "pct",
-        function(level) return 5 * level end,
-        PriceFormulaConstant(1),
-        50
-    ))
-    self:AddSkill(__TS__New(
-        SkillPassiveStatBonus,
-        "hp_regen",
-        self,
-        "HPRegen",
-        "pct",
-        function(level) return 5 * level end,
-        PriceFormulaConstant(1),
-        50
-    ))
-    self:AddSkill(__TS__New(
-        SkillPassiveStatBonus,
-        "run_speed",
-        self,
-        "RunSpeedMult",
-        "pct",
-        function(level) return 2 * level end,
-        PriceFormulaConstant(1),
-        25
-    ))
-    self:AddSkill(__TS__New(
-        SkillPassiveStatBonus,
-        "reload_speed",
-        self,
-        "ReloadSpeedBonusPct",
-        "flat",
-        function(level) return 2 * level end,
-        PriceFormulaConstant(1),
-        25
-    ))
-    self:AddSkill(__TS__New(
-        SkillPassiveStatBonus,
-        "crit_damage",
-        self,
-        "CritDamagePct",
-        "flat",
-        function(level) return 5 * level end,
-        PriceFormulaConstant(1),
-        50
-    ))
-    self:AddSkill(__TS__New(
-        SkillPassiveStatBonus,
-        "xp_gain",
-        self,
-        "XPGainMult",
-        "pct",
-        function(level) return 5 * level end,
-        PriceFormulaConstant(1),
-        25
-    ))
+    self:AddSkill(
+        "PassiveMaxHP",
+        __TS__New(
+            SkillPassiveStatBonus,
+            "MaxHP",
+            "pct",
+            function(level) return 5 * level end,
+            PriceFormulaConstant(1),
+            50
+        )
+    )
+    self:AddSkill(
+        "PassiveHPRegen",
+        __TS__New(
+            SkillPassiveStatBonus,
+            "HPRegen",
+            "pct",
+            function(level) return 5 * level end,
+            PriceFormulaConstant(1),
+            50
+        )
+    )
+    self:AddSkill(
+        "PassiveRunSpeed",
+        __TS__New(
+            SkillPassiveStatBonus,
+            "RunSpeedMult",
+            "pct",
+            function(level) return 2 * level end,
+            PriceFormulaConstant(1),
+            25
+        )
+    )
+    self:AddSkill(
+        "PassiveReloadSpeed",
+        __TS__New(
+            SkillPassiveStatBonus,
+            "ReloadSpeedBonusPct",
+            "flat",
+            function(level) return 2 * level end,
+            PriceFormulaConstant(1),
+            25
+        )
+    )
+    self:AddSkill(
+        "PassiveCritDamage",
+        __TS__New(
+            SkillPassiveStatBonus,
+            "CritDamagePct",
+            "flat",
+            function(level) return 5 * level end,
+            PriceFormulaConstant(1),
+            50
+        )
+    )
+    self:AddSkill(
+        "PassiveXpGain",
+        __TS__New(
+            SkillPassiveStatBonus,
+            "XPGainMult",
+            "pct",
+            function(level) return 5 * level end,
+            PriceFormulaConstant(1),
+            25
+        )
+    )
 end
 function MWPlayer.prototype.IterateSkills(self, iterator, onlyWithLevel)
     MWObject.prototype.IterateSkills(self, iterator, onlyWithLevel)
@@ -5512,7 +5512,7 @@ local ____Levels = require("MonsterWorldMod.Configs.Levels")
 local GetCurrentLocationCfg = ____Levels.GetCurrentLocationCfg
 local LocationConfigs = ____Levels.LocationConfigs
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
-local RandomFromArray = ____Collections.RandomFromArray
+local GetRandomFromArray = ____Collections.GetRandomFromArray
 local ____Random = require("MonsterWorldMod.Helpers.Random")
 local IsPctRolled = ____Random.IsPctRolled
 local ____StalkerAPI = require("MonsterWorldMod.Helpers.StalkerAPI")
@@ -5625,7 +5625,7 @@ function SpawnManager.prototype.OnSimSquadAddMember(self, obj, section, pos, lvi
         return
     end
     local monsterTypes = Load(obj.smart_id, "MW_MonsterTypes")
-    local monsterType = RandomFromArray(monsterTypes)
+    local monsterType = GetRandomFromArray(monsterTypes)
     local monsterCfg = MonsterConfigs[monsterType]
     if monsterCfg == nil then
         Log("SPAWN PROBLEM  NO monsterCfg! " .. monsterType)
@@ -6359,6 +6359,218 @@ end
 ____exports.StopTimerSignal = -1
 return ____exports
  end,
+["MonsterWorldMod.Skills.SkillThorns"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+local ____Skill = require("MonsterWorldMod.Skills.Skill")
+local Skill = ____Skill.Skill
+____exports.SkillThorns = __TS__Class()
+local SkillThorns = ____exports.SkillThorns
+SkillThorns.name = "SkillThorns"
+__TS__ClassExtends(SkillThorns, Skill)
+function SkillThorns.prototype.____constructor(self, ReturnPctPerLevel, PriceFormula, MaxLevel)
+    if MaxLevel == nil then
+        MaxLevel = -1
+    end
+    Skill.prototype.____constructor(self, PriceFormula, MaxLevel)
+    self.ReturnPctPerLevel = ReturnPctPerLevel
+    self.PriceFormula = PriceFormula
+    self.MaxLevel = MaxLevel
+end
+__TS__SetDescriptor(
+    SkillThorns.prototype,
+    "Description",
+    {get = function(self)
+        return ("return " .. tostring(self.ReturnPct)) .. "% of active weapon DPS on attack"
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillThorns.prototype,
+    "ReturnPct",
+    {get = function(self)
+        return self.ReturnPctPerLevel(self.Level)
+    end},
+    true
+)
+function SkillThorns.prototype.OnPlayerHit(self, monster, damage)
+    if monster.IsDead then
+        return
+    end
+    local weapon = MonsterWorld.Player.ActiveWeapon
+    if weapon == nil then
+        return
+    end
+    local returnDamage = weapon.DPS * self.ReturnPct / 100
+    MonsterWorld:DamageMonster(monster, returnDamage, false)
+end
+return ____exports
+ end,
+["MonsterWorldMod.Skills.SkillSpeedyRetreat"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+local ____Skill = require("MonsterWorldMod.Skills.Skill")
+local Skill = ____Skill.Skill
+____exports.SkillSpeedyRetreat = __TS__Class()
+local SkillSpeedyRetreat = ____exports.SkillSpeedyRetreat
+SkillSpeedyRetreat.name = "SkillSpeedyRetreat"
+__TS__ClassExtends(SkillSpeedyRetreat, Skill)
+function SkillSpeedyRetreat.prototype.____constructor(self, CriticalHpPct, CDPerLevel, DurationPerLevel, SpeedBonusPct, PriceFormula, MaxLevel)
+    if MaxLevel == nil then
+        MaxLevel = -1
+    end
+    Skill.prototype.____constructor(self, PriceFormula, MaxLevel)
+    self.CriticalHpPct = CriticalHpPct
+    self.CDPerLevel = CDPerLevel
+    self.DurationPerLevel = DurationPerLevel
+    self.SpeedBonusPct = SpeedBonusPct
+    self.PriceFormula = PriceFormula
+    self.MaxLevel = MaxLevel
+end
+__TS__SetDescriptor(
+    SkillSpeedyRetreat.prototype,
+    "Description",
+    {get = function(self)
+        return ((((((("When HP drops to critical level (" .. tostring(self.CriticalHpPct)) .. "%) speed is increased by ") .. tostring(self.SpeedPct)) .. "% for ") .. tostring(self.Duration)) .. " seconds. CD: ") .. tostring(self.CD)) .. " seconds"
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillSpeedyRetreat.prototype,
+    "CD",
+    {get = function(self)
+        return self.CDPerLevel(self.Level)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillSpeedyRetreat.prototype,
+    "SpeedPct",
+    {get = function(self)
+        return self.SpeedBonusPct(self.Level)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillSpeedyRetreat.prototype,
+    "Duration",
+    {get = function(self)
+        return self.DurationPerLevel(self.Level)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillSpeedyRetreat.prototype,
+    "TimeSinceLastActivation",
+    {
+        get = function(self)
+            return self:Load("TimeSinceLastActivation", 0)
+        end,
+        set = function(self, time)
+            self:Save("TimeSinceLastActivation", time)
+        end
+    },
+    true
+)
+function SkillSpeedyRetreat.prototype.Update(self, deltaTime)
+    Skill.prototype.Update(self, deltaTime)
+    self.TimeSinceLastActivation = self.TimeSinceLastActivation - deltaTime
+end
+function SkillSpeedyRetreat.prototype.OnPlayerHit(self, monster, damage)
+    if self.TimeSinceLastActivation > 0 then
+        return
+    end
+    local player = MonsterWorld.Player
+    if player.IsDead then
+        return
+    end
+    if player.HP / player.MaxHP > self.CriticalHpPct / 100 then
+        return
+    end
+    player:AddStatBonus(
+        "RunSpeedMult",
+        "pct",
+        self.SpeedPct,
+        self.Id,
+        self.Duration
+    )
+    self.TimeSinceLastActivation = self.CD
+end
+return ____exports
+ end,
+["MonsterWorldMod.Skills.SkillSuperCrit"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+local ____Skill = require("MonsterWorldMod.Skills.Skill")
+local Skill = ____Skill.Skill
+____exports.SkillSuperCrit = __TS__Class()
+local SkillSuperCrit = ____exports.SkillSuperCrit
+SkillSuperCrit.name = "SkillSuperCrit"
+__TS__ClassExtends(SkillSuperCrit, Skill)
+function SkillSuperCrit.prototype.____constructor(self, CritCount, DamageBonusPctPerLevel, PriceFormula, MaxLevel)
+    if MaxLevel == nil then
+        MaxLevel = -1
+    end
+    Skill.prototype.____constructor(self, PriceFormula, MaxLevel)
+    self.CritCount = CritCount
+    self.DamageBonusPctPerLevel = DamageBonusPctPerLevel
+    self.PriceFormula = PriceFormula
+    self.MaxLevel = MaxLevel
+end
+__TS__SetDescriptor(
+    SkillSuperCrit.prototype,
+    "Description",
+    {get = function(self)
+        return ((("Every " .. tostring(self.CritCount)) .. "'th crit deals additional ") .. tostring(self.DamageBonusPct)) .. "% damage"
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillSuperCrit.prototype,
+    "DamageBonusPct",
+    {get = function(self)
+        return self.DamageBonusPctPerLevel(self.Level)
+    end},
+    true
+)
+__TS__SetDescriptor(
+    SkillSuperCrit.prototype,
+    "CritsInRow",
+    {
+        get = function(self)
+            return self:Load("CritsInRow", 0)
+        end,
+        set = function(self, crits)
+            self:Save("CritsInRow", crits)
+        end
+    },
+    true
+)
+function SkillSuperCrit.prototype.OnMonsterBeforeHit(self, monster, isCrit, damage)
+    local ____temp_3 = not isCrit
+    if not ____temp_3 then
+        local ____self_0, ____CritsInRow_1 = self, "CritsInRow"
+        local ____self_CritsInRow_2 = ____self_0[____CritsInRow_1]
+        ____self_0[____CritsInRow_1] = ____self_CritsInRow_2 + 1
+        ____temp_3 = ____self_CritsInRow_2 < self.CritCount
+    end
+    if ____temp_3 then
+        return Skill.prototype.OnMonsterBeforeHit(self, monster, isCrit, damage)
+    end
+    self.CritsInRow = 0
+    return damage * (1 + self.DamageBonusPct / 100)
+end
+return ____exports
+ end,
 ["MonsterWorldMod.GameObjects.MWArtefact"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -6366,6 +6578,8 @@ local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__Iterator = ____lualib.__TS__Iterator
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
+local Map = ____lualib.Map
+local __TS__ArrayFrom = ____lualib.__TS__ArrayFrom
 local __TS__New = ____lualib.__TS__New
 local ____exports = {}
 local ArtefactSkills
@@ -6385,8 +6599,16 @@ local SkillCriticalDeath = ____SkillCriticalDeath.SkillCriticalDeath
 local ____Loot = require("MonsterWorldMod.Configs.Loot")
 local ArtefactStatsForGeneration = ____Loot.ArtefactStatsForGeneration
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
-local RandomFromArray = ____Collections.RandomFromArray
-local TakeRandomUniqueElementsFromArray = ____Collections.TakeRandomUniqueElementsFromArray
+local GetRandomFromArray = ____Collections.GetRandomFromArray
+local GetRandomUniqueElementsFromArray = ____Collections.GetRandomUniqueElementsFromArray
+local ____SkillThorns = require("MonsterWorldMod.Skills.SkillThorns")
+local SkillThorns = ____SkillThorns.SkillThorns
+local ____SkillSpeedyRetreat = require("MonsterWorldMod.Skills.SkillSpeedyRetreat")
+local SkillSpeedyRetreat = ____SkillSpeedyRetreat.SkillSpeedyRetreat
+local ____SkillSuperCrit = require("MonsterWorldMod.Skills.SkillSuperCrit")
+local SkillSuperCrit = ____SkillSuperCrit.SkillSuperCrit
+local ____SkillHealPlayerOnKill = require("MonsterWorldMod.Skills.SkillHealPlayerOnKill")
+local SkillHealPlayerOnKill = ____SkillHealPlayerOnKill.SkillHealPlayerOnKill
 ____exports.MWArtefact = __TS__Class()
 local MWArtefact = ____exports.MWArtefact
 MWArtefact.name = "MWArtefact"
@@ -6448,13 +6670,13 @@ function MWArtefact.prototype.GenerateStats(self)
             availableStats[#availableStats + 1] = stat
         end
     end
-    availableStats[#availableStats + 1] = RandomFromArray(WeaponDamageBonusesByType)
-    availableStats[#availableStats + 1] = RandomFromArray(DamageBonusesByEnemyType)
+    availableStats[#availableStats + 1] = GetRandomFromArray(WeaponDamageBonusesByType)
+    availableStats[#availableStats + 1] = GetRandomFromArray(DamageBonusesByEnemyType)
     local statsToSelect = math.min(
         #availableStats,
         math.min(6, self.Quality + self.Level / 15)
     )
-    local selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect)
+    local selectedStats = GetRandomUniqueElementsFromArray(availableStats, statsToSelect)
     for ____, stat in ipairs(selectedStats) do
         local bonusType = __TS__ArrayIncludes(PctStats, stat) and "flat" or "pct"
         local bonus = GetStatBonusForObject(
@@ -6466,49 +6688,84 @@ function MWArtefact.prototype.GenerateStats(self)
         )
         self:AddStatBonus(stat, bonusType, bonus, "generation")
     end
-end
-function MWArtefact.prototype.SetupSkills(self)
-    MWItem.prototype.SetupSkills(self)
     local skillCount = 0
     if self.Quality == 5 then
-        skillCount = math.random(2)
+        skillCount = math.random(1, 2)
     elseif self.Quality == 4 then
-        skillCount = math.random(1)
+        skillCount = 1
     elseif self.Quality == 2 or self.Quality == 3 then
         skillCount = math.random(0, 1)
     end
-    skillCount = math.min(skillCount, #ArtefactSkills)
-    do
-        local i = 0
-        while i < skillCount do
-            self:AddSkill(ArtefactSkills[i + 1](self))
-            i = i + 1
+    skillCount = math.min(skillCount, ArtefactSkills.size)
+    self:Save(
+        "SelectedSkills",
+        GetRandomUniqueElementsFromArray(
+            __TS__ArrayFrom(ArtefactSkills:keys()),
+            skillCount
+        )
+    )
+end
+function MWArtefact.prototype.SetupSkills(self)
+    MWItem.prototype.SetupSkills(self)
+    for ____, skillId in ipairs(self:Load("SelectedSkills", {})) do
+        local skill = ArtefactSkills:get(skillId)()
+        self:AddSkill(skillId, skill)
+        if skill.Level == 0 then
+            skill.Level = self.Level
         end
     end
-    for ____, ____value in __TS__Iterator(self.Skills) do
-        local skillId = ____value[1]
-        local _ = ____value[2]
-        self:SetSkillLevel(skillId, self.Level)
-    end
 end
-ArtefactSkills = {
-    function(owner) return __TS__New(
+ArtefactSkills = __TS__New(Map)
+ArtefactSkills:set(
+    "SkillHealPlayerOnKill",
+    function() return __TS__New(
+        SkillHealPlayerOnKill,
+        function(l) return 0.5 + 0.1 * l end
+    ) end
+)
+ArtefactSkills:set(
+    "SkillAuraOfDeath",
+    function() return __TS__New(
         SkillAuraOfDeath,
-        "aura_of_death",
-        owner,
         5,
-        function(l) return 2 + l / 2 end,
+        function(l) return 2 + l / 10 end,
         function(l) return 5 + l / 10 end
-    ) end,
-    function(owner) return __TS__New(
+    ) end
+)
+ArtefactSkills:set(
+    "SkillCriticalDeath",
+    function() return __TS__New(
         SkillCriticalDeath,
-        "crit_death",
-        owner,
-        function(l) return 3 + l / 2 end,
+        function(l) return 5 + l / 2 end,
         function(l) return 3 + l / 5 end,
         function(l) return 5 + l / 10 end
     ) end
-}
+)
+ArtefactSkills:set(
+    "SkillThorns",
+    function() return __TS__New(
+        SkillThorns,
+        function(l) return math.min(4, 0.5 + l / 20) end
+    ) end
+)
+ArtefactSkills:set(
+    "SkillSpeedyRetreat",
+    function() return __TS__New(
+        SkillSpeedyRetreat,
+        15,
+        function(l) return math.max(30, 60 - l) end,
+        function(l) return math.min(10, 3 + l / 5) end,
+        function(l) return 20 + l end
+    ) end
+)
+ArtefactSkills:set(
+    "SkillSuperCrit",
+    function() return __TS__New(
+        SkillSuperCrit,
+        10,
+        function(l) return 25 + 5 * l end
+    ) end
+)
 return ____exports
  end,
 ["MonsterWorldMod.GameObjects.MWStimpack"] = function(...) 
@@ -6592,7 +6849,7 @@ local CreateVector = ____StalkerAPI.CreateVector
 local CreateWorldPositionAtPosWithGO = ____StalkerAPI.CreateWorldPositionAtPosWithGO
 local Save = ____StalkerAPI.Save
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
-local RandomFromArray = ____Collections.RandomFromArray
+local GetRandomFromArray = ____Collections.GetRandomFromArray
 local ____Random = require("MonsterWorldMod.Helpers.Random")
 local IsPctRolled = ____Random.IsPctRolled
 local ____TimerManager = require("MonsterWorldMod.Managers.TimerManager")
@@ -6828,6 +7085,9 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
     end
     local ____self_Player_18, ____HP_19 = self.Player, "HP"
     ____self_Player_18[____HP_19] = ____self_Player_18[____HP_19] - damage
+    if not self.Player.IsDead then
+        self.Player:IterateSkills(function(s) return s:OnPlayerHit(monster, damage) end)
+    end
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
@@ -6852,7 +7112,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
             local isCritPartHit = ____value[2]
             do
                 if monster.IsDead then
-                    goto __continue49
+                    goto __continue51
                 end
                 local monsterDamage = weaponDamage
                 if monster.GO:is_stalker() then
@@ -6865,39 +7125,43 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
                     local critDamageMult = 1 + self:GetStat("CritDamagePct", weapon, self.Player) / 100
                     monsterDamage = monsterDamage * critDamageMult
                 end
+                self.Player:IterateSkills(function(s)
+                    monsterDamage = s:OnMonsterBeforeHit(monster, isCrit, monsterDamage)
+                    return monsterDamage
+                end)
                 local realDamage = self:DamageMonster(monster, monsterDamage, isCrit)
                 self.UIManager:ShowDamage(realDamage, isCrit, monster.IsDead)
                 self.Player:IterateSkills(function(s) return s:OnMonsterHit(monster, isCrit) end)
             end
-            ::__continue49::
+            ::__continue51::
         end
     end
 end
 function World.prototype.GetDamageBonusStatByWeaponType(self, ____type)
     repeat
-        local ____switch58 = ____type
-        local ____cond58 = ____switch58 == WeaponType.Pistol
-        if ____cond58 then
+        local ____switch61 = ____type
+        local ____cond61 = ____switch61 == WeaponType.Pistol
+        if ____cond61 then
             return "DamageWithPistolBonusPct"
         end
-        ____cond58 = ____cond58 or ____switch58 == WeaponType.SMG
-        if ____cond58 then
+        ____cond61 = ____cond61 or ____switch61 == WeaponType.SMG
+        if ____cond61 then
             return "DamageWithSMGBonusPct"
         end
-        ____cond58 = ____cond58 or ____switch58 == WeaponType.Shotgun
-        if ____cond58 then
+        ____cond61 = ____cond61 or ____switch61 == WeaponType.Shotgun
+        if ____cond61 then
             return "DamageWithShotgunBonusPct"
         end
-        ____cond58 = ____cond58 or ____switch58 == WeaponType.AssaultRifle
-        if ____cond58 then
+        ____cond61 = ____cond61 or ____switch61 == WeaponType.AssaultRifle
+        if ____cond61 then
             return "DamageWithAssaultRifleBonusPct"
         end
-        ____cond58 = ____cond58 or ____switch58 == WeaponType.MachineGun
-        if ____cond58 then
+        ____cond61 = ____cond61 or ____switch61 == WeaponType.MachineGun
+        if ____cond61 then
             return "DamageWithMachingGunBonusPct"
         end
-        ____cond58 = ____cond58 or ____switch58 == WeaponType.SniperRifle
-        if ____cond58 then
+        ____cond61 = ____cond61 or ____switch61 == WeaponType.SniperRifle
+        if ____cond61 then
             return "DamageWithSniperRifleBonusPct"
         end
     until true
@@ -6979,12 +7243,12 @@ function World.prototype.GetDropLevelAndQualityFromMonster(self, monster)
 end
 function World.prototype.GenerateWeaponDrop(self, dropLevel, qualityLevel, pos)
     local typedSections = ini_sys:r_list("mw_drops_by_weapon_type", "sections")
-    local selectedTypeSection = RandomFromArray(typedSections)
+    local selectedTypeSection = GetRandomFromArray(typedSections)
     local weaponCount = ini_sys:line_count(selectedTypeSection)
     local selectedElement = math.random(0, weaponCount - 1)
     local _, weaponBaseSection = ini_sys:r_line_ex(selectedTypeSection, selectedElement)
     local weaponVariants = ini_sys:r_list(weaponBaseSection, "variants")
-    local selectedVariant = RandomFromArray(weaponVariants)
+    local selectedVariant = GetRandomFromArray(weaponVariants)
     return alife_create_item(selectedVariant, pos)
 end
 function World.prototype.GenerateStimpackDrop(self, dropLevel, qualityLevel, pos)
@@ -7069,14 +7333,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue97
+                goto __continue100
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue97::
+        ::__continue100::
     end
     return result
 end

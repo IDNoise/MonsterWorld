@@ -4,8 +4,12 @@ import { ObjectType, MWObject } from './MWObject';
 import { SkillAuraOfDeath } from '../Skills/SkillAuraOfDeath';
 import { SkillCriticalDeath } from '../Skills/SkillCriticalDeath';
 import { ArtefactStatsForGeneration } from "../Configs/Loot";
-import { RandomFromArray, TakeRandomUniqueElementsFromArray } from "../Helpers/Collections";
+import { GetRandomFromArray, GetRandomUniqueElementsFromArray, GetRandomUniqueKeysFromTable } from "../Helpers/Collections";
 import { Skill } from "../Skills/Skill";
+import { SkillThorns } from '../Skills/SkillThorns';
+import { SkillSpeedyRetreat } from '../Skills/SkillSpeedyRetreat';
+import { SkillSuperCrit } from '../Skills/SkillSuperCrit';
+import { SkillHealPlayerOnKill } from '../Skills/SkillHealPlayerOnKill';
 
 export class MWArtefact extends MWItem {
 
@@ -62,39 +66,45 @@ export class MWArtefact extends MWItem {
             }
         }
 
-        availableStats.push(RandomFromArray(WeaponDamageBonusesByType));
-        availableStats.push(RandomFromArray(DamageBonusesByEnemyType));
+        availableStats.push(GetRandomFromArray(WeaponDamageBonusesByType));
+        availableStats.push(GetRandomFromArray(DamageBonusesByEnemyType));
             
         let statsToSelect = math.min(availableStats.length, math.min(6, this.Quality + this.Level / 15));
-        let selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect);
+        let selectedStats = GetRandomUniqueElementsFromArray(availableStats, statsToSelect);
 
         for(let stat of selectedStats){
             let bonusType = PctStats.includes(stat) ? StatBonusType.Flat : StatBonusType.Pct;
             let bonus = GetStatBonusForObject(stat, this.Level, this.Quality, bonusType, this.Type);
             this.AddStatBonus(stat, bonusType, bonus, "generation")
         }
+
+        let skillCount = 0;
+        if (this.Quality == 5) { skillCount = math.random(1, 2) }
+        else if (this.Quality == 4) { skillCount = 1}
+        else if (this.Quality == 2 || this.Quality == 3) { skillCount = math.random(0, 1)}
+        
+        skillCount = math.min(skillCount, ArtefactSkills.size)
+        
+        this.Save<string[]>("SelectedSkills", GetRandomUniqueElementsFromArray(Array.from(ArtefactSkills.keys()), skillCount))
     }
 
     protected override SetupSkills(): void {
         super.SetupSkills();
 
-        let skillCount = 0;
-        if (this.Quality == 5) { skillCount = math.random(2) }
-        else if (this.Quality == 4) { skillCount = math.random(1)}
-        else if (this.Quality == 2 || this.Quality == 3) { skillCount = math.random(0, 1)}
-        
-        skillCount = math.min(skillCount, ArtefactSkills.length)
-        for(let i = 0; i < skillCount; i++){
-            this.AddSkill(ArtefactSkills[i](this))
-        }
-        
-        for(let [skillId, _] of this.Skills){
-            this.SetSkillLevel(skillId, this.Level)
+        for(let skillId of this.Load<string[]>("SelectedSkills", [])){
+            let skill = ArtefactSkills.get(skillId)!();
+            this.AddSkill(skillId, skill)
+            if (skill.Level == 0){ //First initialization
+                skill.Level = this.Level;
+            }
         }
     }
 }
 
-const ArtefactSkills: ((owner: MWObject) => Skill)[] = [
-    owner => new SkillAuraOfDeath('aura_of_death', owner, 5, l => 2 + l / 2, l => 5 + l / 10),
-    owner => new SkillCriticalDeath('crit_death', owner, l => 3 + l / 2, l => 3 + l / 5, l => 5 + l / 10),
-]
+const ArtefactSkills: Map<string, () => Skill> = new Map();
+ArtefactSkills.set("SkillHealPlayerOnKill", () => new SkillHealPlayerOnKill(l => 0.5 + 0.1 * l));
+ArtefactSkills.set("SkillAuraOfDeath", () => new SkillAuraOfDeath(5, l => 2 + l / 10, l => 5 + l / 10));
+ArtefactSkills.set("SkillCriticalDeath", () => new SkillCriticalDeath(l => 5 + l / 2, l => 3 + l / 5, l => 5 + l / 10));
+ArtefactSkills.set("SkillThorns", () => new SkillThorns(l => math.min(4, 0.5 + l / 20)));
+ArtefactSkills.set("SkillSpeedyRetreat", () => new SkillSpeedyRetreat(15, l => math.max(30, 60 - l), l => math.min(10, 3 + l / 5), l => 20 + l));
+ArtefactSkills.set("SkillSuperCrit", () => new SkillSuperCrit(10, l => 25 + 5 * l));

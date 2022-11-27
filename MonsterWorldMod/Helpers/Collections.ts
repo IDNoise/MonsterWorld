@@ -12,7 +12,7 @@ export function TableToMap<K extends AnyNotNil, V>(tbl: LuaTable<K, V>) : Map<K,
     return result;
 }
 
-export function RandomFromArray<T>(array: T[]): T{
+export function GetRandomFromArray<T>(array: T[]): T{
     const index = math.random(0, array.length - 1);
     return array[index];
 }
@@ -24,13 +24,27 @@ export function TakeRandomElementFromArray<T>(array: T[]): T {
     return element;
 }
 
-export function TakeRandomUniqueElementsFromArray<T>(array: T[], count: number): T[] {
+export function GetRandomUniqueElementsFromArray<T>(array: T[], count: number): T[] {
+    let arrayCopy = []
+    for(let i = 0; i < array.length; i++){
+        arrayCopy.push(array[i])
+    }
+
     let result: T[] = [];
-    count = math.min(count, array.length)
+    count = math.min(count, arrayCopy.length)
     for(let i = 0; i < count; i++){
-        result.push(TakeRandomElementFromArray(array))
+        result.push(TakeRandomElementFromArray(arrayCopy))
     }
     return result;
+}
+
+export function GetRandomUniqueKeysFromTable<K extends AnyNotNil, V>(table: LuaTable<K, V>, count: number): K[] {
+    let keys = [];
+    for(let [k, v] of table){
+        keys.push(k);
+    }
+
+    return GetRandomUniqueElementsFromArray(keys, count);
 }
 
 export function GetByWeightFromArray<T>(array: T[], weightGetter: (element:T) => number) : T {

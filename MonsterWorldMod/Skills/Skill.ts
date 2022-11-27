@@ -5,13 +5,18 @@ import { MWObject } from '../GameObjects/MWObject';
 export abstract class Skill {
     private level: number = 0;
 
+    public Id: string
+    public Owner: MWObject
+
     public OnLevelUpHandlers: ((skill: Skill) => void)[] = [];
 
-    constructor(public Id: string, public Owner: MWObject, public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
+    constructor(public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
     }
 
-    Init(): void {
-        this.level = this.Owner.GetSkillLevel(this.Id);
+    Init(id: string, owner: MWObject): void {
+        this.Id = id;
+        this.Owner = owner;
+        this.level = this.Load("Level", 0);
         this.UpdateLevelBonuses();
     }
 
@@ -22,8 +27,11 @@ export abstract class Skill {
         if (level > oldLevel) {
             this.OnLevelUp(oldLevel, level);
         }
-        this.Owner.SetSkillLevel(this.Id, this.Level)
+        this.Save("Level", this.Level)
     }
+
+    Save<T>(varname: string, val: T): void { this.Owner.SaveSkillData(this.Id, varname, val); };
+    Load<T>(varname: string, def?: T): T { return this.Owner.LoadSkillData(this.Id, varname, def); }
 
     Upgrade(): void {
         if (!this.CanBeUpgraded)
@@ -77,6 +85,8 @@ export abstract class Skill {
     OnOwnerPickUp(): void { }
     OnOwnerEquip(): void { }
     OnOwnerUnequip(): void { }
+    OnPlayerHit(monster: MWMonster, damage: number): void { }
+    OnMonsterBeforeHit(monster: MWMonster, isCrit: boolean, damage: number): number { return damage; }
     OnMonsterHit(monster: MWMonster, isCrit: boolean): void { }
     OnMonsterKill(monster: MWMonster, isCrit: boolean): void { }
 }

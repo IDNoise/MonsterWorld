@@ -2,7 +2,7 @@ import { Log } from '../../StalkerModBase';
 import * as cfg from '../Configs/Constants';
 import { MinQuality, MaxQuality, WeaponStatsUsingUpgrades, WeaponStatsForGeneration, GetWeaponUpgradesByStat, GetWeaponSectinFieldNameByStat, GetWeaponBaseValueByStat} from '../Configs/Loot';
 import { StatType, StatBonusType, PctStats, GetBonusDescription, GetStatBonusForObject, GetBonusDescriptionByType } from '../Configs/Stats';
-import { TakeRandomUniqueElementsFromArray } from '../Helpers/Collections';
+import { GetRandomUniqueElementsFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { MWItem } from './MWItem';
 import { ObjectType } from './MWObject';
@@ -99,7 +99,7 @@ export class MWWeapon extends MWItem {
         }        
 
         let statsToSelect = math.min(availableBonuses.length, 1 + this.Quality + math.floor(this.Level / 10));
-        let selectedStats = TakeRandomUniqueElementsFromArray(availableBonuses, statsToSelect);
+        let selectedStats = GetRandomUniqueElementsFromArray(availableBonuses, statsToSelect);
 
         if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.Flatness)){ //Bullet speed is additional random bonus
             selectedStats.push(StatType.Flatness);

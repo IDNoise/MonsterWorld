@@ -2,7 +2,7 @@ import { Log } from '../../StalkerModBase';
 import * as cfg from '../Configs/Constants';
 import { ArmorStatsForGeneration } from '../Configs/Loot';
 import { StatType, StatBonusType, PctStats, GetBonusDescription, WeaponDamageBonusesByType as WeaponTypeDamageBonuses, GetStatBonusForObject, DamageBonusesByEnemyType, GetBonusDescriptionByType } from '../Configs/Stats';
-import { TakeRandomUniqueElementsFromArray, RandomFromArray } from '../Helpers/Collections';
+import { GetRandomUniqueElementsFromArray, GetRandomFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { MWItem } from './MWItem';
 import { ObjectType } from './MWObject';
@@ -51,11 +51,11 @@ export class MWArmor extends MWItem {
         for(let stat of ArmorStatsForGeneration)
             availableStats.push(stat);  
 
-        availableStats.push(RandomFromArray(WeaponTypeDamageBonuses))
-        availableStats.push(RandomFromArray(DamageBonusesByEnemyType))
+        availableStats.push(GetRandomFromArray(WeaponTypeDamageBonuses))
+        availableStats.push(GetRandomFromArray(DamageBonusesByEnemyType))
 
         let statsToSelect = math.min(availableStats.length, 1 + this.Quality);
-        let selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect);
+        let selectedStats = GetRandomUniqueElementsFromArray(availableStats, statsToSelect);
         selectedStats.push(StatType.MaxHP) //Always has hp bonus
 
         for(let stat of selectedStats){

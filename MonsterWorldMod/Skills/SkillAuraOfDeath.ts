@@ -3,12 +3,12 @@ import { Skill } from './Skill';
 
 
 export class SkillAuraOfDeath extends Skill {
-    constructor(public Id: string, public Owner: MWObject, public Interval: number, public DpsPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number,
+    constructor(public Interval: number, public DpsPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number,
         public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
-        super(Id, Owner, PriceFormula, MaxLevel);
+        super(PriceFormula, MaxLevel);
     }
 
-    get Description(): string { return `Every ${this.Interval} ${this.Interval == 1 ? "second" : "seconds"} damage all enemies in ${this.Range}m range for ${this.DpsPct}% of active weapon DPS`; }
+    get Description(): string { return `Every ${this.Interval} ${this.Interval == 1 ? "second" : "seconds"} damage all enemies in ${this.Range}m range for ${this.DpsPct}% of active weaponDPS`; }
 
     get Range(): number { return this.RangePerLevel(this.Level); }
     get DpsPct(): number { return this.DpsPctPerLevel(this.Level); }

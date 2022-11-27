@@ -11,7 +11,7 @@ import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/
 import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, DropType, GetStimpackByQuality, QualityConfigs } from './Configs/Loot';
 import { StatType } from './Configs/Stats';
 import { ObjectOrId, GetId, CreateVector, CreateWorldPositionAtPosWithGO, Save } from './Helpers/StalkerAPI';
-import { RandomFromArray } from './Helpers/Collections';
+import { GetRandomFromArray } from './Helpers/Collections';
 import { IsPctRolled } from './Helpers/Random';
 import { TimerManager } from './Managers/TimerManager';
 import { MWItem, ItemSpawnParams } from './GameObjects/MWItem';
@@ -243,6 +243,10 @@ export class World {
         }
         this.Player.HP -= damage;
 
+        if (!this.Player.IsDead){
+            this.Player.IterateSkills((s) => s.OnPlayerHit(monster!, damage))
+        }
+
         Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage}) in ${boneId}`)
     }
 
@@ -278,6 +282,8 @@ export class World {
                     let critDamageMult = 1 + this.GetStat(StatType.CritDamagePct, weapon, this.Player) / 100;
                     monsterDamage *= critDamageMult
                 }
+
+                this.Player.IterateSkills((s) => monsterDamage = s.OnMonsterBeforeHit(monster, isCrit, monsterDamage))
 
                 let realDamage = this.DamageMonster(monster, monsterDamage, isCrit);
                 this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
@@ -386,13 +392,13 @@ export class World {
 
     GenerateWeaponDrop(dropLevel: number, qualityLevel: number, pos: WorldPosition): cse_alife_object | undefined {
         let typedSections = ini_sys.r_list("mw_drops_by_weapon_type", "sections");
-        let selectedTypeSection = RandomFromArray(typedSections);
+        let selectedTypeSection = GetRandomFromArray(typedSections);
         let weaponCount = ini_sys.line_count(selectedTypeSection);
         let selectedElement = math.random(0, weaponCount - 1);
         //Log(`Selecting base ${selectedElement} from ${weaponCount} in ${selectedTypeSection}`)
         let [_, weaponBaseSection] = ini_sys.r_line_ex(selectedTypeSection, selectedElement)
         let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
-        let selectedVariant = RandomFromArray(weaponVariants)
+        let selectedVariant = GetRandomFromArray(weaponVariants)
 
         return alife_create_item(selectedVariant, pos)
     }

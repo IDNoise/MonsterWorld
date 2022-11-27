@@ -2,12 +2,10 @@ import { MWObject } from '../GameObjects/MWObject';
 import { MWMonster } from '../GameObjects/MWMonster';
 import { Skill } from './Skill';
 
-
-
 export class SkillCriticalDeath extends Skill {
-    constructor(public Id: string, public Owner: MWObject, public ChancePctPerLevel: (level: number) => number, public HpPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number,
+    constructor(public ChancePctPerLevel: (level: number) => number, public HpPctPerLevel: (level: number) => number, public RangePerLevel: (level: number) => number,
         public PriceFormula?: (level: number) => number, public MaxLevel: number = -1) {
-        super(Id, Owner, PriceFormula, MaxLevel);
+        super(PriceFormula, MaxLevel);
     }
 
     get Description(): string { return `${this.Chance}% chance on critical kill for enemy to explode and damage all enemies in ${this.Range}m radius for ${this.HpPct}% of Max HP`; }
@@ -35,3 +33,5 @@ export class SkillCriticalDeath extends Skill {
         }
     }
 }
+
+

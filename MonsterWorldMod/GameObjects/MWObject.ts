@@ -183,15 +183,15 @@ export abstract class MWObject {
         }
     }
 
-    SetSkillLevel(skillId: string, level: number): void{ this.Save(`SkillLevel_${skillId}`, level); }
-    GetSkillLevel(skillId: string): number{ return this.Load(`SkillLevel_${skillId}`, 0);}
+    SaveSkillData<T>(skillId: string, varname: string, val: T): void { this.Save(`Skill_${skillId}_${varname}`, val); };
+    LoadSkillData<T>(skillId: string, varname: string, def?: T): T { return this.Load(`Skill_${skillId}_${varname}`, def); }
 
     protected SetupSkills() {
         Log(`SetupSkills: ${this.SectionId}`)
     }
 
-    protected AddSkill(skill: Skill){
-        skill.Init();
+    protected AddSkill(skilLId: string, skill: Skill){
+        skill.Init(skilLId, this);
         this.Skills.set(skill.Id, skill)
     }
 

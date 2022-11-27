@@ -3,7 +3,7 @@ import { EnemyEliteChance, EnemyBossChance, EnemyHigherLevelChance } from '../Co
 import { MonsterType, MonsterConfigs, MonsterRank } from '../Configs/Enemies';
 import { GetCurrentLocationCfg, LocationType, LocationConfigs } from '../Configs/Levels';
 import { MonsterSpawnParams } from '../GameObjects/MWMonster';
-import { RandomFromArray } from '../Helpers/Collections';
+import { GetRandomFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { Load, Save, NumberToCondList } from '../Helpers/StalkerAPI';
 
@@ -129,7 +129,7 @@ export class SpawnManager {
         }
 
         let monsterTypes = Load<MonsterType[]>(obj.smart_id, "MW_MonsterTypes");
-        let monsterType = RandomFromArray(monsterTypes);
+        let monsterType = GetRandomFromArray(monsterTypes);
         let monsterCfg = MonsterConfigs.get(monsterType);
         if (monsterCfg == undefined){
             Log(`SPAWN PROBLEM  NO monsterCfg! ${monsterType}`)
