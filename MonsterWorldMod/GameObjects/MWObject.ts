@@ -24,13 +24,17 @@ export abstract class MWObject {
 
     private get WasInitializedForFirstTime(): boolean { return this.Load("Initialized"); }
     private set WasInitializedForFirstTime(initialized: boolean) { this.Save("Initialized", initialized); }
+
     protected OnFirstTimeInitialize(): void {
         Log(`OnFirstTimeInitialize: ${this.SectionId}`)
     }
+
     protected OnInitialize(): void {
         Log(`OnInitialize: ${this.SectionId}`)
         this.SetupSkills();
     }
+
+    abstract get Type(): ObjectType;
 
     get ServerGO(): cse_alife_object { return alife().object(this.id); }
     get GO(): game_object { return level.object_by_id(this.id); }
@@ -63,6 +67,7 @@ export abstract class MWObject {
 
     Update(deltaTime: number){
         this.RegenHP(deltaTime)
+        this.UpdateTTLForBonuses(deltaTime)
     }
 
     RegenHP(deltaTime: number){
@@ -82,7 +87,7 @@ export abstract class MWObject {
         this.RecalculateStatTotal(stat);
     }
 
-    public AddStatBonus(stat: StatType, bonusType: StatBonusType, bonus: number, source: string): void{
+    public AddStatBonus(stat: StatType, bonusType: StatBonusType, bonus: number, source: string, duration?: number): void{
         let field = GetStatBonusField(stat, bonusType);
         Log(`Adding stat bonus to ${this.SectionId} stat: ${stat}, type: ${bonusType} (${field}), bonus: ${bonus}, source: ${source}`)
 
@@ -99,6 +104,10 @@ export abstract class MWObject {
         bonuses.set(source, bonus);
         this.Save<LuaTable<string, number>>(field, bonuses);
         this.RecalculateStatTotal(stat); 
+
+        if (duration != undefined){
+            this.SetBonusTTL(stat, bonusType, source, duration);
+        }
     }
 
     public RemoveStatBonus(stat: StatType, bonusType: StatBonusType, source: string): void{
@@ -139,6 +148,31 @@ export abstract class MWObject {
         this.OnStatChanged(stat, current, total);
     }
 
+    private SetBonusTTL(stat: StatType, bonusType: StatBonusType, source: string, ttl: number){
+        let bonuses = this.Load<LuaSet<BonusTTL>>(BonusesWithTTLField, new LuaSet())
+        bonuses.add({Stat: stat, BonusType: bonusType, Source: source, TTL: ttl});
+        this.Save<LuaSet<BonusTTL>>(BonusesWithTTLField, bonuses)
+    }
+
+    private UpdateTTLForBonuses(deltaTime: number){
+        let bonusesToRemove: BonusTTL[] = []
+
+        let bonuses = this.Load<LuaSet<BonusTTL>>(BonusesWithTTLField, new LuaSet())
+        for(let bonus of bonuses){
+            bonus.TTL -= deltaTime;
+            if (bonus.TTL <= 0){
+                bonusesToRemove.push(bonus)
+            }
+        }
+
+        for(let bonusToRemove of bonusesToRemove){
+            bonuses.delete(bonusToRemove)
+            this.RemoveStatBonus(bonusToRemove.Stat, bonusToRemove.BonusType, bonusToRemove.Source)
+        }
+
+        this.Save<LuaSet<BonusTTL>>(BonusesWithTTLField, bonuses)
+    }
+
     protected OnStatChanged(stat: StatType, prev: number, current: number){
         Log(`OnStatChanged ${stat} from ${prev} to ${current}`)
         if (stat == StatType.MaxHP){
@@ -170,8 +204,6 @@ export abstract class MWObject {
 
     protected Save<T>(varname: string, val: T): void { Save(this.id, "MW_" + varname, val); };
     protected Load<T>(varname: string, def?: T): T { return Load(this.id, "MW_" + varname, def); }
-    
-    abstract get Type(): ObjectType;
 }
 
 function GetStatBonusField(stat: StatType, bonusType: StatBonusType): string { return `${stat}_${bonusType}_bonuses`; }
@@ -185,4 +217,12 @@ export enum ObjectType {
     Armor,
     Artefact,
     Stimpack
+}
+
+const BonusesWithTTLField: string = "TimedStatBonuses";
+type BonusTTL = {
+    Stat: StatType,
+    BonusType: StatBonusType,
+    Source: string,
+    TTL: number
 }

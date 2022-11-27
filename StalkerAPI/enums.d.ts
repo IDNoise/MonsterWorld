@@ -478,15 +478,31 @@ declare enum key_bindings {
 
 declare enum GAME_TYPE {
     GAME_UNKNOWN = -1,
-    eGameIDArtefactHunt = 8,
-    eGameIDCaptureTheArtefact = 16,
     eGameIDDeathmatch = 2,
     eGameIDTeamDeathmatch = 4,
+    eGameIDArtefactHunt = 8,
+    eGameIDCaptureTheArtefact = 16,
 }
 
 declare enum game_difficulty {
-    master = 3,
     novice = 0,
     stalker = 1,
     veteran = 2,
+    master = 3,
+}
+
+declare const enum EquipmentSlotId {
+    Knife = 1,
+    Weapon1 = 2,
+    Weapon2 = 3,
+    Grenade = 4,
+    Binocular = 5,
+    Bolt = 6,
+    Outfit = 7,
+    PDA = 8,
+    Detector = 9,
+    Torch = 10,
+    Artefact = 11,
+    Helmet = 12,
+    Backpack = 13,
 }

@@ -322,7 +322,7 @@ export class UIManager {
         
         let player = MonsterWorld.Player
         let playerPos = player.GO.position();
-        let distance = player.Weapon?.FireDistance || 100000;
+        let distance = player.ActiveWeapon?.FireDistance || 100000;
         this.enemyHPOutOfDistanceNotice.Show(monster.GO.position().distance_to(playerPos) >= distance)
     }
 

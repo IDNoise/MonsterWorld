@@ -74,6 +74,9 @@ export abstract class Skill {
 
     //Event handlers
     Update(deltaTime: number) { }
+    OnOwnerPickUp(): void { }
+    OnOwnerEquip(): void { }
+    OnOwnerUnequip(): void { }
     OnMonsterHit(monster: MWMonster, isCrit: boolean): void { }
     OnMonsterKill(monster: MWMonster, isCrit: boolean): void { }
 }

@@ -111,7 +111,7 @@ export class MonsterWorldMod extends StalkerModBase {
 
     protected override OnBeforeKeyPress(key: DIK_keys, bind: key_bindings, dis: boolean): boolean {
         if (bind == key_bindings.kWPN_RELOAD){
-            let weapon = this.World.Player.Weapon;
+            let weapon = this.World.Player.ActiveWeapon;
             let weaponGO = weapon?.GO.cast_Weapon();
             if (weaponGO != undefined && weaponGO.GetAmmoElapsed() < (weapon?.MagSize || 1)){
                 weaponGO.SetAmmoElapsed(0);

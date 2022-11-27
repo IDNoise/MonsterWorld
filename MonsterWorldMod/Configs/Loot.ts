@@ -40,9 +40,9 @@ export type DropConfig = {
 }
 export let DropConfigs: DropConfig[] = [
     {Type: DropType.Weapon,   WeightsByRank: [75,  75,  75]},
-    {Type: DropType.Stimpack, WeightsByRank: [10,  15,  25]},
-    {Type: DropType.Armor,    WeightsByRank: [10,  15,  25]}, 
-    {Type: DropType.Artefact, WeightsByRank: [5,   10,  20]}, 
+    {Type: DropType.Stimpack, WeightsByRank: [10,  15,  20]},
+    {Type: DropType.Armor,    WeightsByRank: [10,  15,  20]}, 
+    {Type: DropType.Artefact, WeightsByRank: [1,   5,   20]}, 
 ]
 
 export function GetDropType(rank: MonsterRank): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.WeightsByRank[rank]).Type; }

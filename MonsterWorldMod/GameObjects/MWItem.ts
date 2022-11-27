@@ -22,6 +22,7 @@ export abstract class MWItem extends MWObject {
 
     public OnItemPickedUp(){
         Log(`OnItemPickedUp ${this.SectionId}`)
+        this.IterateSkills((s) => s.OnOwnerPickUp())
     }
 
     public GetPlayerStatBonusesOnEquip(): StatType[] { return [] }
@@ -34,6 +35,7 @@ export abstract class MWItem extends MWObject {
                 MonsterWorld.Player.AddStatBonus(stat, StatBonusType.Pct, this.GetTotalPctBonus(stat), this.SectionId)
             }
         }
+        this.IterateSkills((s) => s.OnOwnerEquip())
     }
 
     public OnItemUnequipped(){
@@ -44,6 +46,7 @@ export abstract class MWItem extends MWObject {
                 MonsterWorld.Player.RemoveStatBonus(stat, StatBonusType.Pct, this.SectionId)
             }
         }
+        this.IterateSkills((s) => s.OnOwnerUnequip())
     }
 
     GenerateStats(){

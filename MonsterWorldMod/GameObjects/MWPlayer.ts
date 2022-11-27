@@ -39,8 +39,10 @@ export class MWPlayer extends MWObject {
         this.Save("CurrentXP", exp); 
     }
 
-    get Weapon(): MWWeapon | undefined { return MonsterWorld.GetWeapon(this.GO.active_item())}
-    get Armor(): MWArmor | undefined { return MonsterWorld.GetArmor(this.GO.item_in_slot(7))}
+    get ActiveWeapon(): MWWeapon | undefined { return MonsterWorld.GetWeapon(this.GO.active_item())}
+    get Weapon1(): MWWeapon | undefined { return MonsterWorld.GetWeapon(this.GO.item_in_slot(EquipmentSlotId.Weapon1))}
+    get Weapon2(): MWWeapon | undefined { return MonsterWorld.GetWeapon(this.GO.item_in_slot(EquipmentSlotId.Weapon2))}
+    get Armor(): MWArmor | undefined { return MonsterWorld.GetArmor(this.GO.item_in_slot(EquipmentSlotId.Outfit))}
 
     private LevelUp(): void{
         this.Level++;
@@ -89,6 +91,17 @@ export class MWPlayer extends MWObject {
         this.AddSkill(new SkillPassiveStatBonus(`reload_speed`, this, StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 2 * level, PriceFormulaConstant(1), 25))
         this.AddSkill(new SkillPassiveStatBonus(`crit_damage`, this, StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
         this.AddSkill(new SkillPassiveStatBonus(`xp_gain`, this, StatType.XPGainMult, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 25))
+    }
+
+    override IterateSkills(iterator: (s: Skill) => void, onlyWithLevel?: boolean): void {
+        super.IterateSkills(iterator, onlyWithLevel)
+        this.GO.iterate_belt((itemGO: game_object) => {
+            let item = MonsterWorld.GetItem(itemGO)
+            item?.IterateSkills(iterator, onlyWithLevel)
+        }, this.GO)
+        this.Armor?.IterateSkills(iterator, onlyWithLevel)
+        this.Weapon1?.IterateSkills(iterator, onlyWithLevel)
+        this.Weapon2?.IterateSkills(iterator, onlyWithLevel)
     }
 
 // this.AddSkill(new SkillHealPlayerOnKill(`heal_on_kill`, this, (level) => 0.5 * level, PriceFormulaConstant(1), 10))

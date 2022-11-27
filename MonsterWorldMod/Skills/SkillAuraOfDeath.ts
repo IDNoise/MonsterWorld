@@ -8,7 +8,7 @@ export class SkillAuraOfDeath extends Skill {
         super(Id, Owner, PriceFormula, MaxLevel);
     }
 
-    get Description(): string { return `Every ${this.Interval} ${this.Interval == 1 ? "second" : "seconds"} damage all enemies in ${this.Range}m range for ${this.DpsPct}% of DPS`; }
+    get Description(): string { return `Every ${this.Interval} ${this.Interval == 1 ? "second" : "seconds"} damage all enemies in ${this.Range}m range for ${this.DpsPct}% of active weapon DPS`; }
 
     get Range(): number { return this.RangePerLevel(this.Level); }
     get DpsPct(): number { return this.DpsPctPerLevel(this.Level); }
@@ -20,7 +20,7 @@ export class SkillAuraOfDeath extends Skill {
         if (this.timePassed < this.Interval)
             return;
 
-        let weapon = MonsterWorld.Player.Weapon;
+        let weapon = MonsterWorld.Player.ActiveWeapon;
         if (weapon == undefined)
             return;
 

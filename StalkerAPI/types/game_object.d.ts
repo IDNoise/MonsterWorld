@@ -198,9 +198,9 @@ declare interface game_object {
   // function set_item(enum MonsterSpace::EObjectAction, game_object*): void;
   // function set_item(enum MonsterSpace::EObjectAction, game_object*, number): void;
   // function set_item(enum MonsterSpace::EObjectAction, game_object*, number, number): void;
-  iterate_inventory(iterator: (item: game_object) => void, owner: game_object): void;
-  iterate_ruck(iterator: (item: game_object) => void, owner: game_object): void;
-  iterate_belt(iterator: (item: game_object) => void, owner: game_object): void;
+  iterate_inventory(iterator: (owner: game_object, item: game_object) => void, owner: game_object): void;
+  iterate_ruck(iterator: (owner: game_object, item: game_object) => void, owner: game_object): void;
+  iterate_belt(iterator: (owner: game_object, item: game_object) => void, owner: game_object): void;
   inventory_for_each(iterator: (item: game_object) => void): void;
   transfer_item(item: game_object, npc: game_object): void;
   // function is_trade_enabled()

@@ -6,7 +6,7 @@ import { MWPlayer } from './GameObjects/MWPlayer';
 import { MWWeapon, WeaponType } from './GameObjects/MWWeapon';
 import { SpawnManager } from './Managers/SpawnManager';
 import { UIManager } from './Managers/UIManager';
-import { MWObject } from './GameObjects/MWObject';
+import { MWObject, ObjectType } from './GameObjects/MWObject';
 import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/Difficulty';
 import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, DropType, GetStimpackByQuality, QualityConfigs } from './Configs/Loot';
 import { StatType } from './Configs/Stats';
@@ -108,8 +108,29 @@ export class World {
         return this.items.get(itemId);
     }
 
-    public GetWeapon(item: ObjectOrId): MWWeapon | undefined { return <MWWeapon>this.GetItem(item); }
-    public GetArmor(item: ObjectOrId): MWArmor | undefined { return <MWArmor>this.GetItem(item); }
+    public GetWeapon(itemOrId: ObjectOrId): MWWeapon | undefined { 
+        let item = this.GetItem(itemOrId);
+        if(item?.Type == ObjectType.Weapon){
+            return <MWWeapon>item;
+        }
+        return undefined;
+    }
+
+    public GetArmor(itemOrId: ObjectOrId): MWArmor | undefined { 
+        let item = this.GetItem(itemOrId);
+        if(item?.Type == ObjectType.Armor){
+            return <MWArmor>item;
+        }
+        return undefined;
+    }
+
+    public GetArtefact(itemOrId: ObjectOrId): MWArtefact | undefined { 
+        let item = this.GetItem(itemOrId);
+        if(item?.Type == ObjectType.Artefact){
+            return <MWArtefact>item;
+        }
+        return undefined;
+    }
 
     public DestroyObject(id:Id) {
         this.CleanupObjectTimersAndMinimapMarks(id);
