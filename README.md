@@ -11,7 +11,7 @@ Features:
 - 3 monster level ranks: common, elite, boss. Each rank uses own visuals and has custom hp/damage/xp/loot-chance mults
 - Random weapon generation: levels + quality results in different upgrade setups that change damage/fire-rate/mag-size/recoil/accuracy/fire-modes/reload-speed/crit-chance/bullet-speed
 - Start with PM, get new weapons from enemies
-- Loot drop (weapons and stimpacks) from enemies with simple highlight based on quality (dots on minimap + colored smoke on level)
+- Loot drop (weapons, armors, artefacts and stimpacks) from enemies with simple highlight based on quality (dots on minimap + colored smoke on level)
 - Custom UI: level progress, enemy health bar, floating numbers for damage/xp, show weapon stats + bonuses in description and lvl + dps in inventory
 - Auto delete dropped item from inventory, infinite ammo (still requires realoding)
 - Game difficulty affects enemy damage (2x damage on max difficutly) and Economy difficutly affects drop chance (0.33x less drop on max difficulty)
