@@ -3,7 +3,7 @@ import * as constants from './Configs/Constants';
 import { MonsterWorldMod } from './MonsterWorldMod';
 import { MWMonster } from './GameObjects/MWMonster';
 import { MWPlayer } from './GameObjects/MWPlayer';
-import { MWWeapon } from './GameObjects/MWWeapon';
+import { MWWeapon, WeaponType } from './GameObjects/MWWeapon';
 import { SpawnManager } from './Managers/SpawnManager';
 import { UIManager } from './Managers/UIManager';
 import { MWObject } from './GameObjects/MWObject';
@@ -228,7 +228,8 @@ export class World {
         
         for(const [weapon, hits] of hitsByWeapon){
             let isCritByWeapon = IsPctRolled(this.GetStat(StatType.CritChancePct, weapon, this.Player))
-            let weaponDamage = weapon.Damage / hits.length;
+            let bonusWeaponDamageMult = 1 + this.Player.GetStat(this.GetDamageBonusStatByWeaponType(weapon.WeaponType)) / 100;
+            let weaponDamage = weapon.Damage * bonusWeaponDamageMult / hits.length;
 
             for(let [monster, isCritPartHit] of hits){
                 if (monster.IsDead) continue;
@@ -251,6 +252,17 @@ export class World {
                 this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
                 this.Player.IterateSkills((s) => s.OnMonsterHit(monster, isCrit))
             }
+        }
+    }
+
+    GetDamageBonusStatByWeaponType(type: WeaponType): StatType {
+        switch(type){
+            case WeaponType.Pistol: return StatType.DamageWithPistolBonusPct;
+            case WeaponType.SMG: return StatType.DamageWithSMGBonusPct;
+            case WeaponType.Shotgun: return StatType.DamageWithShotgunBonusPct;
+            case WeaponType.AssaultRifle: return StatType.DamageWithAssaultRifleBonusPct;
+            case WeaponType.MachineGun: return StatType.DamageWithMachingGunBonusPct;
+            case WeaponType.SniperRifle: return StatType.DamageWithSniperRifleBonusPct;
         }
     }
 

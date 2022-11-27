@@ -33,7 +33,6 @@ export function TakeRandomUniqueElementsFromArray<T>(array: T[], count: number):
     return result;
 }
 
-
 export function GetByWeightFromArray<T>(array: T[], weightGetter: (element:T) => number) : T {
     let totalWeight = 0;
     for(let element of array){

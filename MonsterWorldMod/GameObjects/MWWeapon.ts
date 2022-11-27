@@ -8,8 +8,12 @@ import { MWItem } from './MWItem';
 import { ObjectType } from './MWObject';
 
 export class MWWeapon extends MWItem {
-    
+
+
     get Type(): ObjectType { return ObjectType.Weapon }
+
+    get WeaponType(): WeaponType { return this.Load<WeaponType>("WeaponType", WeaponType.Pistol); }
+    set WeaponType(value: WeaponType) { this.Save("WeaponType", value); }
 
     get TimeBetweenShots(): number { return math.max(0.01, this.GO?.cast_Weapon()?.RPM()) }
     get Damage(): number { return this.GetStat(StatType.Damage); } //Per hit
@@ -50,11 +54,7 @@ export class MWWeapon extends MWItem {
     override GeneateStats() {
         super.GeneateStats();
 
-        if (this.Section.indexOf("knife") >= 0){
-            this.SetStatBase(StatType.Damage, cfg.WeaponDPSBase)
-            //DO smth with knife or fuck it?
-            return;
-        }
+        this.WeaponType = <WeaponType>ini_sys.r_s32(this.Section, "weapon_type")
 
         //Log(`GenerateWeaponStats`)
         let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
@@ -168,4 +168,13 @@ export class MWWeapon extends MWItem {
     RefillMagazine(){
         this.GO?.cast_Weapon().SetAmmoElapsed(this.MagSize)
     }
+}
+
+export enum WeaponType{
+    Pistol = 0,
+    Shotgun,
+    SMG,
+    AssaultRifle,
+    MachineGun,
+    SniperRifle,
 }

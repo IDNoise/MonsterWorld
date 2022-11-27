@@ -163,7 +163,8 @@ public class WeaponsGenerator : BaseGenerator {
                 fire_mode_upgrades = string.Join(",", upgradesByType[UpgradeType.FireMode].Select(s => s.Name)),
                 bullet_speed_upgrades = string.Join(",", upgradesByType[UpgradeType.BulletSpeed].Select(s => s.Name)),
                 ammo_class = ammoConfigs[type].SectionName,
-                fire_distance = weaponFireDistanceByType[type]
+                fire_distance = weaponFireDistanceByType[type],
+                weapon_type = type
             };
 
             foreach (var variantWeapon in variants) {

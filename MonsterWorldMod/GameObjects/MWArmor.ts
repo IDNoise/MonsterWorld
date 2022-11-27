@@ -1,8 +1,8 @@
 import { Log } from '../../StalkerModBase';
 import * as cfg from '../Configs/Constants';
 import { ArmorStatsForGeneration } from '../Configs/Loot';
-import { StatType, StatBonusType, PctStats, GetBonusDescription } from '../Configs/Stats';
-import { TakeRandomUniqueElementsFromArray } from '../Helpers/Collections';
+import { StatType, StatBonusType, PctStats, GetBonusDescription, WeaponDamageBonusesByType as WeaponTypeDamageBonuses } from '../Configs/Stats';
+import { TakeRandomUniqueElementsFromArray, RandomFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { MWItem } from './MWItem';
 import { ObjectType } from './MWObject';
@@ -19,16 +19,25 @@ export class MWArmor extends MWItem {
         result += GetBonusDescription(StatType.DamageResistancePct, this.GetTotalFlatBonus(StatType.DamageResistancePct));
         result += GetBonusDescription(StatType.HPRegen, this.GetTotalPctBonus(StatType.HPRegen), true);
 
+        for(let stat of WeaponTypeDamageBonuses){
+            result += GetBonusDescription(stat, this.GetStat(stat));
+        }
+
         return result;
     }
 
     get HPBonus():number { return this.GetTotalFlatBonus(StatType.MaxHP) }
 
     public override GetPlayerStatBonusesOnEquip(): StatType[] {
-        return [
+        let result = [
             StatType.MaxHP,
             StatType.DamageResistancePct,
         ];
+
+        for(let stat of WeaponTypeDamageBonuses)
+            result.push(stat)
+
+        return result;
     }
 
     override GeneateStats(): void {
@@ -44,6 +53,8 @@ export class MWArmor extends MWItem {
         for(let stat of ArmorStatsForGeneration)
             availableStats.push(stat);  
 
+        availableStats.push(RandomFromArray(WeaponTypeDamageBonuses))
+
         let statsToSelect = math.min(availableStats.length, 1 + this.Quality);
         let selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect);
 
@@ -55,6 +66,10 @@ export class MWArmor extends MWItem {
             else if (stat == StatType.HPRegen) {
                 let hpRegenBonus = math.random(10 + 5 * (this.Quality - 1), (30 + 10 * (this.Quality - 1)) * this.Quality)
                 this.AddStatBonus(StatType.HPRegen, StatBonusType.Pct, hpRegenBonus, "generation")
+            }
+            else if (WeaponTypeDamageBonuses.includes(stat)){
+                let weaponTypeDamageBonus = math.random(3 + 3 * (this.Quality - 1), (10 + 5 * (this.Quality - 1)) * this.Quality)
+                this.AddStatBonus(stat, StatBonusType.Flat, weaponTypeDamageBonus, "generation")
             }
         }
     }

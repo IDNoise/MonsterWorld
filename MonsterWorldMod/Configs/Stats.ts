@@ -1,29 +1,41 @@
 import { EndColorTag } from "./UI";
 
 export const enum StatType{
-    RunSpeedMult = 0, //Player only
-    SprintSpeedMult, //Player only
-    MaxHP, //Player only
-    HPRegen, //Player only
-    XPGainMult, //Player only
+    //Player
+    RunSpeedMult = 0,
+    SprintSpeedMult,
+    MaxHP,
+    HPRegen,
+    XPGainMult,
 
-    Damage, //Weapon only
+    //Weapon
+    Damage, 
+    MagSize,
 
-    Rpm, //Weapon - only from upgrades
-    Accuracy, //Weapon - only from upgrades
-    Recoil, //Weapon - only from upgrades
-    Flatness, //Weapon - only from upgrades
-    AutoFireMode, //Weapon - only from upgrades
+    //Weapon from ugprades 
+    Rpm,
+    Accuracy,
+    Recoil,
+    Flatness,
+    AutoFireMode,
 
-    ReloadSpeedBonusPct, //Player + Weapon
-    CritDamagePct, //Player + Weapon
-    CritChancePct, //Player + Weapon
-    DamageToStalkersBonusPct, //Player + Weapon
-    DamageToMutantssBonusPct, //Player + Weapon
-    MagSize, //Player + Weapon
+    //Armor
+    ArtefactSlots, //Predefined by quality    
+    DamageResistancePct,
 
-    DamageResistancePct, //Armor
-    ArtefactSlots // Armor - Predefined by quality    
+    //Item + Player
+    ReloadSpeedBonusPct,
+    CritDamagePct,
+    CritChancePct,
+    DamageToStalkersBonusPct,
+    DamageToMutantssBonusPct,
+
+    DamageWithPistolBonusPct,
+    DamageWithSMGBonusPct,
+    DamageWithShotgunBonusPct,
+    DamageWithAssaultRifleBonusPct,
+    DamageWithMachingGunBonusPct,
+    DamageWithSniperRifleBonusPct,
 }
 
 export let StatTitles: {[key in StatType]: string} = {
@@ -47,9 +59,15 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.Flatness]: "Flatness",
     [StatType.AutoFireMode]:  "AUTO Fire mode enabled",
 
+    [StatType.ArtefactSlots]: "Artefact slots",
     [StatType.DamageResistancePct]: "Damage Resistance",
 
-    [StatType.ArtefactSlots]: "Artefact slots",
+    [StatType.DamageWithPistolBonusPct]: "Damage with Pistols",
+    [StatType.DamageWithSMGBonusPct]: "Damage with SMGs",
+    [StatType.DamageWithShotgunBonusPct]: "Damage with Shotguns",
+    [StatType.DamageWithAssaultRifleBonusPct]: "Damage with Assault Rifles",
+    [StatType.DamageWithMachingGunBonusPct]: "Damage with Machine Guns",
+    [StatType.DamageWithSniperRifleBonusPct]: "Damage with Sniper Rifles",
 }
 
 export const enum StatBonusType{
@@ -65,6 +83,12 @@ export let PctStats: StatType[] = [
     StatType.DamageToMutantssBonusPct, 
     StatType.ReloadSpeedBonusPct,
     StatType.DamageResistancePct,
+    StatType.DamageWithPistolBonusPct,
+    StatType.DamageWithSMGBonusPct,
+    StatType.DamageWithShotgunBonusPct,
+    StatType.DamageWithAssaultRifleBonusPct,
+    StatType.DamageWithMachingGunBonusPct,
+    StatType.DamageWithSniperRifleBonusPct,
 ];
 
 export let MultStats: StatType[] = [
@@ -80,6 +104,15 @@ export let NoValueStats: StatType[] = [
 export let NegativeBonuses = [
     StatType.Recoil
 ];
+
+export let WeaponDamageBonusesByType: StatType[] = [
+    StatType.DamageWithPistolBonusPct,
+    StatType.DamageWithSMGBonusPct,
+    StatType.DamageWithShotgunBonusPct,
+    StatType.DamageWithAssaultRifleBonusPct,
+    StatType.DamageWithMachingGunBonusPct,
+    StatType.DamageWithSniperRifleBonusPct,
+]
 
 export function GetBonusDescription(stat: StatType, bonus: number = 0, asPct: boolean = false): string{
     if (bonus == 0) 
