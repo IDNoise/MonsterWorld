@@ -51,12 +51,11 @@ export class MWWeapon extends MWItem {
         this.RefillMagazine();
     }
 
-    override GeneateStats() {
-        super.GeneateStats();
+    override GenerateStats() {
+        super.GenerateStats();
 
-        this.WeaponType = <WeaponType>ini_sys.r_s32(this.Section, "weapon_type")
+        this.WeaponType = <WeaponType>ini_sys.r_float_ex(this.Section, "weapon_type")
 
-        //Log(`GenerateWeaponStats`)
         let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
 
         let rpm = GetWeaponBaseValueByStat(this.Section, StatType.Rpm);
@@ -75,7 +74,7 @@ export class MWWeapon extends MWItem {
 
         for (let uType of WeaponStatsUsingUpgrades) {
             let upgrades = GetWeaponUpgradesByStat(this.Section, uType)
-            //Log(`weaponUpgradesByBonusType ${uType}:${upgrades.length}`)
+            Log(`weaponUpgradesByBonusType ${uType}:${upgrades.length}`)
             if (upgrades.length != 0)
                 weaponUpgradesByBonusType.set(uType, upgrades);
         }
@@ -84,7 +83,7 @@ export class MWWeapon extends MWItem {
         for(let type of WeaponStatsForGeneration){
             if (!WeaponStatsUsingUpgrades.includes(type) || weaponUpgradesByBonusType.has(type)){
                 availableBonuses.push(type)
-                //Log(`availableBonuses ${type}`)
+                Log(`availableBonuses ${type}`)
             }
         }        
 
@@ -93,12 +92,12 @@ export class MWWeapon extends MWItem {
 
         if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.Flatness)){ //Bullet speed is additional random bonus
             selectedStats.push(StatType.Flatness);
-            //Log(`selectedUpgradeTypes ${BonusParams.Type.BulletSpeed}`)
+            Log(`selectedUpgradeTypes ${StatType.Flatness}`)
         }
 
         if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.AutoFireMode)){ //Auto fire is additional random bonus
             selectedStats.push(StatType.AutoFireMode);
-            //Log(`selectedUpgradeTypes ${BonusParams.Type.FireMode}`)
+            Log(`selectedUpgradeTypes ${StatType.AutoFireMode}`)
         }
 
         let damageBonusPct = 0;
@@ -143,7 +142,7 @@ export class MWWeapon extends MWItem {
                     let defaultValue = GetWeaponBaseValueByStat(this.Section, stat);
                     if (defaultValue == 0) 
                         defaultValue = 1;
-                    //Log(`Bonus ${stat}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
+                    Log(`Bonus ${stat}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
                     bonusValue = bonusValue / defaultValue * 100;
 
                     this.AddStatBonus(stat, StatBonusType.Pct, math.abs(bonusValue), "generation")
@@ -156,10 +155,10 @@ export class MWWeapon extends MWItem {
             this.AddStatBonus(StatType.Damage, StatBonusType.Pct, damageBonusPct, "generation")
         }
 
-        //Log(`Base DPS: ${baseDPS} DPS: ${this.DPS}. Damage per hit: ${damagePerHit}. Fire rate: ${fireRate}`)
+        Log(`Base DPS: ${baseDPS} DPS: ${this.DPS}. Damage per hit: ${damagePerHit}. Fire rate: ${fireRate}`)
         for (let upgrade of allSelectedUpgrades) {
             upgrade = upgrade.replace("mwu", "mwe");
-            //Log(`Installing upgrade: ${upgrade}`)
+            Log(`Installing upgrade: ${upgrade}`)
             this.GO.install_upgrade(upgrade);
         }
         this.RefillMagazine();

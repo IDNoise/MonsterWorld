@@ -25,7 +25,7 @@ export class StalkerModBase {
         //Log("OnActorNetDestroy")
     }
     protected OnActorFirstUpdate() : void {
-        //Log("OnActorFirstUpdate")
+        Log("OnActorFirstUpdate")
     }
     protected OnActorUpdate() : void {
         //Log("OnActorUpdate start")
@@ -49,7 +49,7 @@ export class StalkerModBase {
 
     //Monster
     protected OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
-        //Log(`OnMonsterNetSpawn ${monster.section()}:${monster.id()} - ${serverObject.id}`)
+        Log(`OnMonsterNetSpawn ${monster.section()}:${monster.id()} - ${serverObject.id}`)
     }
     protected OnMonsterNetDestroy(monster: game_object): void {
         //Log(`OnMonsterNetDestroy ${monster.section()}:${monster.id()}`)
@@ -122,27 +122,27 @@ export class StalkerModBase {
     }
 
     protected OnItemTake(item: game_object) {
-        //Log(`OnItemTake ${item.name()}`)
+        Log(`OnItemTake ${item.name()}`)
     }
 
     protected OnItemDrop(item: game_object) {
-        //Log(`OnItemDrop ${item.name()}`)
+        Log(`OnItemDrop ${item.name()}`)
     }
 
     protected OnItemUse(item: game_object) {
-        //Log(`OnItemUse ${item.name()}`)
+        Log(`OnItemUse ${item.name()}`)
     }
 
     protected OnItemToBelt(item: game_object) {
-        //Log(`OnItemToBelt ${item.name()}`)
+        Log(`OnItemToBelt ${item.name()}`)
     }
 
     protected OnItemToRuck(item: game_object) {
-        //Log(`OnItemToRuck ${item.name()}`)
+        Log(`OnItemToRuck ${item.name()}`)
     }
 
     protected OnItemToSlot(item: game_object) {
-        //Log(`OnItemToSlot ${item.name()}`)
+        Log(`OnItemToSlot ${item.name()}`)
     }
 
     protected OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void{

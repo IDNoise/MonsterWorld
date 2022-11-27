@@ -9,21 +9,41 @@ export abstract class MWObject {
     Skills: Map<string, Skill> = new Map();
 
     constructor(public id: Id) {
-        
+        Log(`Construct ${id}`)
     }
 
     Initialize(): void{
+        Log(`Initialize ${this.SectionId} : ${this.Type}`)
         if (!this.WasInitializedForFirstTime){
             this.OnFirstTimeInitialize();
             this.WasInitializedForFirstTime = true;
         }
         this.OnInitialize()
+        Log(`Initialize finished`)
+    }
+
+    private get WasInitializedForFirstTime(): boolean { return this.Load("Initialized"); }
+    private set WasInitializedForFirstTime(initialized: boolean) { this.Save("Initialized", initialized); }
+    protected OnFirstTimeInitialize(): void {
+        Log(`OnFirstTimeInitialize: ${this.SectionId}`)
+    }
+    protected OnInitialize(): void {
+        Log(`OnInitialize: ${this.SectionId}`)
+        this.SetupSkills();
     }
 
     get ServerGO(): cse_alife_object { return alife().object(this.id); }
     get GO(): game_object { return level.object_by_id(this.id); }
 
     get SectionId(): string { return `${this.ServerGO.section_name()}:${this.ServerGO.id}`; }
+
+    get Level(): number { return this.Load("Level"); }
+    set Level(level: number) { this.Save("Level", level); }
+
+    get Section(): string { return this.ServerGO.section_name(); }
+
+    get MaxHP(): number { return  math.max(1, this.GetStat(StatType.MaxHP)); }
+    get HPRegen(): number { return this.GetStat(StatType.HPRegen); }
 
     get HP(): number { return this.Load("HP"); }
     set HP(newHp: number) {
@@ -35,9 +55,11 @@ export abstract class MWObject {
             this.OnDeath();
     }
 
-    get MaxHP(): number { return  math.max(1, this.GetStat(StatType.MaxHP)); }
+    get IsDead(): boolean { return this.HP <= 0; }
 
-    get HPRegen(): number { return this.GetStat(StatType.HPRegen); }
+    protected OnDeath(): void {
+        //callstack()
+    }
 
     Update(deltaTime: number){
         this.RegenHP(deltaTime)
@@ -46,13 +68,6 @@ export abstract class MWObject {
     RegenHP(deltaTime: number){
         this.HP = math.min(this.MaxHP, this.HP + this.HPRegen * deltaTime);
     }
-
-    get Level(): number { return this.Load("Level"); }
-    set Level(level: number) { this.Save("Level", level); }
-
-    get IsDead(): boolean { return this.HP <= 0; }
-
-    get Section(): string { return this.ServerGO.section_name(); }
 
     GetStat(stat: StatType): number{ return this.Load<number>(GetStatTotalField(stat), MultStats.includes(stat) ? 1 : 0); }
     GetStatBase(stat: StatType): number { return this.Load<number>(GetStatBaseField(stat), MultStats.includes(stat) ? 1 : 0 ); }
@@ -137,6 +152,7 @@ export abstract class MWObject {
     GetSkillLevel(skillId: string): number{ return this.Load(`SkillLevel_${skillId}`, 0);}
 
     protected SetupSkills() {
+        Log(`SetupSkills: ${this.SectionId}`)
     }
 
     protected AddSkill(skill: Skill){
@@ -154,18 +170,6 @@ export abstract class MWObject {
     protected Save<T>(varname: string, val: T): void { Save(this.id, "MW_" + varname, val); };
     protected Load<T>(varname: string, def?: T): T { return Load(this.id, "MW_" + varname, def); }
     
-    private get WasInitializedForFirstTime(): boolean { return this.Load("Initialized"); }
-    private set WasInitializedForFirstTime(initialized: boolean) { this.Save("Initialized", initialized); }
-    protected OnFirstTimeInitialize(): void {
-    }
-    protected OnInitialize(): void {
-        this.SetupSkills();
-    }
-
-    protected OnDeath(): void {
-        //callstack()
-    }
-
     abstract get Type(): ObjectType;
 }
 

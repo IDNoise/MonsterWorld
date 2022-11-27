@@ -23,7 +23,7 @@ export class MWArtefact extends MWItem {
         return result;
     }
 
-    override GeneateStats(): void {
-        super.GeneateStats();
+    override GenerateStats(): void {
+        super.GenerateStats();
     }
 }
