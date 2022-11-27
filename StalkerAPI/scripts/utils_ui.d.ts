@@ -39,6 +39,7 @@ declare namespace utils_ui{
 
     namespace UICellItem{
         function Update(s: any, obj: game_object): boolean;
+        function Reset(s: any): void;
     }
     namespace UIInfoItem{
         function Update(s: any, obj: game_object, sec: Section, flags: any): void;

@@ -218,15 +218,23 @@ export class MonsterWorldMod extends StalkerModBase {
         this.OnMonsterDeath(npc, killer)
     }
 
+    private debugDropQuality: number = 1;
     protected override OnKeyRelease(key: DIK_keys): void {
         super.OnKeyRelease(key)
         if (key == DIK_keys.DIK_DELETE) {
             this.World.Player.SkillPoints += 1000;
         }
 
+        if (key == DIK_keys.DIK_1) { this.debugDropQuality = 1; }
+        if (key == DIK_keys.DIK_2) { this.debugDropQuality = 2; }
+        if (key == DIK_keys.DIK_3) { this.debugDropQuality = 3; }
+        if (key == DIK_keys.DIK_4) { this.debugDropQuality = 4; }
+        if (key == DIK_keys.DIK_5) { this.debugDropQuality = 5; }
+
+
         let item: cse_alife_object | undefined = undefined;
         let dropLevel = math.random(1, 30);
-        let qualityLevel = math.random(1, 5);
+        let qualityLevel = this.debugDropQuality;
         let itemType: DropType = DropType.Weapon;
         if (key == DIK_keys.DIK_UP) {
             item = this.World.GenerateWeaponDrop(dropLevel, qualityLevel, CreateWorldPositionAtGO(db.actor));

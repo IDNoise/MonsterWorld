@@ -50,7 +50,8 @@ public class ItemsGenerator : BaseGenerator {
                 eat_sleepiness = 0,
                 eat_thirstiness = 0,
                 mw_heal_pct = cfg.HealPct,
-                max_uses = 1
+                max_uses = 1,
+                ph_mass = 100000,
             }));
 
         Storage.MakeSection("stimpacks", mwItems, properties: generatedStimpacks.Select(s => s.Name));
@@ -65,6 +66,7 @@ public class ItemsGenerator : BaseGenerator {
                 description = "",
                 inv_weight = 0.000001,
                 jump_height = 0,
+                ph_mass = 100000,
                 af_actor_properties = "off",
                 actor_properties = "off",
                 tier = 0

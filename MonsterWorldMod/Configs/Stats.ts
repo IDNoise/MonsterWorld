@@ -23,6 +23,9 @@ export const enum StatType{
     ArtefactSlots, //Predefined by quality    
     DamageResistancePct,
 
+    //Stimpack
+    HealPct,
+
     //Item + Player
     ReloadSpeedBonusPct,
     CritDamagePct,
@@ -62,6 +65,8 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.ArtefactSlots]: "Artefact slots",
     [StatType.DamageResistancePct]: "Damage Resistance",
 
+    [StatType.HealPct]: "Heal",
+
     [StatType.DamageWithPistolBonusPct]: "Damage with Pistols",
     [StatType.DamageWithSMGBonusPct]: "Damage with SMGs",
     [StatType.DamageWithShotgunBonusPct]: "Damage with Shotguns",
@@ -82,6 +87,7 @@ export let PctStats: StatType[] = [
     StatType.DamageToMutantssBonusPct, 
     StatType.ReloadSpeedBonusPct,
     StatType.DamageResistancePct,
+    StatType.HealPct,
     StatType.DamageWithPistolBonusPct,
     StatType.DamageWithSMGBonusPct,
     StatType.DamageWithShotgunBonusPct,

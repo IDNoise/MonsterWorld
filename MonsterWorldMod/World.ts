@@ -18,6 +18,7 @@ import { MWItem, ItemSpawnParams } from './GameObjects/MWItem';
 import { MWArmor } from './GameObjects/MWArmor';
 import { MWArtefact } from './GameObjects/MWArtefact';
 import { MonsterRankConfigs } from './Configs/Enemies';
+import { MWStimpack } from './GameObjects/MWStimpack';
 
 declare global{
     let MonsterWorld: World;
@@ -93,6 +94,9 @@ export class World {
             }
             else if (go.is_artefact()){
                 newItem = new MWArtefact(itemId);
+            }
+            else if (go.section().includes("stimpack")){
+                newItem = new MWStimpack(itemId);
             }
 
             if (newItem != undefined){

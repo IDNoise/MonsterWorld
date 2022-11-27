@@ -6,6 +6,7 @@ import { MWWeapon } from '../GameObjects/MWWeapon';
 import { MWArmor } from '../GameObjects/MWArmor';
 import { QualityConfigs } from '../Configs/Loot';
 import { MonsterRankConfigs } from '../Configs/Enemies';
+import { StatType } from '../Configs/Stats';
 
 type DamageNumberEntry = {
     showTime: number;
@@ -88,16 +89,25 @@ export class UIManager {
             s.mwLevel.Show(true)
 
             if (item.Type == ObjectType.Weapon){
-                s.mwLevel.TextControl().SetText(`L.${item.Level}   DPS:${math.floor((<MWWeapon>item).DPS)}`)
+                s.mwLevel.TextControl().SetText(`L.${item.Level}        DPS:${math.floor((<MWWeapon>item).DPS)}`)
             }
             else if (item.Type == ObjectType.Armor){
-                s.mwLevel.TextControl().SetText(`L.${item.Level}   HP:${math.floor((<MWArmor>item).HPBonus)}`)
+                s.mwLevel.TextControl().SetText(`L.${item.Level}         HP:${math.floor((<MWArmor>item).HPBonus)}`)
+            }
+            else if (item.Type == ObjectType.Stimpack){
+                s.mwLevel.TextControl().SetText(`${item.GetStat(StatType.HealPct)}%`)
             }
             else {
                 s.mwLevel.TextControl().SetText(`L.${item.Level}`)
             }
 
             return res;
+        }
+
+        const oldUICellItemReset = utils_ui.UICellItem.Reset;
+        utils_ui.UICellItem.Reset = (s: any): void => {
+            oldUICellItemReset(s)
+            s.mwLevel?.Show(false)  //Level text
         }
 
 

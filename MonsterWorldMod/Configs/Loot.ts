@@ -24,10 +24,10 @@ export type QualityConfig = {
 }
 
 export let QualityConfigs : LuaTable<number, QualityConfig> =  new LuaTable();
-QualityConfigs.set(1, {MinPlayerLevel: 1,  Weight: 100, Title: "Common",    TextColor: GetARGB(255,230,230,230), Particles: "explosions\\effects\\campfire_hot_glow"});
-QualityConfigs.set(2, {MinPlayerLevel: 2,  Weight: 25,  Title: "Uncommmon", TextColor: GetARGB(255,20,20,230),   Particles: "static\\effects\\net_base_green",});
-QualityConfigs.set(3, {MinPlayerLevel: 5,  Weight: 15,  Title: "Rare",      TextColor: GetARGB(255,20,230,20),   Particles: "static\\effects\\net_base_blue"});
-QualityConfigs.set(4, {MinPlayerLevel: 10, Weight: 7,   Title: "Epic",      TextColor: GetARGB(255,230,20,20),   Particles: "static\\effects\\net_base_red"});
+QualityConfigs.set(1, {MinPlayerLevel: 1,  Weight: 100, Title: "Common",    TextColor: GetARGB(255,230,230,230), Particles: "_samples_particles_\\orbit_point_01"});
+QualityConfigs.set(2, {MinPlayerLevel: 2,  Weight: 25,  Title: "Uncommmon", TextColor: GetARGB(255,20,20,230),   Particles: "static\\net_base_green",});
+QualityConfigs.set(3, {MinPlayerLevel: 5,  Weight: 13,  Title: "Rare",      TextColor: GetARGB(255,20,230,20),   Particles: "static\\net_base_blue"});
+QualityConfigs.set(4, {MinPlayerLevel: 10, Weight: 7,   Title: "Epic",      TextColor: GetARGB(255,230,20,20),   Particles: "static\\net_base_red"});
 QualityConfigs.set(5, {MinPlayerLevel: 15, Weight: 2,   Title: "Legendary", TextColor: GetARGB(255,240,165,5),   Particles: "_samples_particles_\\holo_lines"});
 
 export function GetDropQuality(level: number): number {

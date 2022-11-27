@@ -183,5 +183,6 @@ export enum ObjectType {
     Monster,
     Weapon,
     Armor,
-    Artefact
+    Artefact,
+    Stimpack
 }

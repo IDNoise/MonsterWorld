@@ -3200,11 +3200,11 @@ ____exports.StatTitles = {
     [3] = "HP Regen",
     [4] = "XP Gain",
     [5] = "Damage",
-    [14] = "Reload Speed",
-    [15] = "Crit Damage",
-    [16] = "Crit Chance",
-    [17] = "Damage to Stalkers",
-    [18] = "Damage to Mutants",
+    [15] = "Reload Speed",
+    [16] = "Crit Damage",
+    [17] = "Crit Chance",
+    [18] = "Damage to Stalkers",
+    [19] = "Damage to Mutants",
     [6] = "Ammo",
     [7] = "Fire rate",
     [8] = "Accuracy",
@@ -3213,37 +3213,39 @@ ____exports.StatTitles = {
     [11] = "AUTO Fire mode enabled",
     [12] = "Artefact slots",
     [13] = "Damage Resistance",
-    [19] = "Damage with Pistols",
-    [20] = "Damage with SMGs",
-    [21] = "Damage with Shotguns",
-    [22] = "Damage with Assault Rifles",
-    [23] = "Damage with Machine Guns",
-    [24] = "Damage with Sniper Rifles"
+    [14] = "Heal",
+    [20] = "Damage with Pistols",
+    [21] = "Damage with SMGs",
+    [22] = "Damage with Shotguns",
+    [23] = "Damage with Assault Rifles",
+    [24] = "Damage with Machine Guns",
+    [25] = "Damage with Sniper Rifles"
 }
 ____exports.PctStats = {
-    15,
     16,
     17,
     18,
-    14,
-    13,
     19,
+    15,
+    13,
+    14,
     20,
     21,
     22,
     23,
-    24
+    24,
+    25
 }
 ____exports.MultStats = {0, 1, 4}
 ____exports.NoValueStats = {11}
 ____exports.NegativeBonuses = {9}
 ____exports.WeaponDamageBonusesByType = {
-    19,
     20,
     21,
     22,
     23,
-    24
+    24,
+    25
 }
 function ____exports.GetBonusDescription(stat, bonus, asPct)
     if bonus == nil then
@@ -3740,6 +3742,8 @@ ____exports.ObjectType.Armor = 3
 ____exports.ObjectType[____exports.ObjectType.Armor] = "Armor"
 ____exports.ObjectType.Artefact = 4
 ____exports.ObjectType[____exports.ObjectType.Artefact] = "Artefact"
+____exports.ObjectType.Stimpack = 5
+____exports.ObjectType[____exports.ObjectType.Stimpack] = "Stimpack"
 return ____exports
  end,
 ["MonsterWorldMod.Configs.Enemies"] = function(...) 
@@ -4034,28 +4038,28 @@ ____exports.QualityConfigs[1] = {
     Weight = 100,
     Title = "Common",
     TextColor = GetARGB(255, 230, 230, 230),
-    Particles = "explosions\\effects\\campfire_hot_glow"
+    Particles = "_samples_particles_\\orbit_point_01"
 }
 ____exports.QualityConfigs[2] = {
     MinPlayerLevel = 2,
     Weight = 25,
     Title = "Uncommmon",
     TextColor = GetARGB(255, 20, 20, 230),
-    Particles = "static\\effects\\net_base_green"
+    Particles = "static\\net_base_green"
 }
 ____exports.QualityConfigs[3] = {
     MinPlayerLevel = 5,
-    Weight = 15,
+    Weight = 13,
     Title = "Rare",
     TextColor = GetARGB(255, 20, 230, 20),
-    Particles = "static\\effects\\net_base_blue"
+    Particles = "static\\net_base_blue"
 }
 ____exports.QualityConfigs[4] = {
     MinPlayerLevel = 10,
     Weight = 7,
     Title = "Epic",
     TextColor = GetARGB(255, 230, 20, 20),
-    Particles = "static\\effects\\net_base_red"
+    Particles = "static\\net_base_red"
 }
 ____exports.QualityConfigs[5] = {
     MinPlayerLevel = 15,
@@ -4093,8 +4097,8 @@ ____exports.WeaponStatsForGeneration = {
     6,
     8,
     9,
-    14,
-    16
+    15,
+    17
 }
 ____exports.WeaponStatsUsingUpgrades = {
     7,
@@ -4538,8 +4542,8 @@ __TS__SetDescriptor(
             self:GetStatDiffWithBase(6)
         )
         result = result .. GetBonusDescription(
-            14,
-            self:GetTotalFlatBonus(14)
+            15,
+            self:GetTotalFlatBonus(15)
         )
         result = result .. GetBonusDescription(
             8,
@@ -4557,8 +4561,8 @@ __TS__SetDescriptor(
             true
         )
         result = result .. GetBonusDescription(
-            16,
-            self:GetStat(16)
+            17,
+            self:GetStat(17)
         )
         result = result .. GetBonusDescription(
             11,
@@ -4569,7 +4573,7 @@ __TS__SetDescriptor(
     true
 )
 function MWWeapon.prototype.OnReloadStart(self, anim_table)
-    local mult = 1 + MonsterWorld:GetStat(14, self, MonsterWorld.Player) / 100
+    local mult = 1 + MonsterWorld:GetStat(15, self, MonsterWorld.Player) / 100
     anim_table.anm_speed = anim_table.anm_speed * mult
 end
 function MWWeapon.prototype.OnReloadEnd(self)
@@ -4631,12 +4635,12 @@ function MWWeapon.prototype.GenerateStats(self)
     for ____, stat in ipairs(selectedStats) do
         if stat == 5 then
             damageBonusPct = damageBonusPct + math.random(3 + 7 * (self.Quality - 1), (15 + 15 * (self.Quality - 1)) * self.Quality)
-        elseif stat == 14 then
+        elseif stat == 15 then
             local reloadSpeedBonus = math.random(2 + 3 * (self.Quality - 1), (10 + 10 * (self.Quality - 1)) * self.Quality)
-            self:AddStatBonus(14, 0, reloadSpeedBonus, "generation")
-        elseif stat == 16 then
+            self:AddStatBonus(15, 0, reloadSpeedBonus, "generation")
+        elseif stat == 17 then
             local critChanceBonus = math.random(1, 3 + (0.4 + 0.5 * (self.Quality - 1)) * self.Quality)
-            self:AddStatBonus(16, 0, critChanceBonus, "generation")
+            self:AddStatBonus(17, 0, critChanceBonus, "generation")
         elseif stat == 6 then
             local magSizeBonus = math.random(2 + 3 * (self.Quality - 1), (20 + 20 * (self.Quality - 1)) * self.Quality)
             while magSize * magSizeBonus / 100 < 1 do
@@ -5184,7 +5188,7 @@ function MWPlayer.prototype.OnFirstTimeInitialize(self)
     self.CurrentXP = 0
     self:SetStatBase(2, cfg.PlayerHPBase)
     self:SetStatBase(3, cfg.PlayerHPRegenBase)
-    self:AddStatBonus(15, 0, cfg.PlayerDefaultCritDamagePct, "initial")
+    self:AddStatBonus(16, 0, cfg.PlayerDefaultCritDamagePct, "initial")
 end
 function MWPlayer.prototype.LevelUp(self)
     self.Level = self.Level + 1
@@ -5255,7 +5259,7 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillPassiveStatBonus,
         "reload_speed",
         self,
-        14,
+        15,
         0,
         function(level) return 2 * level end,
         PriceFormulaConstant(1),
@@ -5265,7 +5269,7 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillPassiveStatBonus,
         "crit_damage",
         self,
-        15,
+        16,
         0,
         function(level) return 5 * level end,
         PriceFormulaConstant(1),
@@ -5561,13 +5565,23 @@ function UIManager.prototype.____constructor(self)
         s.mwLevel:TextControl():SetTextColor(QualityConfigs[item.Quality].TextColor)
         s.mwLevel:Show(true)
         if item.Type == ObjectType.Weapon then
-            s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "   DPS:") .. tostring(math.floor(item.DPS)))
+            s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "        DPS:") .. tostring(math.floor(item.DPS)))
         elseif item.Type == ObjectType.Armor then
-            s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "   HP:") .. tostring(math.floor(item.HPBonus)))
+            s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "         HP:") .. tostring(math.floor(item.HPBonus)))
+        elseif item.Type == ObjectType.Stimpack then
+            s.mwLevel:TextControl():SetText(tostring(item:GetStat(14)) .. "%")
         else
             s.mwLevel:TextControl():SetText("L." .. tostring(item.Level))
         end
         return res
+    end
+    local oldUICellItemReset = utils_ui.UICellItem.Reset
+    utils_ui.UICellItem.Reset = function(s)
+        oldUICellItemReset(s)
+        local ____s_mwLevel_Show_result_6 = s.mwLevel
+        if ____s_mwLevel_Show_result_6 ~= nil then
+            ____s_mwLevel_Show_result_6 = ____s_mwLevel_Show_result_6:Show(false)
+        end
     end
     local oldUIInfoItemUpdate = utils_ui.UIInfoItem.Update
     utils_ui.UIInfoItem.Update = function(s, obj, sec, flags)
@@ -5642,7 +5656,7 @@ function UIManager.prototype.ShowDamage(self, damage, isCrit, isKillHit)
     for ____, entry in ipairs(self.damageNumbers) do
         do
             if entry.text:IsShown() then
-                goto __continue32
+                goto __continue34
             end
             local msg = tostring(math.max(
                 1,
@@ -5653,36 +5667,36 @@ function UIManager.prototype.ShowDamage(self, damage, isCrit, isKillHit)
                 math.random(-5, 5)
             ))
             entry.showTime = time_global()
-            local ____self_7 = entry.text
-            local ____self_7_SetTextColor_8 = ____self_7.SetTextColor
-            local ____isCrit_6
+            local ____self_9 = entry.text
+            local ____self_9_SetTextColor_10 = ____self_9.SetTextColor
+            local ____isCrit_8
             if isCrit then
-                ____isCrit_6 = GetARGB(255, 255, 165, 5)
+                ____isCrit_8 = GetARGB(255, 255, 165, 5)
             else
-                ____isCrit_6 = GetARGB(255, 240, 20, 20)
+                ____isCrit_8 = GetARGB(255, 240, 20, 20)
             end
-            ____self_7_SetTextColor_8(____self_7, ____isCrit_6)
-            local ____self_10 = entry.text
-            local ____self_10_SetFont_11 = ____self_10.SetFont
-            local ____temp_9
+            ____self_9_SetTextColor_10(____self_9, ____isCrit_8)
+            local ____self_12 = entry.text
+            local ____self_12_SetFont_13 = ____self_12.SetFont
+            local ____temp_11
             if isCrit or isKillHit then
-                ____temp_9 = GetFontGraffiti22Russian()
+                ____temp_11 = GetFontGraffiti22Russian()
             else
-                ____temp_9 = GetFontLetterica18Russian()
+                ____temp_11 = GetFontLetterica18Russian()
             end
-            ____self_10_SetFont_11(____self_10, ____temp_9)
+            ____self_12_SetFont_13(____self_12, ____temp_11)
             entry.text:SetText(msg .. (isCrit and " X" or ""))
             entry.text:Show(true)
             return
         end
-        ::__continue32::
+        ::__continue34::
     end
 end
 function UIManager.prototype.ShowXPReward(self, reward)
     for ____, entry in ipairs(self.xpRewardNumbers) do
         do
             if entry.text:IsShown() then
-                goto __continue36
+                goto __continue38
             end
             local msg = ("+ " .. tostring(math.floor(reward))) .. " XP"
             entry.text:SetWndPos(vector2():set(
@@ -5695,7 +5709,7 @@ function UIManager.prototype.ShowXPReward(self, reward)
             entry.text:Show(true)
             return
         end
-        ::__continue36::
+        ::__continue38::
     end
 end
 function UIManager.prototype.InitHud(self)
@@ -5727,8 +5741,8 @@ function UIManager.prototype.InitHud(self)
             while i < 30 do
                 local textEntry = xml:InitTextWnd("damage_numbers:damage_number", self.damageNumbersContainer)
                 textEntry:Show(false)
-                local ____self_damageNumbers_12 = self.damageNumbers
-                ____self_damageNumbers_12[#____self_damageNumbers_12 + 1] = {text = textEntry, showTime = 0}
+                local ____self_damageNumbers_14 = self.damageNumbers
+                ____self_damageNumbers_14[#____self_damageNumbers_14 + 1] = {text = textEntry, showTime = 0}
                 i = i + 1
             end
         end
@@ -5743,8 +5757,8 @@ function UIManager.prototype.InitHud(self)
             while i < 30 do
                 local textEntry = xml:InitTextWnd("xp_reward_numbers:xp_reward_number", self.xpRewardNumbersContainer)
                 textEntry:Show(false)
-                local ____self_xpRewardNumbers_13 = self.xpRewardNumbers
-                ____self_xpRewardNumbers_13[#____self_xpRewardNumbers_13 + 1] = {text = textEntry, showTime = 0}
+                local ____self_xpRewardNumbers_15 = self.xpRewardNumbers
+                ____self_xpRewardNumbers_15[#____self_xpRewardNumbers_15 + 1] = {text = textEntry, showTime = 0}
                 i = i + 1
             end
         end
@@ -5792,12 +5806,12 @@ function UIManager.prototype.UpdateTarget(self)
     if monster and monster.HP > 0 and level.get_target_dist() < 300 then
         self:ShowEnemyHealthUI(monster)
     else
-        local ____self_HideEnemyHealthUI_16 = self.HideEnemyHealthUI
-        local ____monster_IsDead_14 = monster
-        if ____monster_IsDead_14 ~= nil then
-            ____monster_IsDead_14 = ____monster_IsDead_14.IsDead
+        local ____self_HideEnemyHealthUI_18 = self.HideEnemyHealthUI
+        local ____monster_IsDead_16 = monster
+        if ____monster_IsDead_16 ~= nil then
+            ____monster_IsDead_16 = ____monster_IsDead_16.IsDead
         end
-        ____self_HideEnemyHealthUI_16(self, ____monster_IsDead_14 or false)
+        ____self_HideEnemyHealthUI_18(self, ____monster_IsDead_16 or false)
     end
 end
 function UIManager.prototype.HideEnemyHealthUI(self, force)
@@ -5805,9 +5819,9 @@ function UIManager.prototype.HideEnemyHealthUI(self, force)
         force = false
     end
     if force or time_global() - self.lastEnemyHpShowTime > 500 then
-        local ____table_enemyHP_Show_result_17 = self.enemyHP
-        if ____table_enemyHP_Show_result_17 ~= nil then
-            ____table_enemyHP_Show_result_17 = ____table_enemyHP_Show_result_17:Show(false)
+        local ____table_enemyHP_Show_result_19 = self.enemyHP
+        if ____table_enemyHP_Show_result_19 ~= nil then
+            ____table_enemyHP_Show_result_19 = ____table_enemyHP_Show_result_19:Show(false)
         end
     end
 end
@@ -5820,11 +5834,11 @@ function UIManager.prototype.ShowEnemyHealthUI(self, monster)
     self.enemyHPBarValue:SetText((tostring(math.floor(monster.HP)) .. " / ") .. tostring(math.floor(monster.MaxHP)))
     local player = MonsterWorld.Player
     local playerPos = player.GO:position()
-    local ____player_Weapon_FireDistance_19 = player.Weapon
-    if ____player_Weapon_FireDistance_19 ~= nil then
-        ____player_Weapon_FireDistance_19 = ____player_Weapon_FireDistance_19.FireDistance
+    local ____player_Weapon_FireDistance_21 = player.Weapon
+    if ____player_Weapon_FireDistance_21 ~= nil then
+        ____player_Weapon_FireDistance_21 = ____player_Weapon_FireDistance_21.FireDistance
     end
-    local distance = ____player_Weapon_FireDistance_19 or 100000
+    local distance = ____player_Weapon_FireDistance_21 or 100000
     self.enemyHPOutOfDistanceNotice:Show(monster.GO:position():distance_to(playerPos) >= distance)
 end
 function UIManager.prototype.UpdateDamageNumbers(self)
@@ -5913,9 +5927,9 @@ function UIManager.prototype.OnSkillUpgrade(self, skillId)
     Log("On skill upgrade " .. skillId)
     local player = MonsterWorld.Player
     local skill = player.Skills:get(skillId)
-    local ____skill_Upgrade_result_21 = skill
-    if ____skill_Upgrade_result_21 ~= nil then
-        ____skill_Upgrade_result_21 = ____skill_Upgrade_result_21:Upgrade()
+    local ____skill_Upgrade_result_23 = skill
+    if ____skill_Upgrade_result_23 ~= nil then
+        ____skill_Upgrade_result_23 = ____skill_Upgrade_result_23:Upgrade()
     end
 end
 function UIManager.prototype.UpdateSkills(self)
@@ -6180,11 +6194,55 @@ function MWArtefact.prototype.SetupSkills(self)
 end
 return ____exports
  end,
+["MonsterWorldMod.GameObjects.MWStimpack"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local ____exports = {}
+local ____Stats = require("MonsterWorldMod.Configs.Stats")
+local StatTitles = ____Stats.StatTitles
+local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
+local MWItem = ____MWItem.MWItem
+local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
+local ObjectType = ____MWObject.ObjectType
+____exports.MWStimpack = __TS__Class()
+local MWStimpack = ____exports.MWStimpack
+MWStimpack.name = "MWStimpack"
+__TS__ClassExtends(MWStimpack, MWItem)
+__TS__SetDescriptor(
+    MWStimpack.prototype,
+    "Type",
+    {get = function(self)
+        return ObjectType.Stimpack
+    end},
+    true
+)
+__TS__SetDescriptor(
+    MWStimpack.prototype,
+    "Description",
+    {get = function(self)
+        local result = ""
+        result = result .. (("Heals for " .. tostring(self:GetStat(14))) .. "% of ") .. StatTitles[2]
+        return result
+    end},
+    true
+)
+function MWStimpack.prototype.GenerateStats(self)
+    MWItem.prototype.GenerateStats(self)
+    self:SetStatBase(
+        14,
+        ini_sys:r_float_ex(self.Section, "mw_heal_pct")
+    )
+end
+return ____exports
+ end,
 ["MonsterWorldMod.World"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__New = ____lualib.__TS__New
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local __TS__StringIncludes = ____lualib.__TS__StringIncludes
 local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith
 local __TS__StringEndsWith = ____lualib.__TS__StringEndsWith
 local Map = ____lualib.Map
@@ -6230,6 +6288,8 @@ local ____MWArtefact = require("MonsterWorldMod.GameObjects.MWArtefact")
 local MWArtefact = ____MWArtefact.MWArtefact
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
 local MonsterRankConfigs = ____Enemies.MonsterRankConfigs
+local ____MWStimpack = require("MonsterWorldMod.GameObjects.MWStimpack")
+local MWStimpack = ____MWStimpack.MWStimpack
 ____exports.World = __TS__Class()
 local World = ____exports.World
 World.name = "World"
@@ -6288,6 +6348,11 @@ function World.prototype.GetItem(self, item)
             newItem = __TS__New(MWArmor, itemId)
         elseif go:is_artefact() then
             newItem = __TS__New(MWArtefact, itemId)
+        elseif __TS__StringIncludes(
+            go:section(),
+            "stimpack"
+        ) then
+            newItem = __TS__New(MWStimpack, itemId)
         end
         if newItem ~= nil then
             newItem:Initialize()
@@ -6426,7 +6491,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
     for ____, ____value in __TS__Iterator(hitsByWeapon) do
         local weapon = ____value[1]
         local hits = ____value[2]
-        local isCritByWeapon = IsPctRolled(self:GetStat(16, weapon, self.Player))
+        local isCritByWeapon = IsPctRolled(self:GetStat(17, weapon, self.Player))
         local bonusWeaponDamageMult = 1 + self.Player:GetStat(self:GetDamageBonusStatByWeaponType(weapon.WeaponType)) / 100
         local weaponDamage = weapon.Damage * bonusWeaponDamageMult / #hits
         for ____, ____value in ipairs(hits) do
@@ -6434,53 +6499,53 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
             local isCritPartHit = ____value[2]
             do
                 if monster.IsDead then
-                    goto __continue44
+                    goto __continue45
                 end
                 local monsterDamage = weaponDamage
                 if monster.GO:is_stalker() then
-                    monsterDamage = monsterDamage * (1 + self:GetStat(17, weapon, self.Player) / 100)
-                elseif monster.GO:is_monster() then
                     monsterDamage = monsterDamage * (1 + self:GetStat(18, weapon, self.Player) / 100)
+                elseif monster.GO:is_monster() then
+                    monsterDamage = monsterDamage * (1 + self:GetStat(19, weapon, self.Player) / 100)
                 end
                 local isCrit = isCritPartHit or isCritByWeapon
                 if isCrit then
-                    local critDamageMult = 1 + self:GetStat(15, weapon, self.Player) / 100
+                    local critDamageMult = 1 + self:GetStat(16, weapon, self.Player) / 100
                     monsterDamage = monsterDamage * critDamageMult
                 end
                 local realDamage = self:DamageMonster(monster, monsterDamage, isCrit)
                 self.UIManager:ShowDamage(realDamage, isCrit, monster.IsDead)
                 self.Player:IterateSkills(function(s) return s:OnMonsterHit(monster, isCrit) end)
             end
-            ::__continue44::
+            ::__continue45::
         end
     end
 end
 function World.prototype.GetDamageBonusStatByWeaponType(self, ____type)
     repeat
-        local ____switch53 = ____type
-        local ____cond53 = ____switch53 == WeaponType.Pistol
-        if ____cond53 then
-            return 19
-        end
-        ____cond53 = ____cond53 or ____switch53 == WeaponType.SMG
-        if ____cond53 then
+        local ____switch54 = ____type
+        local ____cond54 = ____switch54 == WeaponType.Pistol
+        if ____cond54 then
             return 20
         end
-        ____cond53 = ____cond53 or ____switch53 == WeaponType.Shotgun
-        if ____cond53 then
+        ____cond54 = ____cond54 or ____switch54 == WeaponType.SMG
+        if ____cond54 then
             return 21
         end
-        ____cond53 = ____cond53 or ____switch53 == WeaponType.AssaultRifle
-        if ____cond53 then
+        ____cond54 = ____cond54 or ____switch54 == WeaponType.Shotgun
+        if ____cond54 then
             return 22
         end
-        ____cond53 = ____cond53 or ____switch53 == WeaponType.MachineGun
-        if ____cond53 then
+        ____cond54 = ____cond54 or ____switch54 == WeaponType.AssaultRifle
+        if ____cond54 then
             return 23
         end
-        ____cond53 = ____cond53 or ____switch53 == WeaponType.SniperRifle
-        if ____cond53 then
+        ____cond54 = ____cond54 or ____switch54 == WeaponType.MachineGun
+        if ____cond54 then
             return 24
+        end
+        ____cond54 = ____cond54 or ____switch54 == WeaponType.SniperRifle
+        if ____cond54 then
+            return 25
         end
     until true
 end
@@ -6651,14 +6716,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue92
+                goto __continue93
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue92::
+        ::__continue93::
     end
     return result
 end
@@ -6818,6 +6883,7 @@ function MonsterWorldMod.prototype.____constructor(self)
     StalkerModBase.prototype.____constructor(self)
     self.playerHitsThisFrame = {}
     self.monsterHitsThisFrame = __TS__New(Map)
+    self.debugDropQuality = 1
     StalkerModBase.ModName = "MonsterWorldMod"
     StalkerModBase.IsLogEnabled = true
     self.World = __TS__New(World, self)
@@ -7014,9 +7080,24 @@ function MonsterWorldMod.prototype.OnKeyRelease(self, key)
         local ____self_World_Player_10, ____SkillPoints_11 = self.World.Player, "SkillPoints"
         ____self_World_Player_10[____SkillPoints_11] = ____self_World_Player_10[____SkillPoints_11] + 1000
     end
+    if key == DIK_keys.DIK_1 then
+        self.debugDropQuality = 1
+    end
+    if key == DIK_keys.DIK_2 then
+        self.debugDropQuality = 2
+    end
+    if key == DIK_keys.DIK_3 then
+        self.debugDropQuality = 3
+    end
+    if key == DIK_keys.DIK_4 then
+        self.debugDropQuality = 4
+    end
+    if key == DIK_keys.DIK_5 then
+        self.debugDropQuality = 5
+    end
     local item = nil
     local dropLevel = math.random(1, 30)
-    local qualityLevel = math.random(1, 5)
+    local qualityLevel = self.debugDropQuality
     local itemType = 0
     if key == DIK_keys.DIK_UP then
         item = self.World:GenerateWeaponDrop(
