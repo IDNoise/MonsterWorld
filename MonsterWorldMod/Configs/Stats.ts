@@ -9,6 +9,7 @@ export const enum StatType{
     RunSpeedMult = "RunSpeedMult",
     SprintSpeedMult = "SprintSpeedMult",
     XPGainMult = "XPGainMult",
+    EvasionChancePct = "EvasionChancePct",
 
     //Weapon
     Damage = "Damage",
@@ -49,6 +50,7 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.MaxHP]: "Max HP",
     [StatType.HPRegen]: "HP Regen",
     [StatType.XPGainMult]: "XP Gain",
+    [StatType.EvasionChancePct]: "Evasion Chance",
 
     [StatType.Damage]: "Damage",
     
@@ -83,6 +85,7 @@ export const enum StatBonusType{
 }
 
 export let PctStats: StatType[] = [
+    StatType.EvasionChancePct, 
     StatType.CritDamagePct, 
     StatType.CritChancePct, 
     StatType.DamageToStalkersBonusPct, 
@@ -237,17 +240,17 @@ ObjectBonusGenerators.set(StatType.MagSize, (stat, level, quality, bonusType, ob
 });
 
 ObjectBonusGenerators.set(StatType.CritChancePct, (stat, level, quality, bonusType, objectType) => {
-    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
     return GetBonusValue(1, 15 * MaxValueMultByObjectType[objectType], level, quality);
 });
 
 ObjectBonusGenerators.set(StatType.CritDamagePct, (stat, level, quality, bonusType, objectType) => {
-    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
     return GetBonusValue(3, 150 * MaxValueMultByObjectType[objectType], level, quality);
 });
 
 ObjectBonusGenerators.set(StatType.DamageResistancePct, (stat, level, quality, bonusType, objectType) => {
-    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
     return GetBonusValue(1, objectType == ObjectType.Armor ? 50 : 5, level, quality);
 });
 
@@ -267,9 +270,14 @@ ObjectBonusGenerators.set(StatType.MaxHP, (stat, level, quality, bonusType, obje
     return GetBonusValue(3, 600 * MaxValueMultByObjectType[objectType], level, quality);
 });
 
+ObjectBonusGenerators.set(StatType.EvasionChancePct, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
+    return GetBonusValue(0.5, 10 * MaxValueMultByObjectType[objectType], level, quality);
+});
+
 
 let WeaponDamageBonusByTypeGenerator: StatBonusGenerator = (stat, level, quality, bonusType, objectType) => {
-    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
     return GetBonusValue(2, 150 * MaxValueMultByObjectType[objectType], level, quality);
 }
 
@@ -281,7 +289,7 @@ ObjectBonusGenerators.set(StatType.DamageWithMachingGunBonusPct, WeaponDamageBon
 ObjectBonusGenerators.set(StatType.DamageWithSniperRifleBonusPct, WeaponDamageBonusByTypeGenerator);
 
 let DamageBonusByEnemyTypeGenerator: StatBonusGenerator = (stat, level, quality, bonusType, objectType) => {
-    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
     return GetBonusValue(3, 150 * MaxValueMultByObjectType[objectType], level, quality);
 }
 

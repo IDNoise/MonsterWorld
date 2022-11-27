@@ -229,6 +229,9 @@ export class World {
         if (monster == undefined) 
             return;
 
+        if(IsPctRolled(this.GetStat(StatType.EvasionChancePct)))
+            return;
+
         let damage = monster.Damage;
         if (attackerGO.is_stalker() && shit.weapon_id != 0 && shit.weapon_id != attackerGO.id()){
             let weapon = level.object_by_id(shit.weapon_id);
