@@ -32,6 +32,7 @@ export class MWArmor extends MWItem {
         let result = [
             StatType.MaxHP,
             StatType.DamageResistancePct,
+            StatType.HPRegen,
         ];
 
         for(let stat of WeaponTypeDamageBonuses)

@@ -70,14 +70,14 @@ export class MWPlayer extends MWObject {
     get SkillPoints(): number { return this.Load("SkillPoints", 0); }
     set SkillPoints(points: number) { this.Save("SkillPoints", points); }
 
-    protected override OnStatChanged(stat: StatType, total: number): void {
-        super.OnStatChanged(stat, total);
+    protected override OnStatChanged(stat: StatType, prev: number, current: number): void {
+        super.OnStatChanged(stat, prev, current);
         if (stat == StatType.RunSpeedMult){
-            db.actor.set_actor_run_coef(cfg.PlayerRunSpeedCoeff * total)
-            db.actor.set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * total)
+            db.actor.set_actor_run_coef(cfg.PlayerRunSpeedCoeff * current)
+            db.actor.set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * current)
         }
         else if (stat == StatType.SprintSpeedMult){
-            db.actor.set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * total)
+            db.actor.set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * current)
         }
     }
 

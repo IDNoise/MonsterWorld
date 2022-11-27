@@ -72,8 +72,7 @@ export let StatTitles: {[key in StatType]: string} = {
 
 export const enum StatBonusType{
     Flat = 0,
-    Pct,
-    Mult
+    Pct
 }
 
 export let PctStats: StatType[] = [

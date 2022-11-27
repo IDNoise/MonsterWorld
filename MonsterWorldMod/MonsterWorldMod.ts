@@ -231,13 +231,17 @@ export class MonsterWorldMod extends StalkerModBase {
             item = this.World.GenerateWeaponDrop(level, quality, CreateWorldPositionAtGO(db.actor));
             itemType = DropType.Weapon;
         }
-        if (key == DIK_keys.DIK_DOWN) {
+        else if (key == DIK_keys.DIK_DOWN) {
             item = this.World.GenerateStimpackDrop(level, quality, CreateWorldPositionAtGO(db.actor));
             itemType = DropType.Stimpack;
         }
-        if (key == DIK_keys.DIK_RIGHT) {
+        else if (key == DIK_keys.DIK_RIGHT) {
             item = this.World.GenerateArmorDrop(level, quality, CreateWorldPositionAtGO(db.actor));
             itemType = DropType.Armor;
+        }
+        else if (key == DIK_keys.DIK_LEFT) {
+            item = this.World.GenerateArtefactDrop(level, quality, CreateWorldPositionAtGO(db.actor));
+            itemType = DropType.Artefact;
         }
         if (item != null){ 
             this.World.HighlightDroppedItem(item.id, itemType, quality) 

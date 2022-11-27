@@ -307,7 +307,7 @@ export class World {
 
     GenerateDrop(monster: MWMonster) {
         Log(`GenerateDrop`)
-        let type = GetDropType();
+        let type = GetDropType(monster.Rank);
 
         let sgo: cse_alife_object | undefined = undefined;
         let [dropLevel, qualityLevel] = this.GetDropLevelAndQualityFromMonster(monster)
@@ -321,15 +321,15 @@ export class World {
         else if (type == DropType.Armor){
             sgo = this.GenerateArmorDrop(dropLevel, qualityLevel, dropPos);
         }
+        else if (type == DropType.Artefact){
+            sgo = this.GenerateArtefactDrop(dropLevel, qualityLevel, dropPos);
+        }
 
         if (sgo != undefined){
             Log(`Spawned ${sgo.section_name()}:${sgo.id}`)
-
-            //Log(`Highlight drop`)
+            Save<ItemSpawnParams>(sgo.id, "MW_SpawnParams", {Level: dropLevel, Quality: qualityLevel});
             this.HighlightDroppedItem(sgo.id, type, qualityLevel);
-            //Log(`Add ttl timer for drop`)
             this.AddTTLTimer(sgo.id, 300)
-            //Log(`Post add ttl timer for drop`)
         }
         else {
             Log(`Drop generation failed`)
@@ -348,6 +348,8 @@ export class World {
         if (IsPctRolled(rankCfg.DropLevelIncreaseChance)) dropLevel++;
         if (IsPctRolled(rankCfg.DropQualityIncreaseChance)) qualityLevel++;
 
+        qualityLevel = math.min(qualityLevel, MaxQuality)
+
         return $multi(dropLevel, qualityLevel)
     }
 
@@ -356,33 +358,17 @@ export class World {
         let selectedTypeSection = RandomFromArray(typedSections);
         let weaponCount = ini_sys.line_count(selectedTypeSection);
         let selectedElement = math.random(0, weaponCount - 1);
-        Log(`Selecting base ${selectedElement} from ${weaponCount} in ${selectedTypeSection}`)
+        //Log(`Selecting base ${selectedElement} from ${weaponCount} in ${selectedTypeSection}`)
         let [_, weaponBaseSection] = ini_sys.r_line_ex(selectedTypeSection, selectedElement)
         let weaponVariants = ini_sys.r_list(weaponBaseSection, "variants")
         let selectedVariant = RandomFromArray(weaponVariants)
 
-        Log(`Spawning ${selectedVariant}`)
-        let sgo = alife_create_item(selectedVariant, pos)
-        if (!sgo){
-            Log(`GenerateWeaponDrop spawn failed`)
-            return undefined;
-        }
-
-        qualityLevel = math.min(qualityLevel, MaxQuality)
-
-        Save<ItemSpawnParams>(sgo.id, "MW_SpawnParams", {Level: dropLevel, Quality: qualityLevel});
-        return sgo;
-        
+        return alife_create_item(selectedVariant, pos)
     }
 
     GenerateStimpackDrop(dropLevel: number, qualityLevel: number, pos: WorldPosition): cse_alife_object | undefined {
         let section = GetStimpackByQuality(qualityLevel);
-        let sgo = alife_create_item(section, pos)
-        if (!sgo){
-            Log(`GenerateStimpackDrop spawn failed`)
-            return undefined;
-        }
-        return sgo;
+        return alife_create_item(section, pos)
     }
 
     GenerateArmorDrop(dropLevel: number, qualityLevel: number, pos: WorldPosition): cse_alife_object | undefined {
@@ -391,16 +377,18 @@ export class World {
         let armorCount = ini_sys.line_count(section);
         let selectedElement = math.random(0, armorCount - 1);
         let [_, armorSection] = ini_sys.r_line_ex(section, selectedElement)
-        
-        Log(`Spawning ${armorSection}`)
-        let sgo = alife_create_item(armorSection, pos)
-        if (!sgo){
-            Log(`GenerateWeaponDrop spawn failed`)
-            return undefined;
-        }
 
-        Save<ItemSpawnParams>(sgo.id, "MW_SpawnParams", {Level: dropLevel, Quality: qualityLevel});
-        return sgo;
+        return alife_create_item(armorSection, pos)
+    }
+
+    GenerateArtefactDrop(dropLevel: number, qualityLevel: number, pos: WorldPosition): cse_alife_object | undefined {
+        qualityLevel = math.min(qualityLevel, MaxQuality)
+        let section = `artefacts_mw`;
+        let artefactCount = ini_sys.line_count(section);
+        let selectedElement = math.random(0, artefactCount - 1);
+        let [_, artefactSection] = ini_sys.r_line_ex(section, selectedElement)
+
+        return alife_create_item(artefactSection, pos)
     }
 
     highlightParticles: LuaTable<Id, particles_object> = new LuaTable()

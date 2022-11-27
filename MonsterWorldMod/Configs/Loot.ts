@@ -1,11 +1,11 @@
 import { GetByWeightFromArray, TakeRandomElementFromArray, GetByWeightFromTable } from '../Helpers/Collections';
+import { MonsterRank } from './Enemies';
 import { StatType } from "./Stats";
-import { EndColorTag } from "./UI";
 
 export const enum DropType {
     Weapon = 0,
     Stimpack,
-    Art,
+    Artefact,
     Armor,
 }
 
@@ -23,7 +23,7 @@ export type QualityConfig = {
 }
 
 export let QualityConfigs : LuaTable<number, QualityConfig> =  new LuaTable();
-QualityConfigs.set(1, {Weight: 250, Title: "Common",    TextColor: GetARGB(255,230,230,230), Particles: "explosions\\effects\\campfire_sparks"});
+QualityConfigs.set(1, {Weight: 250, Title: "Common",    TextColor: GetARGB(255,230,230,230), Particles: "static\\effects\\net_base_green"});
 QualityConfigs.set(2, {Weight: 20,  Title: "Uncommmon", TextColor: GetARGB(255,20,20,230),   Particles: "static\\effects\\net_base_green"});
 QualityConfigs.set(3, {Weight: 10,  Title: "Rare",      TextColor: GetARGB(255,20,230,20),   Particles: "static\\effects\\net_base_blue"});
 QualityConfigs.set(4, {Weight: 5,   Title: "Epic",      TextColor: GetARGB(255,230,20,20),   Particles: "static\\effects\\net_base_red"});
@@ -35,16 +35,16 @@ export function GetDropQuality(): number {
 
 export type DropConfig = {
     Type: DropType,
-    Weight: number
+    WeightsByRank: number[]
 }
 export let DropConfigs: DropConfig[] = [
-    {Type: DropType.Weapon, Weight: 50},
-    {Type: DropType.Stimpack, Weight: 10},
-    {Type: DropType.Armor, Weight: 10}, 
-    //{type: DropType.Art, weight: 500}, 
+    {Type: DropType.Weapon,   WeightsByRank: [75,  75,  75]},
+    {Type: DropType.Stimpack, WeightsByRank: [10,  15,  25]},
+    {Type: DropType.Armor,    WeightsByRank: [10,  15,  25]}, 
+    {Type: DropType.Artefact, WeightsByRank: [5,   10,  20]}, 
 ]
 
-export function GetDropType(): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.Weight).Type; }
+export function GetDropType(rank: MonsterRank): DropType { return GetByWeightFromArray(DropConfigs, (e) => e.WeightsByRank[rank]).Type; }
 
 export function GetStimpackByQuality(qualityLevel: number): Section {
     if (qualityLevel <= 2) return "mw_stimpack_25";

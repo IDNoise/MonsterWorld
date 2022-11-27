@@ -1,6 +1,6 @@
 import { Log } from "../../StalkerModBase";
 import { MinQuality, MaxQuality } from "../Configs/Loot";
-import { StatBonusType, StatType } from "../Configs/Stats";
+import { StatBonusType, StatType, PctStats } from '../Configs/Stats';
 import { MWObject } from "./MWObject";
 
 export abstract class MWItem extends MWObject {
@@ -28,19 +28,21 @@ export abstract class MWItem extends MWObject {
 
     public OnItemEquipped(){
         Log(`OnItemEquipped ${this.SectionId}`)
-        let source = `${this.id}`;
         for(let stat of this.GetPlayerStatBonusesOnEquip()){
-            MonsterWorld.Player.AddStatBonus(stat, StatBonusType.Flat, this.GetTotalFlatBonus(stat), source)
-            MonsterWorld.Player.AddStatBonus(stat, StatBonusType.Pct, this.GetTotalPctBonus(stat), source)
-            MonsterWorld.Player.AddStatBonus(stat, StatBonusType.Mult, this.GetTotalMultBonus(stat), source)
+            MonsterWorld.Player.AddStatBonus(stat, StatBonusType.Flat, this.GetTotalFlatBonus(stat), this.SectionId)
+            if (!PctStats.includes(stat)){
+                MonsterWorld.Player.AddStatBonus(stat, StatBonusType.Pct, this.GetTotalPctBonus(stat), this.SectionId)
+            }
         }
     }
 
     public OnItemUnequipped(){
         Log(`OnItemUnequipped ${this.SectionId}`)
-        let source = `${this.id}`;
         for(let stat of this.GetPlayerStatBonusesOnEquip()){
-            MonsterWorld.Player.RemoveStatBonuses(stat, source)
+            MonsterWorld.Player.RemoveStatBonus(stat, StatBonusType.Flat, this.SectionId)
+            if (!PctStats.includes(stat)){
+                MonsterWorld.Player.RemoveStatBonus(stat, StatBonusType.Pct, this.SectionId)
+            }
         }
     }
 

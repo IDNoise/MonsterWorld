@@ -90,8 +90,11 @@ export class UIManager {
             if (item.Type == ObjectType.Weapon){
                 s.mwLevel.TextControl().SetText(`L.${item.Level}   DPS:${math.floor((<MWWeapon>item).DPS)}`)
             }
-            else {
+            else if (item.Type == ObjectType.Armor){
                 s.mwLevel.TextControl().SetText(`L.${item.Level}   HP:${math.floor((<MWArmor>item).HPBonus)}`)
+            }
+            else {
+                s.mwLevel.TextControl().SetText(`L.${item.Level}`)
             }
 
             return res;

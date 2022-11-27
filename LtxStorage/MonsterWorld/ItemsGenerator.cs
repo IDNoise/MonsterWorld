@@ -70,7 +70,7 @@ public class ItemsGenerator : BaseGenerator {
                 tier = 0
             }));
 
-        Storage.MakeSection("artefacts", mwItems, properties: generatedArts.Select(s => s.Name));
+        Storage.MakeSection("artefacts_mw", mwItems, properties: generatedArts.Select(s => s.Name));
     }
 
     private void GenerateArmors() {

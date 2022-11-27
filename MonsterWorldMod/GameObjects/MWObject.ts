@@ -45,7 +45,7 @@ export abstract class MWObject {
     get MaxHP(): number { return  math.max(1, this.GetStat(StatType.MaxHP)); }
     get HPRegen(): number { return this.GetStat(StatType.HPRegen); }
 
-    get HP(): number { return this.Load("HP"); }
+    get HP(): number { return this.Load("HP", 0); }
     set HP(newHp: number) {
         newHp = math.max(0, math.min(newHp, this.MaxHP))
         this.Save("HP", newHp);
@@ -83,13 +83,18 @@ export abstract class MWObject {
     }
 
     public AddStatBonus(stat: StatType, bonusType: StatBonusType, bonus: number, source: string): void{
+        let field = GetStatBonusField(stat, bonusType);
+        Log(`Adding stat bonus to ${this.SectionId} stat: ${stat}, type: ${bonusType} (${field}), bonus: ${bonus}, source: ${source}`)
+
+        if (bonus == 0){
+            return;
+        }
 
         if (PctStats.includes(stat) && bonusType != StatBonusType.Flat){
             Log(`ERROR: Adding non flat bonus to % stat: ${stat} from ${source}`)
             return;
         }
-
-        let field = GetStatBonusField(stat, bonusType);
+        
         let bonuses = this.Load<LuaTable<string, number>>(field, new LuaTable());
         bonuses.set(source, bonus);
         this.Save<LuaTable<string, number>>(field, bonuses);
@@ -98,8 +103,10 @@ export abstract class MWObject {
 
     public RemoveStatBonus(stat: StatType, bonusType: StatBonusType, source: string): void{
         let field = GetStatBonusField(stat, bonusType);
+        Log(`Removing stat bonus from ${this.SectionId} stat: ${stat}, type: ${bonusType} (${field}), source: ${source}`)
+
         let bonuses = this.Load<LuaTable<string, number>>(field, new LuaTable());
-        if (bonuses.length() > 0){
+        if (bonuses.has(source)){
             bonuses.delete(source);
             this.Save<LuaTable<string, number>>(field, bonuses);
             this.RecalculateStatTotal(stat); 
@@ -109,7 +116,6 @@ export abstract class MWObject {
     public RemoveStatBonuses(stat: StatType, source: string): void{
         this.RemoveStatBonus(stat, StatBonusType.Flat, source);
         this.RemoveStatBonus(stat, StatBonusType.Pct, source);
-        this.RemoveStatBonus(stat, StatBonusType.Mult, source);
     }
 
     GetTotalFlatBonus(stat: StatType): number{
@@ -121,30 +127,25 @@ export abstract class MWObject {
         let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Pct), new LuaTable());
         return SumTable(bonuses, (k, v) => v)
     }
-
-    GetTotalMultBonus(stat: StatType): number{
-        let bonuses = this.Load<LuaTable<string, number>>(GetStatBonusField(stat, StatBonusType.Mult), new LuaTable());
-        let value = 1;
-        for(let [_, bonusValue] of bonuses){
-            value *= bonusValue;
-        }
-        return value;
-    }
    
     RecalculateStatTotal(stat: StatType){
+        let current = this.GetStat(stat)
         let base = this.GetStatBase(stat); 
         let flatBonus = this.GetTotalFlatBonus(stat)
         let pctBonus = this.GetTotalPctBonus(stat)
-        let multBonus = this.GetTotalMultBonus(stat)
 
-        let total = (base + flatBonus) * (1 + pctBonus / 100) * multBonus;
+        let total = (base + flatBonus) * (1 + pctBonus / 100);
         this.Save(GetStatTotalField(stat), total)
-        this.OnStatChanged(stat, total);
+        this.OnStatChanged(stat, current, total);
     }
 
-    protected OnStatChanged(stat: StatType, total: number){
+    protected OnStatChanged(stat: StatType, prev: number, current: number){
+        Log(`OnStatChanged ${stat} from ${prev} to ${current}`)
         if (stat == StatType.MaxHP){
-            this.HP = total;
+            if (current > prev)
+                this.HP += (current - prev);
+            else 
+                this.HP = math.min(this.HP, current)
         }
     }
 

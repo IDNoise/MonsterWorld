@@ -3542,7 +3542,7 @@ __TS__SetDescriptor(
     "HP",
     {
         get = function(self)
-            return self:Load("HP")
+            return self:Load("HP", 0)
         end,
         set = function(self, newHp)
             newHp = math.max(
@@ -3622,11 +3622,15 @@ function MWObject.prototype.SetStatBase(self, stat, baseValue)
     self:RecalculateStatTotal(stat)
 end
 function MWObject.prototype.AddStatBonus(self, stat, bonusType, bonus, source)
+    local field = GetStatBonusField(stat, bonusType)
+    Log((((((((((("Adding stat bonus to " .. self.SectionId) .. " stat: ") .. tostring(stat)) .. ", type: ") .. tostring(bonusType)) .. " (") .. field) .. "), bonus: ") .. tostring(bonus)) .. ", source: ") .. source)
+    if bonus == 0 then
+        return
+    end
     if __TS__ArrayIncludes(PctStats, stat) and bonusType ~= 0 then
         Log((("ERROR: Adding non flat bonus to % stat: " .. tostring(stat)) .. " from ") .. source)
         return
     end
-    local field = GetStatBonusField(stat, bonusType)
     local bonuses = self:Load(field, {})
     bonuses[source] = bonus
     self:Save(field, bonuses)
@@ -3634,8 +3638,9 @@ function MWObject.prototype.AddStatBonus(self, stat, bonusType, bonus, source)
 end
 function MWObject.prototype.RemoveStatBonus(self, stat, bonusType, source)
     local field = GetStatBonusField(stat, bonusType)
+    Log((((((((("Removing stat bonus from " .. self.SectionId) .. " stat: ") .. tostring(stat)) .. ", type: ") .. tostring(bonusType)) .. " (") .. field) .. "), source: ") .. source)
     local bonuses = self:Load(field, {})
-    if #bonuses > 0 then
+    if bonuses[source] ~= nil then
         bonuses[source] = nil
         self:Save(field, bonuses)
         self:RecalculateStatTotal(stat)
@@ -3644,7 +3649,6 @@ end
 function MWObject.prototype.RemoveStatBonuses(self, stat, source)
     self:RemoveStatBonus(stat, 0, source)
     self:RemoveStatBonus(stat, 1, source)
-    self:RemoveStatBonus(stat, 2, source)
 end
 function MWObject.prototype.GetTotalFlatBonus(self, stat)
     local bonuses = self:Load(
@@ -3666,32 +3670,26 @@ function MWObject.prototype.GetTotalPctBonus(self, stat)
         function(k, v) return v end
     )
 end
-function MWObject.prototype.GetTotalMultBonus(self, stat)
-    local bonuses = self:Load(
-        GetStatBonusField(stat, 2),
-        {}
-    )
-    local value = 1
-    for _, bonusValue in pairs(bonuses) do
-        value = value * bonusValue
-    end
-    return value
-end
 function MWObject.prototype.RecalculateStatTotal(self, stat)
+    local current = self:GetStat(stat)
     local base = self:GetStatBase(stat)
     local flatBonus = self:GetTotalFlatBonus(stat)
     local pctBonus = self:GetTotalPctBonus(stat)
-    local multBonus = self:GetTotalMultBonus(stat)
-    local total = (base + flatBonus) * (1 + pctBonus / 100) * multBonus
+    local total = (base + flatBonus) * (1 + pctBonus / 100)
     self:Save(
         GetStatTotalField(stat),
         total
     )
-    self:OnStatChanged(stat, total)
+    self:OnStatChanged(stat, current, total)
 end
-function MWObject.prototype.OnStatChanged(self, stat, total)
+function MWObject.prototype.OnStatChanged(self, stat, prev, current)
+    Log((((("OnStatChanged " .. tostring(stat)) .. " from ") .. tostring(prev)) .. " to ") .. tostring(current))
     if stat == 2 then
-        self.HP = total
+        if current > prev then
+            self.HP = self.HP + (current - prev)
+        else
+            self.HP = math.min(self.HP, current)
+        end
     end
 end
 function MWObject.prototype.SetSkillLevel(self, skillId, level)
@@ -3736,159 +3734,6 @@ ____exports.ObjectType.Armor = 3
 ____exports.ObjectType[____exports.ObjectType.Armor] = "Armor"
 ____exports.ObjectType.Artefact = 4
 ____exports.ObjectType[____exports.ObjectType.Artefact] = "Artefact"
-return ____exports
- end,
-["MonsterWorldMod.Configs.Loot"] = function(...) 
-local ____exports = {}
-local ____Collections = require("MonsterWorldMod.Helpers.Collections")
-local GetByWeightFromArray = ____Collections.GetByWeightFromArray
-local GetByWeightFromTable = ____Collections.GetByWeightFromTable
-____exports.EnemyDropChanceByRank = {15, 100, 35}
-____exports.MinQuality = 1
-____exports.MaxQuality = 5
-____exports.HigherLevelDropChancePct = 5
-____exports.QualityConfigs = {}
-____exports.QualityConfigs[1] = {
-    Weight = 250,
-    Title = "Common",
-    TextColor = GetARGB(255, 230, 230, 230),
-    Particles = "explosions\\effects\\campfire_sparks"
-}
-____exports.QualityConfigs[2] = {
-    Weight = 20,
-    Title = "Uncommmon",
-    TextColor = GetARGB(255, 20, 20, 230),
-    Particles = "static\\effects\\net_base_green"
-}
-____exports.QualityConfigs[3] = {
-    Weight = 10,
-    Title = "Rare",
-    TextColor = GetARGB(255, 20, 230, 20),
-    Particles = "static\\effects\\net_base_blue"
-}
-____exports.QualityConfigs[4] = {
-    Weight = 5,
-    Title = "Epic",
-    TextColor = GetARGB(255, 230, 20, 20),
-    Particles = "static\\effects\\net_base_red"
-}
-____exports.QualityConfigs[5] = {
-    Weight = 1,
-    Title = "Legendary",
-    TextColor = GetARGB(255, 240, 165, 5),
-    Particles = "_samples_particles_\\holo_lines"
-}
-function ____exports.GetDropQuality()
-    return GetByWeightFromTable(
-        ____exports.QualityConfigs,
-        function(el) return el.Weight end
-    )
-end
-____exports.DropConfigs = {{Type = 0, Weight = 50}, {Type = 1, Weight = 10}, {Type = 3, Weight = 10}}
-function ____exports.GetDropType()
-    return GetByWeightFromArray(
-        ____exports.DropConfigs,
-        function(e) return e.Weight end
-    ).Type
-end
-function ____exports.GetStimpackByQuality(qualityLevel)
-    if qualityLevel <= 2 then
-        return "mw_stimpack_25"
-    end
-    if qualityLevel <= 4 then
-        return "mw_stimpack_50"
-    end
-    return "mw_stimpack_75"
-end
-____exports.ArmorStatsForGeneration = {13, 3}
-____exports.WeaponStatsForGeneration = {
-    5,
-    7,
-    6,
-    8,
-    9,
-    14,
-    16
-}
-____exports.WeaponStatsUsingUpgrades = {
-    7,
-    8,
-    9,
-    10,
-    11
-}
-function ____exports.GetWeaponUpgradesByStat(weaponSection, stat)
-    local prefix = ""
-    repeat
-        local ____switch10 = stat
-        local ____cond10 = ____switch10 == 7
-        if ____cond10 then
-            prefix = "rpm"
-            break
-        end
-        ____cond10 = ____cond10 or ____switch10 == 8
-        if ____cond10 then
-            prefix = "dispersion"
-            break
-        end
-        ____cond10 = ____cond10 or ____switch10 == 9
-        if ____cond10 then
-            prefix = "recoil"
-            break
-        end
-        ____cond10 = ____cond10 or ____switch10 == 10
-        if ____cond10 then
-            prefix = "bullet_speed"
-            break
-        end
-        ____cond10 = ____cond10 or ____switch10 == 11
-        if ____cond10 then
-            prefix = "fire_mode"
-            break
-        end
-    until true
-    if prefix == "" then
-        return {}
-    end
-    local fieldName = prefix .. "_upgrades"
-    if ini_sys:r_string_ex(weaponSection, fieldName, "") ~= "" then
-        return ini_sys:r_list(weaponSection, fieldName, {})
-    end
-    return {}
-end
-function ____exports.GetWeaponSectinFieldNameByStat(stat)
-    repeat
-        local ____switch14 = stat
-        local ____cond14 = ____switch14 == 7
-        if ____cond14 then
-            return "rpm"
-        end
-        ____cond14 = ____cond14 or ____switch14 == 8
-        if ____cond14 then
-            return "fire_dispersion_base"
-        end
-        ____cond14 = ____cond14 or ____switch14 == 9
-        if ____cond14 then
-            return "cam_max_angle"
-        end
-        ____cond14 = ____cond14 or ____switch14 == 10
-        if ____cond14 then
-            return "bullet_speed"
-        end
-        ____cond14 = ____cond14 or ____switch14 == 6
-        if ____cond14 then
-            return "ammo_mag_size"
-        end
-    until true
-    return ""
-end
-function ____exports.GetWeaponBaseValueByStat(weaponSection, stat)
-    local fieldName = ____exports.GetWeaponSectinFieldNameByStat(stat)
-    if fieldName == "" then
-        return 0
-    end
-    return ini_sys:r_float_ex(weaponSection, fieldName, 0)
-end
 return ____exports
  end,
 ["MonsterWorldMod.Configs.Enemies"] = function(...) 
@@ -4165,6 +4010,159 @@ ____exports.MonsterConfigs.Monolith = {
 }
 return ____exports
  end,
+["MonsterWorldMod.Configs.Loot"] = function(...) 
+local ____exports = {}
+local ____Collections = require("MonsterWorldMod.Helpers.Collections")
+local GetByWeightFromArray = ____Collections.GetByWeightFromArray
+local GetByWeightFromTable = ____Collections.GetByWeightFromTable
+____exports.EnemyDropChanceByRank = {15, 100, 35}
+____exports.MinQuality = 1
+____exports.MaxQuality = 5
+____exports.HigherLevelDropChancePct = 5
+____exports.QualityConfigs = {}
+____exports.QualityConfigs[1] = {
+    Weight = 250,
+    Title = "Common",
+    TextColor = GetARGB(255, 230, 230, 230),
+    Particles = "static\\effects\\net_base_green"
+}
+____exports.QualityConfigs[2] = {
+    Weight = 20,
+    Title = "Uncommmon",
+    TextColor = GetARGB(255, 20, 20, 230),
+    Particles = "static\\effects\\net_base_green"
+}
+____exports.QualityConfigs[3] = {
+    Weight = 10,
+    Title = "Rare",
+    TextColor = GetARGB(255, 20, 230, 20),
+    Particles = "static\\effects\\net_base_blue"
+}
+____exports.QualityConfigs[4] = {
+    Weight = 5,
+    Title = "Epic",
+    TextColor = GetARGB(255, 230, 20, 20),
+    Particles = "static\\effects\\net_base_red"
+}
+____exports.QualityConfigs[5] = {
+    Weight = 1,
+    Title = "Legendary",
+    TextColor = GetARGB(255, 240, 165, 5),
+    Particles = "_samples_particles_\\holo_lines"
+}
+function ____exports.GetDropQuality()
+    return GetByWeightFromTable(
+        ____exports.QualityConfigs,
+        function(el) return el.Weight end
+    )
+end
+____exports.DropConfigs = {{Type = 0, WeightsByRank = {75, 75, 75}}, {Type = 1, WeightsByRank = {10, 15, 25}}, {Type = 3, WeightsByRank = {10, 15, 25}}, {Type = 2, WeightsByRank = {5, 10, 20}}}
+function ____exports.GetDropType(rank)
+    return GetByWeightFromArray(
+        ____exports.DropConfigs,
+        function(e) return e.WeightsByRank[rank + 1] end
+    ).Type
+end
+function ____exports.GetStimpackByQuality(qualityLevel)
+    if qualityLevel <= 2 then
+        return "mw_stimpack_25"
+    end
+    if qualityLevel <= 4 then
+        return "mw_stimpack_50"
+    end
+    return "mw_stimpack_75"
+end
+____exports.ArmorStatsForGeneration = {13, 3}
+____exports.WeaponStatsForGeneration = {
+    5,
+    7,
+    6,
+    8,
+    9,
+    14,
+    16
+}
+____exports.WeaponStatsUsingUpgrades = {
+    7,
+    8,
+    9,
+    10,
+    11
+}
+function ____exports.GetWeaponUpgradesByStat(weaponSection, stat)
+    local prefix = ""
+    repeat
+        local ____switch10 = stat
+        local ____cond10 = ____switch10 == 7
+        if ____cond10 then
+            prefix = "rpm"
+            break
+        end
+        ____cond10 = ____cond10 or ____switch10 == 8
+        if ____cond10 then
+            prefix = "dispersion"
+            break
+        end
+        ____cond10 = ____cond10 or ____switch10 == 9
+        if ____cond10 then
+            prefix = "recoil"
+            break
+        end
+        ____cond10 = ____cond10 or ____switch10 == 10
+        if ____cond10 then
+            prefix = "bullet_speed"
+            break
+        end
+        ____cond10 = ____cond10 or ____switch10 == 11
+        if ____cond10 then
+            prefix = "fire_mode"
+            break
+        end
+    until true
+    if prefix == "" then
+        return {}
+    end
+    local fieldName = prefix .. "_upgrades"
+    if ini_sys:r_string_ex(weaponSection, fieldName, "") ~= "" then
+        return ini_sys:r_list(weaponSection, fieldName, {})
+    end
+    return {}
+end
+function ____exports.GetWeaponSectinFieldNameByStat(stat)
+    repeat
+        local ____switch14 = stat
+        local ____cond14 = ____switch14 == 7
+        if ____cond14 then
+            return "rpm"
+        end
+        ____cond14 = ____cond14 or ____switch14 == 8
+        if ____cond14 then
+            return "fire_dispersion_base"
+        end
+        ____cond14 = ____cond14 or ____switch14 == 9
+        if ____cond14 then
+            return "cam_max_angle"
+        end
+        ____cond14 = ____cond14 or ____switch14 == 10
+        if ____cond14 then
+            return "bullet_speed"
+        end
+        ____cond14 = ____cond14 or ____switch14 == 6
+        if ____cond14 then
+            return "ammo_mag_size"
+        end
+    until true
+    return ""
+end
+function ____exports.GetWeaponBaseValueByStat(weaponSection, stat)
+    local fieldName = ____exports.GetWeaponSectinFieldNameByStat(stat)
+    if fieldName == "" then
+        return 0
+    end
+    return ini_sys:r_float_ex(weaponSection, fieldName, 0)
+end
+return ____exports
+ end,
 ["MonsterWorldMod.GameObjects.MWMonster"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -4321,12 +4319,15 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local ____exports = {}
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
 local ____Loot = require("MonsterWorldMod.Configs.Loot")
 local MinQuality = ____Loot.MinQuality
 local MaxQuality = ____Loot.MaxQuality
+local ____Stats = require("MonsterWorldMod.Configs.Stats")
+local PctStats = ____Stats.PctStats
 local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
 local MWObject = ____MWObject.MWObject
 ____exports.MWItem = __TS__Class()
@@ -4373,33 +4374,30 @@ function MWItem.prototype.GetPlayerStatBonusesOnEquip(self)
 end
 function MWItem.prototype.OnItemEquipped(self)
     Log("OnItemEquipped " .. self.SectionId)
-    local source = tostring(self.id)
     for ____, stat in ipairs(self:GetPlayerStatBonusesOnEquip()) do
         MonsterWorld.Player:AddStatBonus(
             stat,
             0,
             self:GetTotalFlatBonus(stat),
-            source
+            self.SectionId
         )
-        MonsterWorld.Player:AddStatBonus(
-            stat,
-            1,
-            self:GetTotalPctBonus(stat),
-            source
-        )
-        MonsterWorld.Player:AddStatBonus(
-            stat,
-            2,
-            self:GetTotalMultBonus(stat),
-            source
-        )
+        if not __TS__ArrayIncludes(PctStats, stat) then
+            MonsterWorld.Player:AddStatBonus(
+                stat,
+                1,
+                self:GetTotalPctBonus(stat),
+                self.SectionId
+            )
+        end
     end
 end
 function MWItem.prototype.OnItemUnequipped(self)
     Log("OnItemUnequipped " .. self.SectionId)
-    local source = tostring(self.id)
     for ____, stat in ipairs(self:GetPlayerStatBonusesOnEquip()) do
-        MonsterWorld.Player:RemoveStatBonuses(stat, source)
+        MonsterWorld.Player:RemoveStatBonus(stat, 0, self.SectionId)
+        if not __TS__ArrayIncludes(PctStats, stat) then
+            MonsterWorld.Player:RemoveStatBonus(stat, 1, self.SectionId)
+        end
     end
 end
 function MWItem.prototype.GenerateStats(self)
@@ -5055,7 +5053,7 @@ __TS__SetDescriptor(
     true
 )
 function MWArmor.prototype.GetPlayerStatBonusesOnEquip(self)
-    local result = {2, 13}
+    local result = {2, 13, 3}
     for ____, stat in ipairs(WeaponTypeDamageBonuses) do
         result[#result + 1] = stat
     end
@@ -5208,13 +5206,13 @@ function MWPlayer.prototype.UpdateLevelBonuses(self)
     self:AddStatBonus(3, 1, cfg.PlayerHPRegenPctPerLevel * self.Level, "level_bonus")
     self:AddStatBonus(0, 1, cfg.PlayerRunSpeedPctPerLevel * self.Level, "level_bonus")
 end
-function MWPlayer.prototype.OnStatChanged(self, stat, total)
-    MWObject.prototype.OnStatChanged(self, stat, total)
+function MWPlayer.prototype.OnStatChanged(self, stat, prev, current)
+    MWObject.prototype.OnStatChanged(self, stat, prev, current)
     if stat == 0 then
-        db.actor:set_actor_run_coef(cfg.PlayerRunSpeedCoeff * total)
-        db.actor:set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * total)
+        db.actor:set_actor_run_coef(cfg.PlayerRunSpeedCoeff * current)
+        db.actor:set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * current)
     elseif stat == 1 then
-        db.actor:set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * total)
+        db.actor:set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * current)
     end
 end
 function MWPlayer.prototype.SetupSkills(self)
@@ -5560,8 +5558,10 @@ function UIManager.prototype.____constructor(self)
         s.mwLevel:Show(true)
         if item.Type == ObjectType.Weapon then
             s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "   DPS:") .. tostring(math.floor(item.DPS)))
-        else
+        elseif item.Type == ObjectType.Armor then
             s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "   HP:") .. tostring(math.floor(item.HPBonus)))
+        else
+            s.mwLevel:TextControl():SetText("L." .. tostring(item.Level))
         end
         return res
     end
@@ -5638,7 +5638,7 @@ function UIManager.prototype.ShowDamage(self, damage, isCrit, isKillHit)
     for ____, entry in ipairs(self.damageNumbers) do
         do
             if entry.text:IsShown() then
-                goto __continue31
+                goto __continue32
             end
             local msg = tostring(math.max(
                 1,
@@ -5671,14 +5671,14 @@ function UIManager.prototype.ShowDamage(self, damage, isCrit, isKillHit)
             entry.text:Show(true)
             return
         end
-        ::__continue31::
+        ::__continue32::
     end
 end
 function UIManager.prototype.ShowXPReward(self, reward)
     for ____, entry in ipairs(self.xpRewardNumbers) do
         do
             if entry.text:IsShown() then
-                goto __continue35
+                goto __continue36
             end
             local msg = ("+ " .. tostring(math.floor(reward))) .. " XP"
             entry.text:SetWndPos(vector2():set(
@@ -5691,7 +5691,7 @@ function UIManager.prototype.ShowXPReward(self, reward)
             entry.text:Show(true)
             return
         end
-        ::__continue35::
+        ::__continue36::
     end
 end
 function UIManager.prototype.InitHud(self)
@@ -6140,8 +6140,6 @@ local __TS__Class = ____lualib.__TS__Class
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local ____exports = {}
-local ____Stats = require("MonsterWorldMod.Configs.Stats")
-local GetBonusDescription = ____Stats.GetBonusDescription
 local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
 local MWItem = ____MWItem.MWItem
 local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
@@ -6163,20 +6161,18 @@ __TS__SetDescriptor(
     "Description",
     {get = function(self)
         local result = ""
-        local DescriptionStats = {}
-        for ____, stat in ipairs(DescriptionStats) do
-            local asPct = false
-            local value = self:GetStat(stat)
-            if value ~= 0 then
-                result = result .. GetBonusDescription(stat, value, asPct) .. " \\n"
-            end
-        end
         return result
     end},
     true
 )
 function MWArtefact.prototype.GenerateStats(self)
     MWItem.prototype.GenerateStats(self)
+end
+function MWArtefact.prototype.SetupSkills(self)
+    MWItem.prototype.SetupSkills(self)
+    repeat
+        local ____switch6 = self.Section
+    until true
 end
 return ____exports
  end,
@@ -6519,7 +6515,7 @@ function World.prototype.OnMonsterKilled(self, monster, isCrit)
 end
 function World.prototype.GenerateDrop(self, monster)
     Log("GenerateDrop")
-    local ____type = GetDropType()
+    local ____type = GetDropType(monster.Rank)
     local sgo = nil
     local dropLevel, qualityLevel = self:GetDropLevelAndQualityFromMonster(monster)
     local dropPos = CreateWorldPositionAtPosWithGO(
@@ -6532,9 +6528,12 @@ function World.prototype.GenerateDrop(self, monster)
         sgo = self:GenerateStimpackDrop(dropLevel, qualityLevel, dropPos)
     elseif ____type == 3 then
         sgo = self:GenerateArmorDrop(dropLevel, qualityLevel, dropPos)
+    elseif ____type == 2 then
+        sgo = self:GenerateArtefactDrop(dropLevel, qualityLevel, dropPos)
     end
     if sgo ~= nil then
         Log((("Spawned " .. sgo:section_name()) .. ":") .. tostring(sgo.id))
+        Save(sgo.id, "MW_SpawnParams", {Level = dropLevel, Quality = qualityLevel})
         self:HighlightDroppedItem(sgo.id, ____type, qualityLevel)
         self:AddTTLTimer(sgo.id, 300)
     else
@@ -6554,6 +6553,7 @@ function World.prototype.GetDropLevelAndQualityFromMonster(self, monster)
     if IsPctRolled(rankCfg.DropQualityIncreaseChance) then
         qualityLevel = qualityLevel + 1
     end
+    qualityLevel = math.min(qualityLevel, MaxQuality)
     return dropLevel, qualityLevel
 end
 function World.prototype.GenerateWeaponDrop(self, dropLevel, qualityLevel, pos)
@@ -6561,28 +6561,14 @@ function World.prototype.GenerateWeaponDrop(self, dropLevel, qualityLevel, pos)
     local selectedTypeSection = RandomFromArray(typedSections)
     local weaponCount = ini_sys:line_count(selectedTypeSection)
     local selectedElement = math.random(0, weaponCount - 1)
-    Log((((("Selecting base " .. tostring(selectedElement)) .. " from ") .. tostring(weaponCount)) .. " in ") .. tostring(selectedTypeSection))
     local _, weaponBaseSection = ini_sys:r_line_ex(selectedTypeSection, selectedElement)
     local weaponVariants = ini_sys:r_list(weaponBaseSection, "variants")
     local selectedVariant = RandomFromArray(weaponVariants)
-    Log("Spawning " .. tostring(selectedVariant))
-    local sgo = alife_create_item(selectedVariant, pos)
-    if not sgo then
-        Log("GenerateWeaponDrop spawn failed")
-        return nil
-    end
-    qualityLevel = math.min(qualityLevel, MaxQuality)
-    Save(sgo.id, "MW_SpawnParams", {Level = dropLevel, Quality = qualityLevel})
-    return sgo
+    return alife_create_item(selectedVariant, pos)
 end
 function World.prototype.GenerateStimpackDrop(self, dropLevel, qualityLevel, pos)
     local section = GetStimpackByQuality(qualityLevel)
-    local sgo = alife_create_item(section, pos)
-    if not sgo then
-        Log("GenerateStimpackDrop spawn failed")
-        return nil
-    end
-    return sgo
+    return alife_create_item(section, pos)
 end
 function World.prototype.GenerateArmorDrop(self, dropLevel, qualityLevel, pos)
     qualityLevel = math.min(qualityLevel, MaxQuality)
@@ -6590,14 +6576,15 @@ function World.prototype.GenerateArmorDrop(self, dropLevel, qualityLevel, pos)
     local armorCount = ini_sys:line_count(section)
     local selectedElement = math.random(0, armorCount - 1)
     local _, armorSection = ini_sys:r_line_ex(section, selectedElement)
-    Log("Spawning " .. armorSection)
-    local sgo = alife_create_item(armorSection, pos)
-    if not sgo then
-        Log("GenerateWeaponDrop spawn failed")
-        return nil
-    end
-    Save(sgo.id, "MW_SpawnParams", {Level = dropLevel, Quality = qualityLevel})
-    return sgo
+    return alife_create_item(armorSection, pos)
+end
+function World.prototype.GenerateArtefactDrop(self, dropLevel, qualityLevel, pos)
+    qualityLevel = math.min(qualityLevel, MaxQuality)
+    local section = "artefacts_mw"
+    local artefactCount = ini_sys:line_count(section)
+    local selectedElement = math.random(0, artefactCount - 1)
+    local _, artefactSection = ini_sys:r_line_ex(section, selectedElement)
+    return alife_create_item(artefactSection, pos)
 end
 function World.prototype.HighlightDroppedItem(self, id, ____type, quality)
     self.Timers:AddOnObjectSpawn(
@@ -6661,14 +6648,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue92
+                goto __continue91
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue92::
+        ::__continue91::
     end
     return result
 end
@@ -7034,22 +7021,27 @@ function MonsterWorldMod.prototype.OnKeyRelease(self, key)
             CreateWorldPositionAtGO(db.actor)
         )
         itemType = 0
-    end
-    if key == DIK_keys.DIK_DOWN then
+    elseif key == DIK_keys.DIK_DOWN then
         item = self.World:GenerateStimpackDrop(
             level,
             quality,
             CreateWorldPositionAtGO(db.actor)
         )
         itemType = 1
-    end
-    if key == DIK_keys.DIK_RIGHT then
+    elseif key == DIK_keys.DIK_RIGHT then
         item = self.World:GenerateArmorDrop(
             level,
             quality,
             CreateWorldPositionAtGO(db.actor)
         )
         itemType = 3
+    elseif key == DIK_keys.DIK_LEFT then
+        item = self.World:GenerateArtefactDrop(
+            level,
+            quality,
+            CreateWorldPositionAtGO(db.actor)
+        )
+        itemType = 2
     end
     if item ~= nil then
         self.World:HighlightDroppedItem(item.id, itemType, quality)
