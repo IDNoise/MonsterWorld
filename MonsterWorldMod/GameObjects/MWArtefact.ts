@@ -10,6 +10,7 @@ import { SkillThorns } from '../Skills/SkillThorns';
 import { SkillSpeedyRetreat } from '../Skills/SkillSpeedyRetreat';
 import { SkillSuperCrit } from '../Skills/SkillSuperCrit';
 import { SkillHealPlayerOnKill } from '../Skills/SkillHealPlayerOnKill';
+import { SkillFreeShot } from '../Skills/SkillFreeShot';
 
 export class MWArtefact extends MWItem {
 
@@ -108,3 +109,4 @@ ArtefactSkills.set("SkillCriticalDeath", () => new SkillCriticalDeath(l => 5 + l
 ArtefactSkills.set("SkillThorns", () => new SkillThorns(l => math.min(4, 0.5 + l / 20)));
 ArtefactSkills.set("SkillSpeedyRetreat", () => new SkillSpeedyRetreat(15, l => math.max(30, 60 - l), l => math.min(10, 3 + l / 5), l => 20 + l));
 ArtefactSkills.set("SkillSuperCrit", () => new SkillSuperCrit(10, l => 25 + 5 * l));
+ArtefactSkills.set("SkillFreeShot", () => new SkillFreeShot(l => math.min(15, 5 + l / 3)));

@@ -1,5 +1,6 @@
 import { MWMonster } from '../GameObjects/MWMonster';
 import { MWObject } from '../GameObjects/MWObject';
+import { MWWeapon } from '../GameObjects/MWWeapon';
 
 
 export abstract class Skill {
@@ -85,6 +86,7 @@ export abstract class Skill {
     OnOwnerPickUp(): void { }
     OnOwnerEquip(): void { }
     OnOwnerUnequip(): void { }
+    OnWeaponFired(weapon: MWWeapon): void { }
     OnPlayerHit(monster: MWMonster, damage: number): void { }
     OnMonsterBeforeHit(monster: MWMonster, isCrit: boolean, damage: number): number { return damage; }
     OnMonsterHit(monster: MWMonster, isCrit: boolean): void { }

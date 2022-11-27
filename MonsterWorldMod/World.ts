@@ -186,6 +186,7 @@ export class World {
         if (weapon != undefined && weapon.Section.endsWith("_mw") && weapon.GO.get_ammo_total() < 500){
             let ammo = ini_sys.r_sec_ex(weapon.Section, "ammo_class")
             alife_create_item(ammo, this.Player.GO, {ammo: 1});
+            this.Player.IterateSkills(s => s.OnWeaponFired(weapon!))
         }
     }
 

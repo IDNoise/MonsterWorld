@@ -14,6 +14,10 @@ public class WeaponsGenerator : BaseGenerator {
         { WeaponType.SniperRifle, new AmmoConfig("ammo_mw_sniper_rifle", "ammo_50_bmg", "Sniper Rifle ammo", 15) }
     };
 
+    private readonly List<string> ignoredWeapons = new List<string>() {
+        "wpn_saiga12s_1p29"
+    };
+
     private Section baseParamsSection;
     private Section baseWeaponUpgradeBonusSection;
     private Section baseWeaponUpgradeEffectSection;
@@ -48,6 +52,9 @@ public class WeaponsGenerator : BaseGenerator {
         var allVariantWeapons = new Dictionary<string, Section>();
         foreach (var w in Storage.AllFiles.Where(f => f.Name.StartsWith("w_")).SelectMany(f => f.Sections)
                      .Where(s => s.Name.StartsWith("wpn_") && s.AllParentSectionNames.Contains("default_weapon_params"))) {
+            if (ignoredWeapons.Contains(w.Name))
+                continue;
+            
             if (w.GetProperty("tri_state_reload")?.String == "on")
                 continue;
 

@@ -1,7 +1,7 @@
 import { Log } from '../../StalkerModBase';
 import * as cfg from '../Configs/Constants';
-import { MinQuality, MaxQuality, WeaponStatsUsingUpgrades, WeaponStatsForGeneration, GetWeaponUpgradesByStat, GetWeaponSectinFieldNameByStat, GetWeaponBaseValueByStat} from '../Configs/Loot';
-import { StatType, StatBonusType, PctStats, GetBonusDescription, GetStatBonusForObject, GetBonusDescriptionByType, GetColorCodedBonusDescription, StatTitles } from '../Configs/Stats';
+import { WeaponStatsUsingUpgrades, WeaponStatsForGeneration, GetWeaponUpgradesByStat, GetWeaponSectinFieldNameByStat, GetWeaponBaseValueByStat} from '../Configs/Loot';
+import { StatType, StatBonusType, GetStatBonusForObject, GetBonusDescriptionByType } from '../Configs/Stats';
 import { GetRandomUniqueElementsFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { MWItem } from './MWItem';
@@ -20,6 +20,7 @@ export class MWWeapon extends MWItem {
     get DPS(): number { return this.Damage  * (1 / this.TimeBetweenShots) }
     get MagSize(): number { return math.floor(this.GetStat(StatType.MagSize)); }
     get FireDistance(): number { return this.GO?.cast_Weapon().GetFireDistance() || 1; }
+    get AmmoLeft(): number { return this.GO?.cast_Weapon().GetAmmoElapsed() || 1; }
 
     get Description(): string{
         let result = "";
