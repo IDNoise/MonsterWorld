@@ -1,7 +1,7 @@
 import { Log } from '../../StalkerModBase';
 import * as cfg from '../Configs/Constants';
 import { MinQuality, MaxQuality, WeaponStatsUsingUpgrades, WeaponStatsForGeneration, GetWeaponUpgradesByStat, GetWeaponSectinFieldNameByStat, GetWeaponBaseValueByStat} from '../Configs/Loot';
-import { StatType, StatBonusType, PctStats, GetBonusDescription, GetStatBonusForObject, GetBonusDescriptionByType } from '../Configs/Stats';
+import { StatType, StatBonusType, PctStats, GetBonusDescription, GetStatBonusForObject, GetBonusDescriptionByType, GetColorCodedBonusDescription, StatTitles } from '../Configs/Stats';
 import { GetRandomUniqueElementsFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { MWItem } from './MWItem';
@@ -39,16 +39,6 @@ export class MWWeapon extends MWItem {
         for(let stat of stats){
             result += GetBonusDescriptionByType(this, stat);
         }
-
-        // result += GetBonusDescription(StatType.Damage, this.GetTotalPctBonus(StatType.Damage), true);
-        // result += GetBonusDescription(StatType.Rpm, this.GetTotalPctBonus(StatType.Rpm), true);
-        // result += GetBonusDescription(StatType.MagSize, this.GetStatDiffWithBase(StatType.MagSize));
-        // result += GetBonusDescription(StatType.ReloadSpeedBonusPct, this.GetTotalFlatBonus(StatType.ReloadSpeedBonusPct));
-        // result += GetBonusDescription(StatType.Accuracy, this.GetTotalPctBonus(StatType.Accuracy), true);
-        // result += GetBonusDescription(StatType.Recoil, this.GetTotalPctBonus(StatType.Recoil), true);
-        // result += GetBonusDescription(StatType.Flatness, this.GetTotalPctBonus(StatType.Flatness), true);
-        // result += GetBonusDescription(StatType.CritChancePct, this.GetTotalFlatBonus(StatType.CritChancePct));
-        // result += GetBonusDescription(StatType.AutoFireMode, this.GetTotalFlatBonus(StatType.AutoFireMode));
 
         return result;
     }

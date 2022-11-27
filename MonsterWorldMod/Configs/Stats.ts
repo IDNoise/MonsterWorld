@@ -57,7 +57,7 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.CritChancePct]: "Crit Chance",
     [StatType.DamageToStalkersBonusPct]: "Damage to Stalkers",
     [StatType.DamageToMutantssBonusPct]: "Damage to Mutants",
-    [StatType.MagSize]: "Ammo",
+    [StatType.MagSize]: "Mag Size",
     [StatType.Rpm]: "Fire rate",
     [StatType.Accuracy]: "Accuracy",
     [StatType.Recoil]: "Recoil",
@@ -144,7 +144,7 @@ export function GetBonusDescription(stat: StatType, bonus: number = 0, asPct: bo
     if (NoValueStats.includes(stat))
         return `%c[255,255,255,0]${StatTitles[stat]}${EndColorTag}\\n`;
     
-    const valueStr = `${NegativeBonuses.includes(stat) ? "-" : "+"}${math.floor(bonus)}${(asPct || PctStats.includes(stat)) ? "\%" : ""}`;
+    const valueStr = `${NegativeBonuses.includes(stat) ? "-" : "+"}${math.floor(bonus)}${(asPct || PctStats.includes(stat)) ? "%" : ""}`;
     return `%c[255,56,166,209]${valueStr.padEnd(6, " ")}${EndColorTag} ${StatTitles[stat]}\\n`
 }
 
