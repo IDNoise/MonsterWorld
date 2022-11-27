@@ -2656,6 +2656,9 @@ function StalkerModBase.prototype.OnItemToSlot(self, item)
 end
 function StalkerModBase.prototype.OnWeaponFired(self, obj, wpn, ammo_elapsed)
 end
+function StalkerModBase.prototype.OnWeaponReload(self, wpn, ammo_total)
+    ____exports.Log((("OnWeaponReload " .. wpn:name()) .. " ammo: ") .. tostring(ammo_total))
+end
 function StalkerModBase.prototype.OnItemFocusReceive(self, item)
 end
 function StalkerModBase.prototype.OnHudAnimationPlay(self, obj, anim_table)
@@ -2720,6 +2723,10 @@ function StalkerModBase.prototype.RegisterCallbacks(self)
     RegisterScriptCallback(
         "actor_on_weapon_fired",
         function(obj, wpn, ammo_elapsed, grenade_elapsed, ammo_type, grenade_type) return self:OnWeaponFired(obj, wpn, ammo_elapsed) end
+    )
+    RegisterScriptCallback(
+        "actor_on_weapon_reload",
+        function(wpn, ammo_total) return self:OnWeaponReload(wpn, ammo_total) end
     )
     RegisterScriptCallback(
         "actor_on_hud_animation_play",
@@ -3033,7 +3040,7 @@ ____exports.EnemyHPPctPerLevel = 75
 ____exports.EnemyHpDeltaPct = 10
 ____exports.EnemyDamageBase = ____exports.PlayerHPBase / 25
 ____exports.EnemyDamageExpPerLevel = 1.025
-____exports.EnemyDamagePctPerLevel = 10
+____exports.EnemyDamagePctPerLevel = 15
 ____exports.EnemyXpRewardBase = ____exports.PlayerXPForFirstLevel / 20
 ____exports.EnemyXpRewardExpPerLevel = 1.25
 ____exports.EnemyXpRewardPctPerLevel = 50
@@ -3169,6 +3176,12 @@ function Skill.prototype.UpdateUpgradeButton(self)
 end
 function Skill.prototype.Update(self, deltaTime)
 end
+function Skill.prototype.OnOwnerPickUp(self)
+end
+function Skill.prototype.OnOwnerEquip(self)
+end
+function Skill.prototype.OnOwnerUnequip(self)
+end
 function Skill.prototype.OnMonsterHit(self, monster, isCrit)
 end
 function Skill.prototype.OnMonsterKill(self, monster, isCrit)
@@ -3190,63 +3203,14 @@ return ____exports
 local ____lualib = require("lualib_bundle")
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__StringPadEnd = ____lualib.__TS__StringPadEnd
+local Map = ____lualib.Map
+local __TS__New = ____lualib.__TS__New
 local ____exports = {}
+local ObjectBonusGenerators
+local ____StalkerModBase = require("StalkerModBase")
+local Log = ____StalkerModBase.Log
 local ____UI = require("MonsterWorldMod.Configs.UI")
 local EndColorTag = ____UI.EndColorTag
-____exports.StatTitles = {
-    [0] = "Run Speed",
-    [1] = "Sprint Speed",
-    [2] = "Max HP",
-    [3] = "HP Regen",
-    [4] = "XP Gain",
-    [5] = "Damage",
-    [15] = "Reload Speed",
-    [16] = "Crit Damage",
-    [17] = "Crit Chance",
-    [18] = "Damage to Stalkers",
-    [19] = "Damage to Mutants",
-    [6] = "Ammo",
-    [7] = "Fire rate",
-    [8] = "Accuracy",
-    [9] = "Recoil",
-    [10] = "Flatness",
-    [11] = "AUTO Fire mode enabled",
-    [12] = "Artefact slots",
-    [13] = "Damage Resistance",
-    [14] = "Heal",
-    [20] = "Damage with Pistols",
-    [21] = "Damage with SMGs",
-    [22] = "Damage with Shotguns",
-    [23] = "Damage with Assault Rifles",
-    [24] = "Damage with Machine Guns",
-    [25] = "Damage with Sniper Rifles"
-}
-____exports.PctStats = {
-    16,
-    17,
-    18,
-    19,
-    15,
-    13,
-    14,
-    20,
-    21,
-    22,
-    23,
-    24,
-    25
-}
-____exports.MultStats = {0, 1, 4}
-____exports.NoValueStats = {11}
-____exports.NegativeBonuses = {9}
-____exports.WeaponDamageBonusesByType = {
-    20,
-    21,
-    22,
-    23,
-    24,
-    25
-}
 function ____exports.GetBonusDescription(stat, bonus, asPct)
     if bonus == nil then
         bonus = 0
@@ -3263,6 +3227,202 @@ function ____exports.GetBonusDescription(stat, bonus, asPct)
     local valueStr = ((__TS__ArrayIncludes(____exports.NegativeBonuses, stat) and "-" or "+") .. tostring(math.floor(bonus))) .. ((asPct or __TS__ArrayIncludes(____exports.PctStats, stat)) and "%" or "")
     return (((("%c[255,56,166,209]" .. __TS__StringPadEnd(valueStr, 6, " ")) .. EndColorTag) .. " ") .. ____exports.StatTitles[stat]) .. "\\n"
 end
+____exports.StatTitles = {
+    RunSpeedMult = "Run Speed",
+    SprintSpeedMult = "Sprint Speed",
+    MaxHP = "Max HP",
+    HPRegen = "HP Regen",
+    XPGainMult = "XP Gain",
+    Damage = "Damage",
+    ReloadSpeedBonusPct = "Reload Speed",
+    CritDamagePct = "Crit Damage",
+    CritChancePct = "Crit Chance",
+    DamageToStalkersBonusPct = "Damage to Stalkers",
+    DamageToMutantssBonusPct = "Damage to Mutants",
+    MagSize = "Ammo",
+    Rpm = "Fire rate",
+    Accuracy = "Accuracy",
+    Recoil = "Recoil",
+    Flatness = "Flatness",
+    AutoFireMode = "Full AUTO mode",
+    ArtefactSlots = "Artefact slots",
+    DamageResistancePct = "Damage Resistance",
+    HealPct = "Heal",
+    DamageWithPistolBonusPct = "Damage with Pistols",
+    DamageWithSMGBonusPct = "Damage with SMGs",
+    DamageWithShotgunBonusPct = "Damage with Shotguns",
+    DamageWithAssaultRifleBonusPct = "Damage with Assault Rifles",
+    DamageWithMachingGunBonusPct = "Damage with Machine Guns",
+    DamageWithSniperRifleBonusPct = "Damage with Sniper Rifles"
+}
+____exports.PctStats = {
+    "CritDamagePct",
+    "CritChancePct",
+    "DamageToStalkersBonusPct",
+    "DamageToMutantssBonusPct",
+    "ReloadSpeedBonusPct",
+    "DamageResistancePct",
+    "HealPct",
+    "DamageWithPistolBonusPct",
+    "DamageWithSMGBonusPct",
+    "DamageWithShotgunBonusPct",
+    "DamageWithAssaultRifleBonusPct",
+    "DamageWithMachingGunBonusPct",
+    "DamageWithSniperRifleBonusPct"
+}
+____exports.MultStats = {"RunSpeedMult", "SprintSpeedMult", "XPGainMult"}
+____exports.NoValueStats = {"AutoFireMode"}
+____exports.NegativeBonuses = {"Recoil"}
+____exports.WeaponDamageBonusesByType = {
+    "DamageWithPistolBonusPct",
+    "DamageWithSMGBonusPct",
+    "DamageWithShotgunBonusPct",
+    "DamageWithAssaultRifleBonusPct",
+    "DamageWithMachingGunBonusPct",
+    "DamageWithSniperRifleBonusPct"
+}
+____exports.DamageBonusesByEnemyType = {"DamageToStalkersBonusPct", "DamageToMutantssBonusPct"}
+function ____exports.GetBonusDescriptionByType(object, stat)
+    local result = ""
+    local totalFlatBonus = object:GetTotalFlatBonus(stat)
+    result = result .. ____exports.GetBonusDescription(stat, totalFlatBonus)
+    if not __TS__ArrayIncludes(____exports.PctStats, stat) then
+        result = result .. ____exports.GetBonusDescription(
+            stat,
+            object:GetTotalPctBonus(stat),
+            true
+        )
+    end
+    return result
+end
+function ____exports.GetStatBonusForObject(stat, level, quality, bonusType, objectType)
+    local generator = ObjectBonusGenerators:get(stat)
+    if generator == nil then
+        Log("NO STAT BONUS GENERATOR FOR: " .. stat)
+        return 0
+    end
+    return generator(
+        stat,
+        level,
+        quality,
+        bonusType,
+        objectType
+    )
+end
+function ____exports.IsStatGenerationSupported(stat)
+    local generator = ObjectBonusGenerators:get(stat)
+    return generator ~= nil
+end
+local function CheckSupportedBonusType(stat, bonusType, ...)
+    local args = {...}
+    if not __TS__ArrayIncludes(args, bonusType) then
+        Log((("Not supported bonus type " .. bonusType) .. " for ") .. stat)
+        return false
+    end
+    return true
+end
+local function CheckSupportedObjectType(stat, objectType, ...)
+    local args = {...}
+    if not __TS__ArrayIncludes(args, objectType) then
+        Log((("Not supported object type " .. objectType) .. " for ") .. stat)
+        return false
+    end
+    return true
+end
+local ScalingRangesByQuality = {
+    {Min = 1, Max = 35},
+    {Min = 15, Max = 55},
+    {Min = 30, Max = 75},
+    {Min = 45, Max = 95},
+    {Min = 60, Max = 100}
+}
+local MaxLevelForScaling = 30
+local function GetBonusValue(minValue, maxValue, level, quality, levelPct)
+    local diff = maxValue - minValue
+    local result = math.random(minValue, maxValue)
+    if level ~= nil and quality ~= nil then
+        levelPct = levelPct or 50
+        local maxValueAtLevel = diff * (1 - levelPct / 100) + diff * (levelPct / 100) / MaxLevelForScaling * level
+        local qualityScaling = ScalingRangesByQuality[quality]
+        result = minValue + math.random(maxValueAtLevel * qualityScaling.Min / 100, maxValueAtLevel * qualityScaling.Max / 100)
+    elseif level ~= nil then
+        levelPct = levelPct or 50
+        local maxValueAtLevel = diff * (1 - levelPct / 100) + diff * (levelPct / 100) / MaxLevelForScaling * level
+        result = minValue + math.random(0, maxValueAtLevel)
+    elseif quality ~= nil then
+        local qualityScaling = ScalingRangesByQuality[quality]
+        result = minValue + math.random(diff * qualityScaling.Min / 100, diff * qualityScaling.Max / 100)
+    end
+    return clamp(result, minValue, maxValue)
+end
+local MaxValueMultByObjectType = {
+    Player = 1,
+    Monster = 1,
+    Weapon = 1,
+    Armor = 1,
+    Artefact = 1 / 3,
+    Stimpack = 1
+}
+ObjectBonusGenerators = __TS__New(Map)
+ObjectBonusGenerators:set(
+    "ReloadSpeedBonusPct",
+    function(stat, level, quality, bonusType, objectType)
+        CheckSupportedBonusType(stat, bonusType, "flat")
+        return GetBonusValue(2, 100 * MaxValueMultByObjectType[objectType], level, quality)
+    end
+)
+ObjectBonusGenerators:set(
+    "MagSize",
+    function(stat, level, quality, bonusType, objectType)
+        CheckSupportedBonusType(stat, bonusType, "pct")
+        CheckSupportedObjectType(stat, objectType, "Weapon")
+        return GetBonusValue(5, 500, level, quality)
+    end
+)
+ObjectBonusGenerators:set(
+    "CritChancePct",
+    function(stat, level, quality, bonusType, objectType)
+        CheckSupportedBonusType(stat, bonusType, "pct")
+        return GetBonusValue(1, 15 * MaxValueMultByObjectType[objectType], level, quality)
+    end
+)
+ObjectBonusGenerators:set(
+    "CritDamagePct",
+    function(stat, level, quality, bonusType, objectType)
+        CheckSupportedBonusType(stat, bonusType, "pct")
+        return GetBonusValue(3, 150 * MaxValueMultByObjectType[objectType], level, quality)
+    end
+)
+ObjectBonusGenerators:set(
+    "DamageResistancePct",
+    function(stat, level, quality, bonusType, objectType)
+        CheckSupportedBonusType(stat, bonusType, "pct")
+        return GetBonusValue(1, objectType == "Armor" and 50 or 5, level, quality)
+    end
+)
+ObjectBonusGenerators:set(
+    "HPRegen",
+    function(stat, level, quality, bonusType, objectType)
+        CheckSupportedBonusType(stat, bonusType, "pct")
+        return GetBonusValue(5, 500 * MaxValueMultByObjectType[objectType], level, quality)
+    end
+)
+local function WeaponDamageBonusByTypeGenerator(stat, level, quality, bonusType, objectType)
+    CheckSupportedBonusType(stat, bonusType, "pct")
+    return GetBonusValue(2, 150 * MaxValueMultByObjectType[objectType], level, quality)
+end
+ObjectBonusGenerators:set("DamageWithPistolBonusPct", WeaponDamageBonusByTypeGenerator)
+ObjectBonusGenerators:set("DamageWithSMGBonusPct", WeaponDamageBonusByTypeGenerator)
+ObjectBonusGenerators:set("DamageWithShotgunBonusPct", WeaponDamageBonusByTypeGenerator)
+ObjectBonusGenerators:set("DamageWithAssaultRifleBonusPct", WeaponDamageBonusByTypeGenerator)
+ObjectBonusGenerators:set("DamageWithMachingGunBonusPct", WeaponDamageBonusByTypeGenerator)
+ObjectBonusGenerators:set("DamageWithSniperRifleBonusPct", WeaponDamageBonusByTypeGenerator)
+local function DamageBonusByEnemyTypeGenerator(stat, level, quality, bonusType, objectType)
+    CheckSupportedBonusType(stat, bonusType, "pct")
+    return GetBonusValue(3, 150 * MaxValueMultByObjectType[objectType], level, quality)
+end
+ObjectBonusGenerators:set("DamageToStalkersBonusPct", DamageBonusByEnemyTypeGenerator)
+ObjectBonusGenerators:set("DamageToMutantssBonusPct", DamageBonusByEnemyTypeGenerator)
 return ____exports
  end,
 ["MonsterWorldMod.Helpers.StalkerAPI"] = function(...) 
@@ -3440,7 +3600,7 @@ local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
-local GetStatBonusField, GetStatBaseField, GetStatTotalField
+local GetStatBonusField, GetStatBaseField, GetStatTotalField, BonusesWithTTLField
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
 local ____Stats = require("MonsterWorldMod.Configs.Stats")
@@ -3452,13 +3612,13 @@ local Load = ____StalkerAPI.Load
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
 local SumTable = ____Collections.SumTable
 function GetStatBonusField(stat, bonusType)
-    return ((tostring(stat) .. "_") .. tostring(bonusType)) .. "_bonuses"
+    return ((stat .. "_") .. bonusType) .. "_bonuses"
 end
 function GetStatBaseField(stat)
-    return tostring(stat) .. "_base"
+    return stat .. "_base"
 end
 function GetStatTotalField(stat)
-    return tostring(stat) .. "_total"
+    return stat .. "_total"
 end
 ____exports.MWObject = __TS__Class()
 local MWObject = ____exports.MWObject
@@ -3479,6 +3639,13 @@ __TS__SetDescriptor(
             self:Save("Initialized", initialized)
         end
     },
+    true
+)
+__TS__SetDescriptor(
+    MWObject.prototype,
+    "Type",
+    {get = function(self)
+    end},
     true
 )
 __TS__SetDescriptor(
@@ -3532,7 +3699,7 @@ __TS__SetDescriptor(
     {get = function(self)
         return math.max(
             1,
-            self:GetStat(2)
+            self:GetStat("MaxHP")
         )
     end},
     true
@@ -3541,7 +3708,7 @@ __TS__SetDescriptor(
     MWObject.prototype,
     "HPRegen",
     {get = function(self)
-        return self:GetStat(3)
+        return self:GetStat("HPRegen")
     end},
     true
 )
@@ -3576,15 +3743,8 @@ __TS__SetDescriptor(
     end},
     true
 )
-__TS__SetDescriptor(
-    MWObject.prototype,
-    "Type",
-    {get = function(self)
-    end},
-    true
-)
 function MWObject.prototype.Initialize(self)
-    Log((("Initialize " .. self.SectionId) .. " : ") .. tostring(self.Type))
+    Log((("Initialize " .. self.SectionId) .. " : ") .. self.Type)
     if not self.WasInitializedForFirstTime then
         self:OnFirstTimeInitialize()
         self.WasInitializedForFirstTime = true
@@ -3603,6 +3763,7 @@ function MWObject.prototype.OnDeath(self)
 end
 function MWObject.prototype.Update(self, deltaTime)
     self:RegenHP(deltaTime)
+    self:UpdateTTLForBonuses(deltaTime)
 end
 function MWObject.prototype.RegenHP(self, deltaTime)
     self.HP = math.min(self.MaxHP, self.HP + self.HPRegen * deltaTime)
@@ -3629,24 +3790,27 @@ function MWObject.prototype.SetStatBase(self, stat, baseValue)
     )
     self:RecalculateStatTotal(stat)
 end
-function MWObject.prototype.AddStatBonus(self, stat, bonusType, bonus, source)
+function MWObject.prototype.AddStatBonus(self, stat, bonusType, bonus, source, duration)
     local field = GetStatBonusField(stat, bonusType)
-    Log((((((((((("Adding stat bonus to " .. self.SectionId) .. " stat: ") .. tostring(stat)) .. ", type: ") .. tostring(bonusType)) .. " (") .. field) .. "), bonus: ") .. tostring(bonus)) .. ", source: ") .. source)
+    Log((((((((((("Adding stat bonus to " .. self.SectionId) .. " stat: ") .. stat) .. ", type: ") .. bonusType) .. " (") .. field) .. "), bonus: ") .. tostring(bonus)) .. ", source: ") .. source)
     if bonus == 0 then
         return
     end
-    if __TS__ArrayIncludes(PctStats, stat) and bonusType ~= 0 then
-        Log((("ERROR: Adding non flat bonus to % stat: " .. tostring(stat)) .. " from ") .. source)
+    if __TS__ArrayIncludes(PctStats, stat) and bonusType ~= "flat" then
+        Log((("ERROR: Adding non flat bonus to % stat: " .. stat) .. " from ") .. source)
         return
     end
     local bonuses = self:Load(field, {})
     bonuses[source] = bonus
     self:Save(field, bonuses)
     self:RecalculateStatTotal(stat)
+    if duration ~= nil then
+        self:SetBonusTTL(stat, bonusType, source, duration)
+    end
 end
 function MWObject.prototype.RemoveStatBonus(self, stat, bonusType, source)
     local field = GetStatBonusField(stat, bonusType)
-    Log((((((((("Removing stat bonus from " .. self.SectionId) .. " stat: ") .. tostring(stat)) .. ", type: ") .. tostring(bonusType)) .. " (") .. field) .. "), source: ") .. source)
+    Log((((((((("Removing stat bonus from " .. self.SectionId) .. " stat: ") .. stat) .. ", type: ") .. bonusType) .. " (") .. field) .. "), source: ") .. source)
     local bonuses = self:Load(field, {})
     if bonuses[source] ~= nil then
         bonuses[source] = nil
@@ -3655,12 +3819,12 @@ function MWObject.prototype.RemoveStatBonus(self, stat, bonusType, source)
     end
 end
 function MWObject.prototype.RemoveStatBonuses(self, stat, source)
-    self:RemoveStatBonus(stat, 0, source)
-    self:RemoveStatBonus(stat, 1, source)
+    self:RemoveStatBonus(stat, "flat", source)
+    self:RemoveStatBonus(stat, "pct", source)
 end
 function MWObject.prototype.GetTotalFlatBonus(self, stat)
     local bonuses = self:Load(
-        GetStatBonusField(stat, 0),
+        GetStatBonusField(stat, "flat"),
         {}
     )
     return SumTable(
@@ -3670,7 +3834,7 @@ function MWObject.prototype.GetTotalFlatBonus(self, stat)
 end
 function MWObject.prototype.GetTotalPctBonus(self, stat)
     local bonuses = self:Load(
-        GetStatBonusField(stat, 1),
+        GetStatBonusField(stat, "pct"),
         {}
     )
     return SumTable(
@@ -3690,9 +3854,29 @@ function MWObject.prototype.RecalculateStatTotal(self, stat)
     )
     self:OnStatChanged(stat, current, total)
 end
+function MWObject.prototype.SetBonusTTL(self, stat, bonusType, source, ttl)
+    local bonuses = self:Load(BonusesWithTTLField, {})
+    bonuses[{Stat = stat, BonusType = bonusType, Source = source, TTL = ttl}] = true
+    self:Save(BonusesWithTTLField, bonuses)
+end
+function MWObject.prototype.UpdateTTLForBonuses(self, deltaTime)
+    local bonusesToRemove = {}
+    local bonuses = self:Load(BonusesWithTTLField, {})
+    for bonus in pairs(bonuses) do
+        bonus.TTL = bonus.TTL - deltaTime
+        if bonus.TTL <= 0 then
+            bonusesToRemove[#bonusesToRemove + 1] = bonus
+        end
+    end
+    for ____, bonusToRemove in ipairs(bonusesToRemove) do
+        bonuses[bonusToRemove] = nil
+        self:RemoveStatBonus(bonusToRemove.Stat, bonusToRemove.BonusType, bonusToRemove.Source)
+    end
+    self:Save(BonusesWithTTLField, bonuses)
+end
 function MWObject.prototype.OnStatChanged(self, stat, prev, current)
-    Log((((("OnStatChanged " .. tostring(stat)) .. " from ") .. tostring(prev)) .. " to ") .. tostring(current))
-    if stat == 2 then
+    Log((((("OnStatChanged " .. stat) .. " from ") .. tostring(prev)) .. " to ") .. tostring(current))
+    if stat == "MaxHP" then
         if current > prev then
             self.HP = self.HP + (current - prev)
         else
@@ -3731,26 +3915,13 @@ end
 function MWObject.prototype.Load(self, varname, def)
     return Load(self.id, "MW_" .. varname, def)
 end
-____exports.ObjectType = ObjectType or ({})
-____exports.ObjectType.Player = 0
-____exports.ObjectType[____exports.ObjectType.Player] = "Player"
-____exports.ObjectType.Monster = 1
-____exports.ObjectType[____exports.ObjectType.Monster] = "Monster"
-____exports.ObjectType.Weapon = 2
-____exports.ObjectType[____exports.ObjectType.Weapon] = "Weapon"
-____exports.ObjectType.Armor = 3
-____exports.ObjectType[____exports.ObjectType.Armor] = "Armor"
-____exports.ObjectType.Artefact = 4
-____exports.ObjectType[____exports.ObjectType.Artefact] = "Artefact"
-____exports.ObjectType.Stimpack = 5
-____exports.ObjectType[____exports.ObjectType.Stimpack] = "Stimpack"
+BonusesWithTTLField = "TimedStatBonuses"
 return ____exports
  end,
 ["MonsterWorldMod.Configs.Enemies"] = function(...) 
 local ____exports = {}
 ____exports.MonsterRankConfigs = {
     {
-        Rank = 0,
         HpMult = 1,
         XpMult = 1,
         DamageMult = 1,
@@ -3760,7 +3931,6 @@ ____exports.MonsterRankConfigs = {
         TextColor = GetARGB(255, 120, 250, 30)
     },
     {
-        Rank = 1,
         HpMult = 3,
         XpMult = 2,
         DamageMult = 1.5,
@@ -3770,7 +3940,6 @@ ____exports.MonsterRankConfigs = {
         TextColor = GetARGB(255, 20, 20, 240)
     },
     {
-        Rank = 2,
         HpMult = 10,
         XpMult = 5,
         DamageMult = 3,
@@ -4074,7 +4243,7 @@ function ____exports.GetDropQuality(level)
         function(el) return el.MinPlayerLevel >= level and el.Weight or 0 end
     )
 end
-____exports.DropConfigs = {{Type = 0, WeightsByRank = {75, 75, 75}}, {Type = 1, WeightsByRank = {10, 15, 25}}, {Type = 3, WeightsByRank = {10, 15, 25}}, {Type = 2, WeightsByRank = {5, 10, 20}}}
+____exports.DropConfigs = {{Type = 0, WeightsByRank = {75, 75, 75}}, {Type = 1, WeightsByRank = {10, 15, 20}}, {Type = 3, WeightsByRank = {10, 15, 20}}, {Type = 2, WeightsByRank = {1, 5, 20}}}
 function ____exports.GetDropType(rank)
     return GetByWeightFromArray(
         ____exports.DropConfigs,
@@ -4090,48 +4259,59 @@ function ____exports.GetStimpackByQuality(qualityLevel)
     end
     return "mw_stimpack_75"
 end
-____exports.ArmorStatsForGeneration = {13, 3}
+____exports.ArmorStatsForGeneration = {"DamageResistancePct", "HPRegen"}
+____exports.ArtefactStatsForGeneration = {
+    "MaxHP",
+    "HPRegen",
+    "CritChancePct",
+    "CritDamagePct",
+    "RunSpeedMult",
+    "SprintSpeedMult",
+    "ReloadSpeedBonusPct",
+    "XPGainMult",
+    "DamageResistancePct"
+}
 ____exports.WeaponStatsForGeneration = {
-    5,
-    7,
-    6,
-    8,
-    9,
-    15,
-    17
+    "Damage",
+    "Rpm",
+    "MagSize",
+    "Accuracy",
+    "Recoil",
+    "ReloadSpeedBonusPct",
+    "CritChancePct"
 }
 ____exports.WeaponStatsUsingUpgrades = {
-    7,
-    8,
-    9,
-    10,
-    11
+    "Rpm",
+    "Accuracy",
+    "Recoil",
+    "Flatness",
+    "AutoFireMode"
 }
 function ____exports.GetWeaponUpgradesByStat(weaponSection, stat)
     local prefix = ""
     repeat
         local ____switch10 = stat
-        local ____cond10 = ____switch10 == 7
+        local ____cond10 = ____switch10 == "Rpm"
         if ____cond10 then
             prefix = "rpm"
             break
         end
-        ____cond10 = ____cond10 or ____switch10 == 8
+        ____cond10 = ____cond10 or ____switch10 == "Accuracy"
         if ____cond10 then
             prefix = "dispersion"
             break
         end
-        ____cond10 = ____cond10 or ____switch10 == 9
+        ____cond10 = ____cond10 or ____switch10 == "Recoil"
         if ____cond10 then
             prefix = "recoil"
             break
         end
-        ____cond10 = ____cond10 or ____switch10 == 10
+        ____cond10 = ____cond10 or ____switch10 == "Flatness"
         if ____cond10 then
             prefix = "bullet_speed"
             break
         end
-        ____cond10 = ____cond10 or ____switch10 == 11
+        ____cond10 = ____cond10 or ____switch10 == "AutoFireMode"
         if ____cond10 then
             prefix = "fire_mode"
             break
@@ -4149,23 +4329,23 @@ end
 function ____exports.GetWeaponSectinFieldNameByStat(stat)
     repeat
         local ____switch14 = stat
-        local ____cond14 = ____switch14 == 7
+        local ____cond14 = ____switch14 == "Rpm"
         if ____cond14 then
             return "rpm"
         end
-        ____cond14 = ____cond14 or ____switch14 == 8
+        ____cond14 = ____cond14 or ____switch14 == "Accuracy"
         if ____cond14 then
             return "fire_dispersion_base"
         end
-        ____cond14 = ____cond14 or ____switch14 == 9
+        ____cond14 = ____cond14 or ____switch14 == "Recoil"
         if ____cond14 then
             return "cam_max_angle"
         end
-        ____cond14 = ____cond14 or ____switch14 == 10
+        ____cond14 = ____cond14 or ____switch14 == "Flatness"
         if ____cond14 then
             return "bullet_speed"
         end
-        ____cond14 = ____cond14 or ____switch14 == 6
+        ____cond14 = ____cond14 or ____switch14 == "MagSize"
         if ____cond14 then
             return "ammo_mag_size"
         end
@@ -4189,7 +4369,6 @@ local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local ____exports = {}
 local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
 local MWObject = ____MWObject.MWObject
-local ObjectType = ____MWObject.ObjectType
 local constants = require("MonsterWorldMod.Configs.Constants")
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
 local MonsterConfigs = ____Enemies.MonsterConfigs
@@ -4206,7 +4385,7 @@ __TS__SetDescriptor(
     MWMonster.prototype,
     "Type",
     {get = function(self)
-        return ObjectType.Monster
+        return "Monster"
     end},
     true
 )
@@ -4249,7 +4428,7 @@ __TS__SetDescriptor(
     MWMonster.prototype,
     "Damage",
     {get = function(self)
-        return self:GetStat(5)
+        return self:GetStat("Damage")
     end},
     true
 )
@@ -4290,8 +4469,8 @@ function MWMonster.prototype.OnFirstTimeInitialize(self)
     local enemyHP = self:GetMaxHP(self.Level) * (monsterCfg.HpMult or 1) * monsterRankCfg.HpMult * locationMults.HpMult
     local xpReward = self:GetXPReward(self.Level) * (monsterCfg.XpMult or 1) * monsterRankCfg.XpMult * locationMults.XpMult
     local enemyDamage = self:GetDamage(self.Level) * (monsterCfg.DamageMult or 1) * monsterRankCfg.DamageMult * locationMults.DamageMult
-    self:SetStatBase(2, enemyHP)
-    self:SetStatBase(5, enemyDamage)
+    self:SetStatBase("MaxHP", enemyHP)
+    self:SetStatBase("Damage", enemyDamage)
     self.XPReward = xpReward
     se_save_var(
         self.id,
@@ -4346,6 +4525,10 @@ ____exports.MWItem = __TS__Class()
 local MWItem = ____exports.MWItem
 MWItem.name = "MWItem"
 __TS__ClassExtends(MWItem, MWObject)
+function MWItem.prototype.____constructor(self, ...)
+    MWObject.prototype.____constructor(self, ...)
+    self.IsEquipped = false
+end
 __TS__SetDescriptor(
     MWItem.prototype,
     "Quality",
@@ -4380,37 +4563,42 @@ function MWItem.prototype.OnFirstTimeInitialize(self)
 end
 function MWItem.prototype.OnItemPickedUp(self)
     Log("OnItemPickedUp " .. self.SectionId)
+    self:IterateSkills(function(s) return s:OnOwnerPickUp() end)
 end
 function MWItem.prototype.GetPlayerStatBonusesOnEquip(self)
     return {}
 end
 function MWItem.prototype.OnItemEquipped(self)
+    self.IsEquipped = true
     Log("OnItemEquipped " .. self.SectionId)
     for ____, stat in ipairs(self:GetPlayerStatBonusesOnEquip()) do
         MonsterWorld.Player:AddStatBonus(
             stat,
-            0,
+            "flat",
             self:GetTotalFlatBonus(stat),
             self.SectionId
         )
         if not __TS__ArrayIncludes(PctStats, stat) then
             MonsterWorld.Player:AddStatBonus(
                 stat,
-                1,
+                "pct",
                 self:GetTotalPctBonus(stat),
                 self.SectionId
             )
         end
     end
+    self:IterateSkills(function(s) return s:OnOwnerEquip() end)
 end
 function MWItem.prototype.OnItemUnequipped(self)
+    self.IsEquipped = false
     Log("OnItemUnequipped " .. self.SectionId)
     for ____, stat in ipairs(self:GetPlayerStatBonusesOnEquip()) do
-        MonsterWorld.Player:RemoveStatBonus(stat, 0, self.SectionId)
+        MonsterWorld.Player:RemoveStatBonus(stat, "flat", self.SectionId)
         if not __TS__ArrayIncludes(PctStats, stat) then
-            MonsterWorld.Player:RemoveStatBonus(stat, 1, self.SectionId)
+            MonsterWorld.Player:RemoveStatBonus(stat, "pct", self.SectionId)
         end
     end
+    self:IterateSkills(function(s) return s:OnOwnerUnequip() end)
 end
 function MWItem.prototype.GenerateStats(self)
     Log("GenerateStats " .. self.SectionId)
@@ -4435,15 +4623,14 @@ local GetWeaponUpgradesByStat = ____Loot.GetWeaponUpgradesByStat
 local GetWeaponSectinFieldNameByStat = ____Loot.GetWeaponSectinFieldNameByStat
 local GetWeaponBaseValueByStat = ____Loot.GetWeaponBaseValueByStat
 local ____Stats = require("MonsterWorldMod.Configs.Stats")
-local GetBonusDescription = ____Stats.GetBonusDescription
+local GetStatBonusForObject = ____Stats.GetStatBonusForObject
+local GetBonusDescriptionByType = ____Stats.GetBonusDescriptionByType
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
 local TakeRandomUniqueElementsFromArray = ____Collections.TakeRandomUniqueElementsFromArray
 local ____Random = require("MonsterWorldMod.Helpers.Random")
 local IsPctRolled = ____Random.IsPctRolled
 local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
 local MWItem = ____MWItem.MWItem
-local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
-local ObjectType = ____MWObject.ObjectType
 ____exports.MWWeapon = __TS__Class()
 local MWWeapon = ____exports.MWWeapon
 MWWeapon.name = "MWWeapon"
@@ -4452,7 +4639,7 @@ __TS__SetDescriptor(
     MWWeapon.prototype,
     "Type",
     {get = function(self)
-        return ObjectType.Weapon
+        return "Weapon"
     end},
     true
 )
@@ -4490,7 +4677,7 @@ __TS__SetDescriptor(
     MWWeapon.prototype,
     "Damage",
     {get = function(self)
-        return self:GetStat(5)
+        return self:GetStat("Damage")
     end},
     true
 )
@@ -4506,7 +4693,7 @@ __TS__SetDescriptor(
     MWWeapon.prototype,
     "MagSize",
     {get = function(self)
-        return math.floor(self:GetStat(6))
+        return math.floor(self:GetStat("MagSize"))
     end},
     true
 )
@@ -4527,53 +4714,26 @@ __TS__SetDescriptor(
     "Description",
     {get = function(self)
         local result = ""
-        result = result .. GetBonusDescription(
-            5,
-            self:GetTotalPctBonus(5),
-            true
-        )
-        result = result .. GetBonusDescription(
-            7,
-            self:GetTotalPctBonus(7),
-            true
-        )
-        result = result .. GetBonusDescription(
-            6,
-            self:GetStatDiffWithBase(6)
-        )
-        result = result .. GetBonusDescription(
-            15,
-            self:GetTotalFlatBonus(15)
-        )
-        result = result .. GetBonusDescription(
-            8,
-            self:GetTotalPctBonus(8),
-            true
-        )
-        result = result .. GetBonusDescription(
-            9,
-            self:GetTotalPctBonus(9),
-            true
-        )
-        result = result .. GetBonusDescription(
-            10,
-            self:GetTotalPctBonus(10),
-            true
-        )
-        result = result .. GetBonusDescription(
-            17,
-            self:GetStat(17)
-        )
-        result = result .. GetBonusDescription(
-            11,
-            self:GetStat(11)
-        )
+        local stats = {
+            "Damage",
+            "Rpm",
+            "MagSize",
+            "ReloadSpeedBonusPct",
+            "Accuracy",
+            "Recoil",
+            "Flatness",
+            "CritChancePct",
+            "AutoFireMode"
+        }
+        for ____, stat in ipairs(stats) do
+            result = result .. GetBonusDescriptionByType(self, stat)
+        end
         return result
     end},
     true
 )
 function MWWeapon.prototype.OnReloadStart(self, anim_table)
-    local mult = 1 + MonsterWorld:GetStat(15, self, MonsterWorld.Player) / 100
+    local mult = 1 + MonsterWorld:GetStat("ReloadSpeedBonusPct", self, MonsterWorld.Player) / 100
     anim_table.anm_speed = anim_table.anm_speed * mult
 end
 function MWWeapon.prototype.OnReloadEnd(self)
@@ -4583,29 +4743,29 @@ function MWWeapon.prototype.GenerateStats(self)
     MWItem.prototype.GenerateStats(self)
     self.WeaponType = ini_sys:r_float_ex(self.Section, "weapon_type")
     local baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, self.Level - 1)
-    local rpm = GetWeaponBaseValueByStat(self.Section, 7)
+    local rpm = GetWeaponBaseValueByStat(self.Section, "Rpm")
     local fireRate = 60 / rpm
     local damagePerHit = baseDPS * fireRate
-    local magSize = GetWeaponBaseValueByStat(self.Section, 6)
-    self:SetStatBase(5, damagePerHit)
-    self:SetStatBase(7, rpm)
-    self:SetStatBase(6, magSize)
+    local magSize = GetWeaponBaseValueByStat(self.Section, "MagSize")
+    self:SetStatBase("Damage", damagePerHit)
+    self:SetStatBase("Rpm", rpm)
+    self:SetStatBase("MagSize", magSize)
     self:SetStatBase(
-        8,
-        GetWeaponBaseValueByStat(self.Section, 8)
+        "Accuracy",
+        GetWeaponBaseValueByStat(self.Section, "Accuracy")
     )
     self:SetStatBase(
-        9,
-        GetWeaponBaseValueByStat(self.Section, 9)
+        "Recoil",
+        GetWeaponBaseValueByStat(self.Section, "Recoil")
     )
     self:SetStatBase(
-        10,
-        GetWeaponBaseValueByStat(self.Section, 10)
+        "Flatness",
+        GetWeaponBaseValueByStat(self.Section, "Flatness")
     )
     local weaponUpgradesByBonusType = {}
     for ____, uType in ipairs(WeaponStatsUsingUpgrades) do
         local upgrades = GetWeaponUpgradesByStat(self.Section, uType)
-        Log((("weaponUpgradesByBonusType " .. tostring(uType)) .. ":") .. tostring(#upgrades))
+        Log((("weaponUpgradesByBonusType " .. uType) .. ":") .. tostring(#upgrades))
         if #upgrades ~= 0 then
             weaponUpgradesByBonusType[uType] = upgrades
         end
@@ -4614,7 +4774,7 @@ function MWWeapon.prototype.GenerateStats(self)
     for ____, ____type in ipairs(WeaponStatsForGeneration) do
         if not __TS__ArrayIncludes(WeaponStatsUsingUpgrades, ____type) or weaponUpgradesByBonusType[____type] ~= nil then
             availableBonuses[#availableBonuses + 1] = ____type
-            Log("availableBonuses " .. tostring(____type))
+            Log("availableBonuses " .. ____type)
         end
     end
     local statsToSelect = math.min(
@@ -4622,34 +4782,34 @@ function MWWeapon.prototype.GenerateStats(self)
         1 + self.Quality + math.floor(self.Level / 10)
     )
     local selectedStats = TakeRandomUniqueElementsFromArray(availableBonuses, statsToSelect)
-    if IsPctRolled(30) and weaponUpgradesByBonusType[10] ~= nil then
-        selectedStats[#selectedStats + 1] = 10
-        Log("selectedUpgradeTypes " .. 10)
+    if IsPctRolled(30) and weaponUpgradesByBonusType.Flatness ~= nil then
+        selectedStats[#selectedStats + 1] = "Flatness"
+        Log("selectedUpgradeTypes " .. "Flatness")
     end
-    if IsPctRolled(30) and weaponUpgradesByBonusType[11] ~= nil then
-        selectedStats[#selectedStats + 1] = 11
-        Log("selectedUpgradeTypes " .. 11)
+    if IsPctRolled(30) and weaponUpgradesByBonusType.AutoFireMode ~= nil then
+        selectedStats[#selectedStats + 1] = "AutoFireMode"
+        Log("selectedUpgradeTypes " .. "AutoFireMode")
     end
     local damageBonusPct = 0
     local allSelectedUpgrades = {}
     for ____, stat in ipairs(selectedStats) do
-        if stat == 5 then
+        if stat == "Damage" then
             damageBonusPct = damageBonusPct + math.random(3 + 7 * (self.Quality - 1), (15 + 15 * (self.Quality - 1)) * self.Quality)
-        elseif stat == 15 then
-            local reloadSpeedBonus = math.random(2 + 3 * (self.Quality - 1), (10 + 10 * (self.Quality - 1)) * self.Quality)
-            self:AddStatBonus(15, 0, reloadSpeedBonus, "generation")
-        elseif stat == 17 then
-            local critChanceBonus = math.random(1, 3 + (0.4 + 0.5 * (self.Quality - 1)) * self.Quality)
-            self:AddStatBonus(17, 0, critChanceBonus, "generation")
-        elseif stat == 6 then
-            local magSizeBonus = math.random(2 + 3 * (self.Quality - 1), (20 + 20 * (self.Quality - 1)) * self.Quality)
-            while magSize * magSizeBonus / 100 < 1 do
-                magSizeBonus = magSizeBonus + 3
+        elseif stat == "ReloadSpeedBonusPct" or stat == "CritChancePct" or stat == "MagSize" then
+            local bonus = GetStatBonusForObject(
+                stat,
+                self.Level,
+                self.Quality,
+                "flat",
+                self.Type
+            )
+            while stat == "MagSize" and magSize * bonus / 100 < 1 do
+                bonus = bonus + 3
             end
-            self:AddStatBonus(6, 1, magSizeBonus, "generation")
-        elseif stat == 11 then
+            self:AddStatBonus(stat, "flat", bonus, "generation")
+        elseif stat == "AutoFireMode" then
             allSelectedUpgrades[#allSelectedUpgrades + 1] = weaponUpgradesByBonusType[stat][1]
-            self:AddStatBonus(11, 0, 1, "generation")
+            self:AddStatBonus("AutoFireMode", "flat", 1, "generation")
         else
             local minUpgradesToSelect = 1 + (self.Quality - 1) / 2
             local maxUpgradesToSelect = 3 * self.Quality + 2.5 * math.max(0, self.Quality - 3)
@@ -4674,11 +4834,11 @@ function MWWeapon.prototype.GenerateStats(self)
                 if defaultValue == 0 then
                     defaultValue = 1
                 end
-                Log((((((("Bonus " .. tostring(stat)) .. ": ") .. tostring(bonusValue)) .. ", base: ") .. tostring(defaultValue)) .. ". %: ") .. tostring(bonusValue / defaultValue * 100))
+                Log((((((("Bonus " .. stat) .. ": ") .. tostring(bonusValue)) .. ", base: ") .. tostring(defaultValue)) .. ". %: ") .. tostring(bonusValue / defaultValue * 100))
                 bonusValue = bonusValue / defaultValue * 100
                 self:AddStatBonus(
                     stat,
-                    1,
+                    "pct",
                     math.abs(bonusValue),
                     "generation"
                 )
@@ -4687,7 +4847,7 @@ function MWWeapon.prototype.GenerateStats(self)
     end
     damageBonusPct = damageBonusPct + cfg.WeaponDPSPctPerQuality * (self.Quality - 1)
     if damageBonusPct > 0 then
-        self:AddStatBonus(5, 1, damageBonusPct, "generation")
+        self:AddStatBonus("Damage", "pct", damageBonusPct, "generation")
     end
     Log((((((("Base DPS: " .. tostring(baseDPS)) .. " DPS: ") .. tostring(self.DPS)) .. ". Damage per hit: ") .. tostring(damagePerHit)) .. ". Fire rate: ") .. tostring(fireRate))
     for ____, upgrade in ipairs(allSelectedUpgrades) do
@@ -4759,9 +4919,9 @@ __TS__SetDescriptor(
     {get = function(self)
         local value = self.Value
         local statTitle = StatTitles[self.Stat]
-        if self.BonusType == 0 then
+        if self.BonusType == "flat" then
             return (((statTitle .. " ") .. (value > 0 and "+" or "")) .. tostring(value)) .. (__TS__ArrayIncludes(PctStats, self.Stat) and "%" or "")
-        elseif self.BonusType == 1 then
+        elseif self.BonusType == "pct" then
             return (((statTitle .. " ") .. (value > 0 and "+" or "")) .. tostring(value)) .. "%"
         end
         return (statTitle .. " x") .. tostring(value)
@@ -4818,7 +4978,7 @@ __TS__SetDescriptor(
     SkillAuraOfDeath.prototype,
     "Description",
     {get = function(self)
-        return ((((((("Every " .. tostring(self.Interval)) .. " ") .. (self.Interval == 1 and "second" or "seconds")) .. " damage all enemies in ") .. tostring(self.Range)) .. "m range for ") .. tostring(self.DpsPct)) .. "% of DPS"
+        return ((((((("Every " .. tostring(self.Interval)) .. " ") .. (self.Interval == 1 and "second" or "seconds")) .. " damage all enemies in ") .. tostring(self.Range)) .. "m range for ") .. tostring(self.DpsPct)) .. "% of active weapon DPS"
     end},
     true
 )
@@ -4844,7 +5004,7 @@ function SkillAuraOfDeath.prototype.Update(self, deltaTime)
     if self.timePassed < self.Interval then
         return
     end
-    local weapon = MonsterWorld.Player.Weapon
+    local weapon = MonsterWorld.Player.ActiveWeapon
     if weapon == nil then
         return
     end
@@ -4943,7 +5103,7 @@ __TS__SetDescriptor(
     SkillCriticalDeath.prototype,
     "Description",
     {get = function(self)
-        return ((((tostring(self.Chance) .. "% chance on critical kill for enemy to explode and damage all enemies in ") .. tostring(self.Range)) .. "m radius for ") .. tostring(self.HpPct)) .. "% of HP"
+        return ((((tostring(self.Chance) .. "% chance on critical kill for enemy to explode and damage all enemies in ") .. tostring(self.Range)) .. "m radius for ") .. tostring(self.HpPct)) .. "% of Max HP"
     end},
     true
 )
@@ -4999,15 +5159,17 @@ local ____exports = {}
 local ____Loot = require("MonsterWorldMod.Configs.Loot")
 local ArmorStatsForGeneration = ____Loot.ArmorStatsForGeneration
 local ____Stats = require("MonsterWorldMod.Configs.Stats")
+local PctStats = ____Stats.PctStats
 local GetBonusDescription = ____Stats.GetBonusDescription
 local WeaponTypeDamageBonuses = ____Stats.WeaponDamageBonusesByType
+local GetStatBonusForObject = ____Stats.GetStatBonusForObject
+local DamageBonusesByEnemyType = ____Stats.DamageBonusesByEnemyType
+local GetBonusDescriptionByType = ____Stats.GetBonusDescriptionByType
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
 local TakeRandomUniqueElementsFromArray = ____Collections.TakeRandomUniqueElementsFromArray
 local RandomFromArray = ____Collections.RandomFromArray
 local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
 local MWItem = ____MWItem.MWItem
-local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
-local ObjectType = ____MWObject.ObjectType
 ____exports.MWArmor = __TS__Class()
 local MWArmor = ____exports.MWArmor
 MWArmor.name = "MWArmor"
@@ -5016,7 +5178,7 @@ __TS__SetDescriptor(
     MWArmor.prototype,
     "Type",
     {get = function(self)
-        return ObjectType.Armor
+        return "Armor"
     end},
     true
 )
@@ -5026,27 +5188,11 @@ __TS__SetDescriptor(
     {get = function(self)
         local result = ""
         result = result .. GetBonusDescription(
-            2,
-            self:GetTotalFlatBonus(2)
+            "ArtefactSlots",
+            self:GetStat("ArtefactSlots")
         )
-        result = result .. GetBonusDescription(
-            12,
-            self:GetStat(12)
-        )
-        result = result .. GetBonusDescription(
-            13,
-            self:GetTotalFlatBonus(13)
-        )
-        result = result .. GetBonusDescription(
-            3,
-            self:GetTotalPctBonus(3),
-            true
-        )
-        for ____, stat in ipairs(WeaponTypeDamageBonuses) do
-            result = result .. GetBonusDescription(
-                stat,
-                self:GetStat(stat)
-            )
+        for ____, stat in ipairs(self:GetPlayerStatBonusesOnEquip()) do
+            result = result .. GetBonusDescriptionByType(self, stat)
         end
         return result
     end},
@@ -5056,40 +5202,46 @@ __TS__SetDescriptor(
     MWArmor.prototype,
     "HPBonus",
     {get = function(self)
-        return self:GetTotalFlatBonus(2)
+        return self:GetTotalFlatBonus("MaxHP")
     end},
     true
 )
 function MWArmor.prototype.GetPlayerStatBonusesOnEquip(self)
-    local result = {2, 13, 3}
+    local result = {"MaxHP"}
+    for ____, stat in ipairs(ArmorStatsForGeneration) do
+        result[#result + 1] = stat
+    end
     for ____, stat in ipairs(WeaponTypeDamageBonuses) do
+        result[#result + 1] = stat
+    end
+    for ____, stat in ipairs(DamageBonusesByEnemyType) do
         result[#result + 1] = stat
     end
     return result
 end
 function MWArmor.prototype.GenerateStats(self)
     MWItem.prototype.GenerateStats(self)
-    self:SetStatBase(12, self.Quality)
+    self:SetStatBase("ArtefactSlots", self.Quality)
     local maxHPBonus = 5 * self.Level + math.random((self.Quality - 1) * self.Level / 2, (5 + 2 * self.Quality) * self.Level)
-    self:AddStatBonus(2, 0, maxHPBonus, "generation")
+    self:AddStatBonus("MaxHP", "flat", maxHPBonus, "generation")
     local availableStats = {}
     for ____, stat in ipairs(ArmorStatsForGeneration) do
         availableStats[#availableStats + 1] = stat
     end
     availableStats[#availableStats + 1] = RandomFromArray(WeaponTypeDamageBonuses)
+    availableStats[#availableStats + 1] = RandomFromArray(DamageBonusesByEnemyType)
     local statsToSelect = math.min(#availableStats, 1 + self.Quality)
     local selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect)
     for ____, stat in ipairs(selectedStats) do
-        if stat == 13 then
-            local damageResistanceBonus = math.random(2 + 2 * (self.Quality - 1), (4 + 1.5 * (self.Quality - 1)) * self.Quality)
-            self:AddStatBonus(13, 0, damageResistanceBonus, "generation")
-        elseif stat == 3 then
-            local hpRegenBonus = math.random(10 + 5 * (self.Quality - 1), (30 + 10 * (self.Quality - 1)) * self.Quality)
-            self:AddStatBonus(3, 1, hpRegenBonus, "generation")
-        elseif __TS__ArrayIncludes(WeaponTypeDamageBonuses, stat) then
-            local weaponTypeDamageBonus = math.random(3 + 3 * (self.Quality - 1), (10 + 5 * (self.Quality - 1)) * self.Quality)
-            self:AddStatBonus(stat, 0, weaponTypeDamageBonus, "generation")
-        end
+        local bonusType = __TS__ArrayIncludes(PctStats, stat) and "flat" or "pct"
+        local bonus = GetStatBonusForObject(
+            stat,
+            self.Level,
+            self.Quality,
+            bonusType,
+            self.Type
+        )
+        self:AddStatBonus(stat, bonusType, bonus, "generation")
     end
 end
 return ____exports
@@ -5103,7 +5255,6 @@ local __TS__New = ____lualib.__TS__New
 local ____exports = {}
 local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
 local MWObject = ____MWObject.MWObject
-local ObjectType = ____MWObject.ObjectType
 local cfg = require("MonsterWorldMod.Configs.Constants")
 local ____Skill = require("MonsterWorldMod.Skills.Skill")
 local PriceFormulaConstant = ____Skill.PriceFormulaConstant
@@ -5117,7 +5268,7 @@ __TS__SetDescriptor(
     MWPlayer.prototype,
     "Type",
     {get = function(self)
-        return ObjectType.Player
+        return "Player"
     end},
     true
 )
@@ -5143,7 +5294,7 @@ __TS__SetDescriptor(
             return self:Load("CurrentXP", 0)
         end,
         set = function(self, exp)
-            exp = exp * self:GetStat(4)
+            exp = exp * self:GetStat("XPGainMult")
             while exp >= self.RequeiredXP do
                 exp = exp - self.RequeiredXP
                 self:LevelUp()
@@ -5155,9 +5306,25 @@ __TS__SetDescriptor(
 )
 __TS__SetDescriptor(
     MWPlayer.prototype,
-    "Weapon",
+    "ActiveWeapon",
     {get = function(self)
         return MonsterWorld:GetWeapon(self.GO:active_item())
+    end},
+    true
+)
+__TS__SetDescriptor(
+    MWPlayer.prototype,
+    "Weapon1",
+    {get = function(self)
+        return MonsterWorld:GetWeapon(self.GO:item_in_slot(2))
+    end},
+    true
+)
+__TS__SetDescriptor(
+    MWPlayer.prototype,
+    "Weapon2",
+    {get = function(self)
+        return MonsterWorld:GetWeapon(self.GO:item_in_slot(3))
     end},
     true
 )
@@ -5186,9 +5353,9 @@ function MWPlayer.prototype.OnFirstTimeInitialize(self)
     MWObject.prototype.OnFirstTimeInitialize(self)
     self.Level = 0
     self.CurrentXP = 0
-    self:SetStatBase(2, cfg.PlayerHPBase)
-    self:SetStatBase(3, cfg.PlayerHPRegenBase)
-    self:AddStatBonus(16, 0, cfg.PlayerDefaultCritDamagePct, "initial")
+    self:SetStatBase("MaxHP", cfg.PlayerHPBase)
+    self:SetStatBase("HPRegen", cfg.PlayerHPRegenBase)
+    self:AddStatBonus("CritDamagePct", "flat", cfg.PlayerDefaultCritDamagePct, "initial")
 end
 function MWPlayer.prototype.LevelUp(self)
     self.Level = self.Level + 1
@@ -5210,16 +5377,16 @@ function MWPlayer.prototype.Update(self, deltaTime)
     self:IterateSkills(function(s) return s:Update(deltaTime) end)
 end
 function MWPlayer.prototype.UpdateLevelBonuses(self)
-    self:AddStatBonus(2, 1, cfg.PlayerHPPerLevel * self.Level, "level_bonus")
-    self:AddStatBonus(3, 1, cfg.PlayerHPRegenPctPerLevel * self.Level, "level_bonus")
-    self:AddStatBonus(0, 1, cfg.PlayerRunSpeedPctPerLevel * self.Level, "level_bonus")
+    self:AddStatBonus("MaxHP", "pct", cfg.PlayerHPPerLevel * self.Level, "level_bonus")
+    self:AddStatBonus("HPRegen", "pct", cfg.PlayerHPRegenPctPerLevel * self.Level, "level_bonus")
+    self:AddStatBonus("RunSpeedMult", "pct", cfg.PlayerRunSpeedPctPerLevel * self.Level, "level_bonus")
 end
 function MWPlayer.prototype.OnStatChanged(self, stat, prev, current)
     MWObject.prototype.OnStatChanged(self, stat, prev, current)
-    if stat == 0 then
+    if stat == "RunSpeedMult" then
         db.actor:set_actor_run_coef(cfg.PlayerRunSpeedCoeff * current)
         db.actor:set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * current)
-    elseif stat == 1 then
+    elseif stat == "SprintSpeedMult" then
         db.actor:set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * current)
     end
 end
@@ -5229,8 +5396,8 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillPassiveStatBonus,
         "max_hp",
         self,
-        2,
-        1,
+        "MaxHP",
+        "pct",
         function(level) return 5 * level end,
         PriceFormulaConstant(1),
         50
@@ -5239,8 +5406,8 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillPassiveStatBonus,
         "hp_regen",
         self,
-        3,
-        1,
+        "HPRegen",
+        "pct",
         function(level) return 5 * level end,
         PriceFormulaConstant(1),
         50
@@ -5249,8 +5416,8 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillPassiveStatBonus,
         "run_speed",
         self,
-        0,
-        1,
+        "RunSpeedMult",
+        "pct",
         function(level) return 2 * level end,
         PriceFormulaConstant(1),
         25
@@ -5259,8 +5426,8 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillPassiveStatBonus,
         "reload_speed",
         self,
-        15,
-        0,
+        "ReloadSpeedBonusPct",
+        "flat",
         function(level) return 2 * level end,
         PriceFormulaConstant(1),
         25
@@ -5269,8 +5436,8 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillPassiveStatBonus,
         "crit_damage",
         self,
-        16,
-        0,
+        "CritDamagePct",
+        "flat",
         function(level) return 5 * level end,
         PriceFormulaConstant(1),
         50
@@ -5279,12 +5446,37 @@ function MWPlayer.prototype.SetupSkills(self)
         SkillPassiveStatBonus,
         "xp_gain",
         self,
-        4,
-        1,
+        "XPGainMult",
+        "pct",
         function(level) return 5 * level end,
         PriceFormulaConstant(1),
         25
     ))
+end
+function MWPlayer.prototype.IterateSkills(self, iterator, onlyWithLevel)
+    MWObject.prototype.IterateSkills(self, iterator, onlyWithLevel)
+    self.GO:iterate_belt(
+        function(itemGO)
+            local item = MonsterWorld:GetItem(itemGO)
+            local ____item_IterateSkills_result_2 = item
+            if ____item_IterateSkills_result_2 ~= nil then
+                ____item_IterateSkills_result_2 = ____item_IterateSkills_result_2:IterateSkills(iterator, onlyWithLevel)
+            end
+        end,
+        self.GO
+    )
+    local ____table_Armor_IterateSkills_result_4 = self.Armor
+    if ____table_Armor_IterateSkills_result_4 ~= nil then
+        ____table_Armor_IterateSkills_result_4 = ____table_Armor_IterateSkills_result_4:IterateSkills(iterator, onlyWithLevel)
+    end
+    local ____table_Weapon1_IterateSkills_result_6 = self.Weapon1
+    if ____table_Weapon1_IterateSkills_result_6 ~= nil then
+        ____table_Weapon1_IterateSkills_result_6 = ____table_Weapon1_IterateSkills_result_6:IterateSkills(iterator, onlyWithLevel)
+    end
+    local ____table_Weapon2_IterateSkills_result_8 = self.Weapon2
+    if ____table_Weapon2_IterateSkills_result_8 ~= nil then
+        ____table_Weapon2_IterateSkills_result_8 = ____table_Weapon2_IterateSkills_result_8:IterateSkills(iterator, onlyWithLevel)
+    end
 end
 return ____exports
  end,
@@ -5495,8 +5687,6 @@ local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
-local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
-local ObjectType = ____MWObject.ObjectType
 local ____Loot = require("MonsterWorldMod.Configs.Loot")
 local QualityConfigs = ____Loot.QualityConfigs
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
@@ -5564,12 +5754,12 @@ function UIManager.prototype.____constructor(self)
         ))
         s.mwLevel:TextControl():SetTextColor(QualityConfigs[item.Quality].TextColor)
         s.mwLevel:Show(true)
-        if item.Type == ObjectType.Weapon then
-            s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "        DPS:") .. tostring(math.floor(item.DPS)))
-        elseif item.Type == ObjectType.Armor then
-            s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "         HP:") .. tostring(math.floor(item.HPBonus)))
-        elseif item.Type == ObjectType.Stimpack then
-            s.mwLevel:TextControl():SetText(tostring(item:GetStat(14)) .. "%")
+        if item.Type == "Weapon" then
+            s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "       DPS:") .. tostring(math.floor(item.DPS)))
+        elseif item.Type == "Armor" then
+            s.mwLevel:TextControl():SetText((("L." .. tostring(item.Level)) .. "       HP:") .. tostring(math.floor(item.HPBonus)))
+        elseif item.Type == "Stimpack" then
+            s.mwLevel:TextControl():SetText(tostring(item:GetStat("HealPct")) .. "%")
         else
             s.mwLevel:TextControl():SetText("L." .. tostring(item.Level))
         end
@@ -5608,7 +5798,7 @@ function UIManager.prototype.____constructor(self)
         if itemA ~= nil and itemB ~= nil and itemA ~= itemB then
             if itemA.Type ~= itemB.Type then
                 return itemA.Type > itemB.Type
-            elseif itemA.Type == ObjectType.Weapon and itemA.DPS ~= itemB.DPS then
+            elseif itemA.Type == "Weapon" and itemA.DPS ~= itemB.DPS then
                 return itemA.DPS > itemB.DPS
             elseif itemA.Level ~= itemB.Level then
                 return itemA.Level > itemB.Level
@@ -5834,11 +6024,11 @@ function UIManager.prototype.ShowEnemyHealthUI(self, monster)
     self.enemyHPBarValue:SetText((tostring(math.floor(monster.HP)) .. " / ") .. tostring(math.floor(monster.MaxHP)))
     local player = MonsterWorld.Player
     local playerPos = player.GO:position()
-    local ____player_Weapon_FireDistance_21 = player.Weapon
-    if ____player_Weapon_FireDistance_21 ~= nil then
-        ____player_Weapon_FireDistance_21 = ____player_Weapon_FireDistance_21.FireDistance
+    local ____player_ActiveWeapon_FireDistance_21 = player.ActiveWeapon
+    if ____player_ActiveWeapon_FireDistance_21 ~= nil then
+        ____player_ActiveWeapon_FireDistance_21 = ____player_ActiveWeapon_FireDistance_21.FireDistance
     end
-    local distance = ____player_Weapon_FireDistance_21 or 100000
+    local distance = ____player_ActiveWeapon_FireDistance_21 or 100000
     self.enemyHPOutOfDistanceNotice:Show(monster.GO:position():distance_to(playerPos) >= distance)
 end
 function UIManager.prototype.UpdateDamageNumbers(self)
@@ -5997,6 +6187,8 @@ function UIManager.prototype.PrepareUIItemStatsTable(self, oldPrepareStatsTable)
     weaponStats.accuracy.icon_p = ""
     weaponStats.handling.index = 101
     weaponStats.handling.icon_p = ""
+    result.outfit = {}
+    result.artefact = {}
     return result
 end
 function UIManager.prototype.UIGetItemName(self, obj, current)
@@ -6157,11 +6349,29 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
+local __TS__Iterator = ____lualib.__TS__Iterator
+local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
+local __TS__New = ____lualib.__TS__New
 local ____exports = {}
+local ArtefactSkills
+local ____Stats = require("MonsterWorldMod.Configs.Stats")
+local GetStatBonusForObject = ____Stats.GetStatBonusForObject
+local IsStatGenerationSupported = ____Stats.IsStatGenerationSupported
+local WeaponDamageBonusesByType = ____Stats.WeaponDamageBonusesByType
+local PctStats = ____Stats.PctStats
+local DamageBonusesByEnemyType = ____Stats.DamageBonusesByEnemyType
+local GetBonusDescriptionByType = ____Stats.GetBonusDescriptionByType
 local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
 local MWItem = ____MWItem.MWItem
-local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
-local ObjectType = ____MWObject.ObjectType
+local ____SkillAuraOfDeath = require("MonsterWorldMod.Skills.SkillAuraOfDeath")
+local SkillAuraOfDeath = ____SkillAuraOfDeath.SkillAuraOfDeath
+local ____SkillCriticalDeath = require("MonsterWorldMod.Skills.SkillCriticalDeath")
+local SkillCriticalDeath = ____SkillCriticalDeath.SkillCriticalDeath
+local ____Loot = require("MonsterWorldMod.Configs.Loot")
+local ArtefactStatsForGeneration = ____Loot.ArtefactStatsForGeneration
+local ____Collections = require("MonsterWorldMod.Helpers.Collections")
+local RandomFromArray = ____Collections.RandomFromArray
+local TakeRandomUniqueElementsFromArray = ____Collections.TakeRandomUniqueElementsFromArray
 ____exports.MWArtefact = __TS__Class()
 local MWArtefact = ____exports.MWArtefact
 MWArtefact.name = "MWArtefact"
@@ -6170,7 +6380,7 @@ __TS__SetDescriptor(
     MWArtefact.prototype,
     "Type",
     {get = function(self)
-        return ObjectType.Artefact
+        return "Artefact"
     end},
     true
 )
@@ -6179,19 +6389,111 @@ __TS__SetDescriptor(
     "Description",
     {get = function(self)
         local result = ""
+        local hasSkills = false
+        for ____, ____value in __TS__Iterator(self.Skills) do
+            local _ = ____value[1]
+            local skill = ____value[2]
+            result = result .. ("> " .. skill.Description) .. " \\n\\n"
+            hasSkills = true
+        end
+        if hasSkills then
+            result = result .. "\\n\\n"
+        end
+        for ____, stat in ipairs(self:GetPlayerStatBonusesOnEquip()) do
+            result = result .. GetBonusDescriptionByType(self, stat)
+        end
         return result
     end},
     true
 )
+function MWArtefact.prototype.GetPlayerStatBonusesOnEquip(self)
+    local result = {}
+    for ____, stat in ipairs(ArtefactStatsForGeneration) do
+        if IsStatGenerationSupported(stat) then
+            result[#result + 1] = stat
+        end
+    end
+    for ____, stat in ipairs(WeaponDamageBonusesByType) do
+        if IsStatGenerationSupported(stat) then
+            result[#result + 1] = stat
+        end
+    end
+    for ____, stat in ipairs(DamageBonusesByEnemyType) do
+        if IsStatGenerationSupported(stat) then
+            result[#result + 1] = stat
+        end
+    end
+    return result
+end
 function MWArtefact.prototype.GenerateStats(self)
     MWItem.prototype.GenerateStats(self)
+    local availableStats = {}
+    for ____, stat in ipairs(ArtefactStatsForGeneration) do
+        if IsStatGenerationSupported(stat) then
+            availableStats[#availableStats + 1] = stat
+        end
+    end
+    availableStats[#availableStats + 1] = RandomFromArray(WeaponDamageBonusesByType)
+    availableStats[#availableStats + 1] = RandomFromArray(DamageBonusesByEnemyType)
+    local statsToSelect = math.min(
+        #availableStats,
+        math.min(6, self.Quality + self.Level / 15)
+    )
+    local selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect)
+    for ____, stat in ipairs(selectedStats) do
+        local bonusType = __TS__ArrayIncludes(PctStats, stat) and "flat" or "pct"
+        local bonus = GetStatBonusForObject(
+            stat,
+            self.Level,
+            self.Quality,
+            bonusType,
+            self.Type
+        )
+        self:AddStatBonus(stat, bonusType, bonus, "generation")
+    end
 end
 function MWArtefact.prototype.SetupSkills(self)
     MWItem.prototype.SetupSkills(self)
-    repeat
-        local ____switch6 = self.Section
-    until true
+    local skillCount = 0
+    if self.Quality == 5 then
+        skillCount = math.random(2)
+    elseif self.Quality == 4 then
+        skillCount = math.random(1)
+    elseif self.Quality == 2 or self.Quality == 3 then
+        skillCount = math.random(0, 1)
+    end
+    skillCount = math.min(skillCount, #ArtefactSkills)
+    do
+        local i = 0
+        while i < skillCount do
+            self:AddSkill(ArtefactSkills[i + 1](self))
+            i = i + 1
+        end
+    end
+    for ____, ____value in __TS__Iterator(self.Skills) do
+        local skillId = ____value[1]
+        local _ = ____value[2]
+        self:SetSkillLevel(skillId, self.Level)
+    end
 end
+ArtefactSkills = {
+    function(owner) return __TS__New(
+        SkillAuraOfDeath,
+        "aura_of_death",
+        owner,
+        5,
+        function(l) return 2 + l / 2 end,
+        function(l) return 5 + l / 10 end
+    ) end,
+    function(owner) return __TS__New(
+        SkillCriticalDeath,
+        "crit_death",
+        owner,
+        function(l) return 3 + l / 2 end,
+        function(l) return 3 + l / 5 end,
+        function(l) return 5 + l / 10 end
+    ) end
+}
 return ____exports
  end,
 ["MonsterWorldMod.GameObjects.MWStimpack"] = function(...) 
@@ -6204,8 +6506,6 @@ local ____Stats = require("MonsterWorldMod.Configs.Stats")
 local StatTitles = ____Stats.StatTitles
 local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
 local MWItem = ____MWItem.MWItem
-local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
-local ObjectType = ____MWObject.ObjectType
 ____exports.MWStimpack = __TS__Class()
 local MWStimpack = ____exports.MWStimpack
 MWStimpack.name = "MWStimpack"
@@ -6214,7 +6514,7 @@ __TS__SetDescriptor(
     MWStimpack.prototype,
     "Type",
     {get = function(self)
-        return ObjectType.Stimpack
+        return "Stimpack"
     end},
     true
 )
@@ -6223,7 +6523,7 @@ __TS__SetDescriptor(
     "Description",
     {get = function(self)
         local result = ""
-        result = result .. (("Heals for " .. tostring(self:GetStat(14))) .. "% of ") .. StatTitles[2]
+        result = result .. (("Heals for " .. tostring(self:GetStat("HealPct"))) .. "% of ") .. StatTitles.MaxHP
         return result
     end},
     true
@@ -6231,7 +6531,7 @@ __TS__SetDescriptor(
 function MWStimpack.prototype.GenerateStats(self)
     MWItem.prototype.GenerateStats(self)
     self:SetStatBase(
-        14,
+        "HealPct",
         ini_sys:r_float_ex(self.Section, "mw_heal_pct")
     )
 end
@@ -6361,11 +6661,38 @@ function World.prototype.GetItem(self, item)
     end
     return self.items[itemId]
 end
-function World.prototype.GetWeapon(self, item)
-    return self:GetItem(item)
+function World.prototype.GetWeapon(self, itemOrId)
+    local item = self:GetItem(itemOrId)
+    local ____item_Type_0 = item
+    if ____item_Type_0 ~= nil then
+        ____item_Type_0 = ____item_Type_0.Type
+    end
+    if ____item_Type_0 == "Weapon" then
+        return item
+    end
+    return nil
 end
-function World.prototype.GetArmor(self, item)
-    return self:GetItem(item)
+function World.prototype.GetArmor(self, itemOrId)
+    local item = self:GetItem(itemOrId)
+    local ____item_Type_2 = item
+    if ____item_Type_2 ~= nil then
+        ____item_Type_2 = ____item_Type_2.Type
+    end
+    if ____item_Type_2 == "Armor" then
+        return item
+    end
+    return nil
+end
+function World.prototype.GetArtefact(self, itemOrId)
+    local item = self:GetItem(itemOrId)
+    local ____item_Type_4 = item
+    if ____item_Type_4 ~= nil then
+        ____item_Type_4 = ____item_Type_4.Type
+    end
+    if ____item_Type_4 == "Artefact" then
+        return item
+    end
+    return nil
 end
 function World.prototype.DestroyObject(self, id)
     self:CleanupObjectTimersAndMinimapMarks(id)
@@ -6396,25 +6723,30 @@ function World.prototype.OnItemUse(self, item)
             "mw_heal_pct",
             25
         )
-        local ____self_Player_0, ____HP_1 = self.Player, "HP"
-        ____self_Player_0[____HP_1] = ____self_Player_0[____HP_1] + self.Player.MaxHP * healPct / 100
+        local ____self_Player_6, ____HP_7 = self.Player, "HP"
+        ____self_Player_6[____HP_7] = ____self_Player_6[____HP_7] + self.Player.MaxHP * healPct / 100
     end
 end
 function World.prototype.OnItemToRuck(self, itemGO)
     local item = self:GetItem(itemGO)
-    local ____item_OnItemUnequipped_result_2 = item
-    if ____item_OnItemUnequipped_result_2 ~= nil then
-        ____item_OnItemUnequipped_result_2 = ____item_OnItemUnequipped_result_2:OnItemUnequipped()
+    local ____item_OnItemUnequipped_result_8 = item
+    if ____item_OnItemUnequipped_result_8 ~= nil then
+        ____item_OnItemUnequipped_result_8 = ____item_OnItemUnequipped_result_8:OnItemUnequipped()
     end
 end
 function World.prototype.OnItemToSlot(self, itemGO)
     local item = self:GetItem(itemGO)
-    local ____item_OnItemEquipped_result_4 = item
-    if ____item_OnItemEquipped_result_4 ~= nil then
-        ____item_OnItemEquipped_result_4 = ____item_OnItemEquipped_result_4:OnItemEquipped()
+    local ____item_OnItemEquipped_result_10 = item
+    if ____item_OnItemEquipped_result_10 ~= nil then
+        ____item_OnItemEquipped_result_10 = ____item_OnItemEquipped_result_10:OnItemEquipped()
     end
 end
-function World.prototype.OnItemToBelt(self, item)
+function World.prototype.OnItemToBelt(self, itemGO)
+    local item = self:GetItem(itemGO)
+    local ____item_OnItemEquipped_result_12 = item
+    if ____item_OnItemEquipped_result_12 ~= nil then
+        ____item_OnItemEquipped_result_12 = ____item_OnItemEquipped_result_12:OnItemEquipped()
+    end
 end
 function World.prototype.OnWeaponFired(self, wpn, ammo_elapsed)
     local weapon = self:GetWeapon(wpn)
@@ -6457,11 +6789,11 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
     local damage = monster.Damage
     if attackerGO:is_stalker() and shit.weapon_id ~= 0 and shit.weapon_id ~= attackerGO:id() then
         local weapon = level.object_by_id(shit.weapon_id)
-        local ____weapon_is_weapon_result_6 = weapon
-        if ____weapon_is_weapon_result_6 ~= nil then
-            ____weapon_is_weapon_result_6 = ____weapon_is_weapon_result_6:is_weapon()
+        local ____weapon_is_weapon_result_14 = weapon
+        if ____weapon_is_weapon_result_14 ~= nil then
+            ____weapon_is_weapon_result_14 = ____weapon_is_weapon_result_14:is_weapon()
         end
-        if ____weapon_is_weapon_result_6 then
+        if ____weapon_is_weapon_result_14 then
             damage = damage * clamp(
                 weapon:cast_Weapon():RPM(),
                 0.3,
@@ -6469,12 +6801,14 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
             )
         end
     end
-    damage = math.max(1, damage) * self.enemyDamageMult
+    damage = damage * self.enemyDamageMult
+    damage = damage * (1 - self.Player:GetStat("DamageResistancePct") / 100)
+    damage = math.max(1 + self.Player.Level / 15, damage)
     if self.Player.HP > self.Player.MaxHP * 0.5 and damage >= self.Player.HP then
         damage = self.Player.HP - 1
     end
-    local ____self_Player_8, ____HP_9 = self.Player, "HP"
-    ____self_Player_8[____HP_9] = ____self_Player_8[____HP_9] - damage
+    local ____self_Player_16, ____HP_17 = self.Player, "HP"
+    ____self_Player_16[____HP_17] = ____self_Player_16[____HP_17] - damage
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
@@ -6491,7 +6825,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
     for ____, ____value in __TS__Iterator(hitsByWeapon) do
         local weapon = ____value[1]
         local hits = ____value[2]
-        local isCritByWeapon = IsPctRolled(self:GetStat(17, weapon, self.Player))
+        local isCritByWeapon = IsPctRolled(self:GetStat("CritChancePct", weapon, self.Player))
         local bonusWeaponDamageMult = 1 + self.Player:GetStat(self:GetDamageBonusStatByWeaponType(weapon.WeaponType)) / 100
         local weaponDamage = weapon.Damage * bonusWeaponDamageMult / #hits
         for ____, ____value in ipairs(hits) do
@@ -6499,53 +6833,53 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
             local isCritPartHit = ____value[2]
             do
                 if monster.IsDead then
-                    goto __continue45
+                    goto __continue49
                 end
                 local monsterDamage = weaponDamage
                 if monster.GO:is_stalker() then
-                    monsterDamage = monsterDamage * (1 + self:GetStat(18, weapon, self.Player) / 100)
+                    monsterDamage = monsterDamage * (1 + self:GetStat("DamageToStalkersBonusPct", weapon, self.Player) / 100)
                 elseif monster.GO:is_monster() then
-                    monsterDamage = monsterDamage * (1 + self:GetStat(19, weapon, self.Player) / 100)
+                    monsterDamage = monsterDamage * (1 + self:GetStat("DamageToMutantssBonusPct", weapon, self.Player) / 100)
                 end
                 local isCrit = isCritPartHit or isCritByWeapon
                 if isCrit then
-                    local critDamageMult = 1 + self:GetStat(16, weapon, self.Player) / 100
+                    local critDamageMult = 1 + self:GetStat("CritDamagePct", weapon, self.Player) / 100
                     monsterDamage = monsterDamage * critDamageMult
                 end
                 local realDamage = self:DamageMonster(monster, monsterDamage, isCrit)
                 self.UIManager:ShowDamage(realDamage, isCrit, monster.IsDead)
                 self.Player:IterateSkills(function(s) return s:OnMonsterHit(monster, isCrit) end)
             end
-            ::__continue45::
+            ::__continue49::
         end
     end
 end
 function World.prototype.GetDamageBonusStatByWeaponType(self, ____type)
     repeat
-        local ____switch54 = ____type
-        local ____cond54 = ____switch54 == WeaponType.Pistol
-        if ____cond54 then
-            return 20
+        local ____switch58 = ____type
+        local ____cond58 = ____switch58 == WeaponType.Pistol
+        if ____cond58 then
+            return "DamageWithPistolBonusPct"
         end
-        ____cond54 = ____cond54 or ____switch54 == WeaponType.SMG
-        if ____cond54 then
-            return 21
+        ____cond58 = ____cond58 or ____switch58 == WeaponType.SMG
+        if ____cond58 then
+            return "DamageWithSMGBonusPct"
         end
-        ____cond54 = ____cond54 or ____switch54 == WeaponType.Shotgun
-        if ____cond54 then
-            return 22
+        ____cond58 = ____cond58 or ____switch58 == WeaponType.Shotgun
+        if ____cond58 then
+            return "DamageWithShotgunBonusPct"
         end
-        ____cond54 = ____cond54 or ____switch54 == WeaponType.AssaultRifle
-        if ____cond54 then
-            return 23
+        ____cond58 = ____cond58 or ____switch58 == WeaponType.AssaultRifle
+        if ____cond58 then
+            return "DamageWithAssaultRifleBonusPct"
         end
-        ____cond54 = ____cond54 or ____switch54 == WeaponType.MachineGun
-        if ____cond54 then
-            return 24
+        ____cond58 = ____cond58 or ____switch58 == WeaponType.MachineGun
+        if ____cond58 then
+            return "DamageWithMachingGunBonusPct"
         end
-        ____cond54 = ____cond54 or ____switch54 == WeaponType.SniperRifle
-        if ____cond54 then
-            return 25
+        ____cond58 = ____cond58 or ____switch58 == WeaponType.SniperRifle
+        if ____cond58 then
+            return "DamageWithSniperRifleBonusPct"
         end
     until true
 end
@@ -6571,8 +6905,8 @@ end
 function World.prototype.OnMonsterKilled(self, monster, isCrit)
     Log(((("OnMonsterKilled. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
     self.UIManager:ShowXPReward(monster.XPReward)
-    local ____self_Player_10, ____CurrentXP_11 = self.Player, "CurrentXP"
-    ____self_Player_10[____CurrentXP_11] = ____self_Player_10[____CurrentXP_11] + monster.XPReward
+    local ____self_Player_18, ____CurrentXP_19 = self.Player, "CurrentXP"
+    ____self_Player_18[____CurrentXP_19] = ____self_Player_18[____CurrentXP_19] + monster.XPReward
     local dropChance = monster.DropChance * self.enemyDropChanceMult
     if IsPctRolled(dropChance) then
         self:GenerateDrop(monster)
@@ -6682,9 +7016,9 @@ end
 function World.prototype.RemoveHighlight(self, id)
     self.Timers:Remove(tostring(id) .. "_highlight")
     local particles = self.highlightParticles[id]
-    local ____particles_stop_result_12 = particles
-    if ____particles_stop_result_12 ~= nil then
-        ____particles_stop_result_12 = ____particles_stop_result_12:stop()
+    local ____particles_stop_result_20 = particles
+    if ____particles_stop_result_20 ~= nil then
+        ____particles_stop_result_20 = ____particles_stop_result_20:stop()
     end
     self.highlightParticles[id] = nil
 end
@@ -6716,14 +7050,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue93
+                goto __continue97
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue93::
+        ::__continue97::
     end
     return result
 end
@@ -6970,24 +7304,19 @@ function MonsterWorldMod.prototype.OnHudAnimationEnd(self, item, section, motion
 end
 function MonsterWorldMod.prototype.OnBeforeKeyPress(self, key, bind, dis)
     if bind == key_bindings.kWPN_RELOAD then
-        local weapon = self.World.Player.Weapon
+        local weapon = self.World.Player.ActiveWeapon
         local ____weapon_GO_cast_Weapon_result_0 = weapon
         if ____weapon_GO_cast_Weapon_result_0 ~= nil then
             ____weapon_GO_cast_Weapon_result_0 = ____weapon_GO_cast_Weapon_result_0.GO:cast_Weapon()
         end
         local weaponGO = ____weapon_GO_cast_Weapon_result_0
-        local ____temp_5 = weaponGO ~= nil
-        if ____temp_5 then
-            local ____temp_4 = weaponGO:GetAmmoElapsed()
-            local ____weapon_MagSize_2 = weapon
-            if ____weapon_MagSize_2 ~= nil then
-                ____weapon_MagSize_2 = ____weapon_MagSize_2.MagSize
+        if weapon ~= nil and weaponGO ~= nil then
+            local ammoElapsed = weaponGO:GetAmmoElapsed()
+            if ammoElapsed > weapon:GetStatBase("MagSize") and ammoElapsed < weapon.MagSize then
+                weaponGO:SetAmmoElapsed(0)
+                self.World.Player.GO:reload_weapon()
+                return false
             end
-            ____temp_5 = ____temp_4 < (____weapon_MagSize_2 or 1)
-        end
-        if ____temp_5 then
-            weaponGO:SetAmmoElapsed(0)
-            return true
         end
     end
     return StalkerModBase.prototype.OnBeforeKeyPress(self, key, bind, dis)
@@ -6998,16 +7327,16 @@ function MonsterWorldMod.prototype.OnNpcNetDestroy(self, npc)
 end
 function MonsterWorldMod.prototype.OnMonsterNetDestroy(self, monster)
     StalkerModBase.prototype.OnMonsterNetDestroy(self, monster)
-    local ____table_World_DestroyObject_result_6 = self.World
-    if ____table_World_DestroyObject_result_6 ~= nil then
-        ____table_World_DestroyObject_result_6 = ____table_World_DestroyObject_result_6:DestroyObject(monster:id())
+    local ____table_World_DestroyObject_result_2 = self.World
+    if ____table_World_DestroyObject_result_2 ~= nil then
+        ____table_World_DestroyObject_result_2 = ____table_World_DestroyObject_result_2:DestroyObject(monster:id())
     end
 end
 function MonsterWorldMod.prototype.OnServerEntityUnregister(self, serverObject, ____type)
     StalkerModBase.prototype.OnServerEntityUnregister(self, serverObject, ____type)
-    local ____table_World_DestroyObject_result_8 = self.World
-    if ____table_World_DestroyObject_result_8 ~= nil then
-        ____table_World_DestroyObject_result_8 = ____table_World_DestroyObject_result_8:DestroyObject(serverObject.id)
+    local ____table_World_DestroyObject_result_4 = self.World
+    if ____table_World_DestroyObject_result_4 ~= nil then
+        ____table_World_DestroyObject_result_4 = ____table_World_DestroyObject_result_4:DestroyObject(serverObject.id)
     end
 end
 function MonsterWorldMod.prototype.OnActorFirstUpdate(self)
@@ -7077,8 +7406,8 @@ end
 function MonsterWorldMod.prototype.OnKeyRelease(self, key)
     StalkerModBase.prototype.OnKeyRelease(self, key)
     if key == DIK_keys.DIK_DELETE then
-        local ____self_World_Player_10, ____SkillPoints_11 = self.World.Player, "SkillPoints"
-        ____self_World_Player_10[____SkillPoints_11] = ____self_World_Player_10[____SkillPoints_11] + 1000
+        local ____self_World_Player_6, ____SkillPoints_7 = self.World.Player, "SkillPoints"
+        ____self_World_Player_6[____SkillPoints_7] = ____self_World_Player_6[____SkillPoints_7] + 1000
     end
     if key == DIK_keys.DIK_1 then
         self.debugDropQuality = 1

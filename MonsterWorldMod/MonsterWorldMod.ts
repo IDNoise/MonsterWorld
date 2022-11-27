@@ -5,6 +5,7 @@ import { MinQuality, MaxQuality, DropType } from './Configs/Loot';
 import { CriticalBones } from './Constants/CritBones';
 import { CreateWorldPositionAtGO, Save } from './Helpers/StalkerAPI';
 import { ItemSpawnParams } from './GameObjects/MWItem';
+import { StatType } from './Configs/Stats';
 
 export class MonsterWorldMod extends StalkerModBase {
     public World: World;
@@ -113,9 +114,14 @@ export class MonsterWorldMod extends StalkerModBase {
         if (bind == key_bindings.kWPN_RELOAD){
             let weapon = this.World.Player.ActiveWeapon;
             let weaponGO = weapon?.GO.cast_Weapon();
-            if (weaponGO != undefined && weaponGO.GetAmmoElapsed() < (weapon?.MagSize || 1)){
-                weaponGO.SetAmmoElapsed(0);
-                return true;
+            if (weapon != undefined && weaponGO != undefined)
+            {
+                let ammoElapsed = weaponGO.GetAmmoElapsed();
+                if (ammoElapsed > weapon.GetStatBase(StatType.MagSize) && ammoElapsed < weapon.MagSize){
+                    weaponGO.SetAmmoElapsed(0);
+                    this.World.Player.GO.reload_weapon()
+                    return false;
+                }
             }
         }
 

@@ -1,4 +1,4 @@
-import { LocationType } from "./Levels";
+import { LocationType, LocationConfig } from './Levels';
 
 //Player params
 export let PlayerHPBase = 100;
@@ -26,7 +26,7 @@ export let EnemyHpDeltaPct = 10;
 
 export let EnemyDamageBase = PlayerHPBase / 25;
 export let EnemyDamageExpPerLevel = 1.025; //1.1;
-export let EnemyDamagePctPerLevel = 10;
+export let EnemyDamagePctPerLevel = 15;
 
 export let EnemyXpRewardBase = PlayerXPForFirstLevel / 20;
 export let EnemyXpRewardExpPerLevel = 1.25;

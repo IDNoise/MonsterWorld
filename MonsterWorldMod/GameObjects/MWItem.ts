@@ -4,6 +4,8 @@ import { StatBonusType, StatType, PctStats } from '../Configs/Stats';
 import { MWObject } from "./MWObject";
 
 export abstract class MWItem extends MWObject {
+    public IsEquipped: boolean = false;
+
     get Quality(): number { return this.Load("Quality"); }
     set Quality(quality: number) { this.Save("Quality", quality); }
 
@@ -28,6 +30,7 @@ export abstract class MWItem extends MWObject {
     public GetPlayerStatBonusesOnEquip(): StatType[] { return [] }
 
     public OnItemEquipped(){
+        this.IsEquipped = true;
         Log(`OnItemEquipped ${this.SectionId}`)
         for(let stat of this.GetPlayerStatBonusesOnEquip()){
             MonsterWorld.Player.AddStatBonus(stat, StatBonusType.Flat, this.GetTotalFlatBonus(stat), this.SectionId)
@@ -39,6 +42,7 @@ export abstract class MWItem extends MWObject {
     }
 
     public OnItemUnequipped(){
+        this.IsEquipped = false;
         Log(`OnItemUnequipped ${this.SectionId}`)
         for(let stat of this.GetPlayerStatBonusesOnEquip()){
             MonsterWorld.Player.RemoveStatBonus(stat, StatBonusType.Flat, this.SectionId)

@@ -31,9 +31,9 @@ export const enum MonsterRank {
 }
 
 export let MonsterRankConfigs = [
-    {Rank: MonsterRank.Common, HpMult: 1,  XpMult: 1, DamageMult: 1,   DropChance: 15,  DropLevelIncreaseChance: 1,  DropQualityIncreaseChance: 1,  TextColor: GetARGB(255,120,250,30)},
-    {Rank: MonsterRank.Elite,  HpMult: 3,  XpMult: 2, DamageMult: 1.5, DropChance: 35,  DropLevelIncreaseChance: 10, DropQualityIncreaseChance: 10, TextColor: GetARGB(255,20,20,240)},
-    {Rank: MonsterRank.Boss,   HpMult: 10, XpMult: 5, DamageMult: 3,   DropChance: 100, DropLevelIncreaseChance: 25, DropQualityIncreaseChance: 25, TextColor: GetARGB(255,240,20,20)}
+    {HpMult: 1,  XpMult: 1, DamageMult: 1,   DropChance: 15,  DropLevelIncreaseChance: 1,  DropQualityIncreaseChance: 1,  TextColor: GetARGB(255,120,250,30)},
+    {HpMult: 3,  XpMult: 2, DamageMult: 1.5, DropChance: 35,  DropLevelIncreaseChance: 10, DropQualityIncreaseChance: 10, TextColor: GetARGB(255,20,20,240)},
+    {HpMult: 10, XpMult: 5, DamageMult: 3,   DropChance: 100, DropLevelIncreaseChance: 25, DropQualityIncreaseChance: 25, TextColor: GetARGB(255,240,20,20)}
 ]
 
 export let MonsterConfigs: LuaTable<MonsterType, MonsterConfig>;

@@ -175,7 +175,9 @@ export class World {
         //Log(`OnItemToRuck: ${item.section()}`)
     }
     
-    public OnItemToBelt(item: game_object) {
+    public OnItemToBelt(itemGO: game_object) {
+        let item = this.GetItem(itemGO)
+        item?.OnItemEquipped();
         //Log(`OnItemToBelt: ${item.section()}`)
     }
     
@@ -233,7 +235,9 @@ export class World {
                 damage *= clamp(weapon.cast_Weapon().RPM(), 0.3, 1.25); //limit on damage multiplier for slow firing enemies (can be overkill)
         }
 
-        damage = math.max(1, damage) * this.enemyDamageMult;
+        damage *= this.enemyDamageMult;
+        damage *= (1 - this.Player.GetStat(StatType.DamageResistancePct) / 100)
+        damage = math.max(1 + this.Player.Level / 15, damage)
         if (this.Player.HP > this.Player.MaxHP * 0.5 && damage >= this.Player.HP){ //Disable one hit kills if we have 50%+ hp
             damage = this.Player.HP - 1;
         }

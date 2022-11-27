@@ -149,6 +149,10 @@ export class StalkerModBase {
         //Log(`OnWeaponFired ${wpn.name()} by ${obj.name()}`)
     }
 
+    protected OnWeaponReload(wpn: game_object, ammo_total: number): void{
+        Log(`OnWeaponReload ${wpn.name()} ammo: ${ammo_total}`)
+    }
+
     // GUI
     protected OnItemFocusReceive(item: game_object): void{
         //Log(`OnItemFocusReceive ${item.section()}:${item.id()}`);
@@ -196,6 +200,7 @@ export class StalkerModBase {
         RegisterScriptCallback("actor_on_item_drop",  (item) => this.OnItemDrop(item));
         RegisterScriptCallback("actor_on_item_use",  (item, sec) => this.OnItemUse(item));
         RegisterScriptCallback("actor_on_weapon_fired",  (obj, wpn, ammo_elapsed,grenade_elapsed,ammo_type,grenade_type) => this.OnWeaponFired(obj, wpn, ammo_elapsed));
+        RegisterScriptCallback("actor_on_weapon_reload",  (wpn, ammo_total) => this.OnWeaponReload(wpn, ammo_total));
         RegisterScriptCallback("actor_on_hud_animation_play",  (anim_table, item) => this.OnHudAnimationPlay(item, anim_table));
         RegisterScriptCallback("actor_on_hud_animation_end",  (item, section, motion, state, slot) => this.OnHudAnimationEnd(item, section, motion, state, slot));
 

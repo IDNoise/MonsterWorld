@@ -1,44 +1,46 @@
+import { Log } from '../../StalkerModBase';
+import { MWObject, ObjectType } from '../GameObjects/MWObject';
 import { EndColorTag } from "./UI";
 
 export const enum StatType{
     //Player
-    RunSpeedMult = 0,
-    SprintSpeedMult,
-    MaxHP,
-    HPRegen,
-    XPGainMult,
+    MaxHP = "MaxHP",
+    HPRegen = "HPRegen",
+    RunSpeedMult = "RunSpeedMult",
+    SprintSpeedMult = "SprintSpeedMult",
+    XPGainMult = "XPGainMult",
 
     //Weapon
-    Damage, 
-    MagSize,
+    Damage = "Damage",
+    MagSize = "MagSize",
 
     //Weapon from ugprades 
-    Rpm,
-    Accuracy,
-    Recoil,
-    Flatness,
-    AutoFireMode,
+    Rpm = "Rpm",
+    Accuracy = "Accuracy",
+    Recoil = "Recoil",
+    Flatness = "Flatness",
+    AutoFireMode = "AutoFireMode",
 
     //Armor
-    ArtefactSlots, //Predefined by quality    
-    DamageResistancePct,
+    ArtefactSlots = "ArtefactSlots", //Predefined by quality    
+    DamageResistancePct = "DamageResistancePct",
 
     //Stimpack
-    HealPct,
+    HealPct = "HealPct",
 
     //Item + Player
-    ReloadSpeedBonusPct,
-    CritDamagePct,
-    CritChancePct,
-    DamageToStalkersBonusPct,
-    DamageToMutantssBonusPct,
+    ReloadSpeedBonusPct = "ReloadSpeedBonusPct",
+    CritChancePct = "CritChancePct",
+    CritDamagePct = "CritDamagePct",
+    DamageToStalkersBonusPct = "DamageToStalkersBonusPct",
+    DamageToMutantssBonusPct = "DamageToMutantssBonusPct",
 
-    DamageWithPistolBonusPct,
-    DamageWithSMGBonusPct,
-    DamageWithShotgunBonusPct,
-    DamageWithAssaultRifleBonusPct,
-    DamageWithMachingGunBonusPct,
-    DamageWithSniperRifleBonusPct,
+    DamageWithPistolBonusPct = "DamageWithPistolBonusPct",
+    DamageWithSMGBonusPct = "DamageWithSMGBonusPct",
+    DamageWithShotgunBonusPct = "DamageWithShotgunBonusPct",
+    DamageWithAssaultRifleBonusPct = "DamageWithAssaultRifleBonusPct",
+    DamageWithMachingGunBonusPct = "DamageWithMachingGunBonusPct",
+    DamageWithSniperRifleBonusPct = "DamageWithSniperRifleBonusPct",
 }
 
 export let StatTitles: {[key in StatType]: string} = {
@@ -60,7 +62,7 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.Accuracy]: "Accuracy",
     [StatType.Recoil]: "Recoil",
     [StatType.Flatness]: "Flatness",
-    [StatType.AutoFireMode]:  "AUTO Fire mode enabled",
+    [StatType.AutoFireMode]:  "Full AUTO mode",
 
     [StatType.ArtefactSlots]: "Artefact slots",
     [StatType.DamageResistancePct]: "Damage Resistance",
@@ -76,8 +78,8 @@ export let StatTitles: {[key in StatType]: string} = {
 }
 
 export const enum StatBonusType{
-    Flat = 0,
-    Pct
+    Flat = "flat",
+    Pct = "pct"
 }
 
 export let PctStats: StatType[] = [
@@ -119,6 +121,22 @@ export let WeaponDamageBonusesByType: StatType[] = [
     StatType.DamageWithSniperRifleBonusPct,
 ]
 
+export let DamageBonusesByEnemyType: StatType[] = [
+    StatType.DamageToStalkersBonusPct,
+    StatType.DamageToMutantssBonusPct,
+]
+
+export function GetBonusDescriptionByType(object: MWObject, stat: StatType): string{
+    let result = "";
+    let totalFlatBonus = object.GetTotalFlatBonus(stat);
+    result += GetBonusDescription(stat, totalFlatBonus);
+    if (!PctStats.includes(stat)){
+        result += GetBonusDescription(stat, object.GetTotalPctBonus(stat), true);
+    }
+    
+    return result;
+}
+
 export function GetBonusDescription(stat: StatType, bonus: number = 0, asPct: boolean = false): string{
     if (bonus == 0) 
         return ""
@@ -129,3 +147,131 @@ export function GetBonusDescription(stat: StatType, bonus: number = 0, asPct: bo
     const valueStr = `${NegativeBonuses.includes(stat) ? "-" : "+"}${math.floor(bonus)}${(asPct || PctStats.includes(stat)) ? "\%" : ""}`;
     return `%c[255,56,166,209]${valueStr.padEnd(6, " ")}${EndColorTag} ${StatTitles[stat]}\\n`
 }
+
+export function GetStatBonusForObject(stat: StatType, level: number, quality: number, bonusType: StatBonusType, objectType: ObjectType): number {
+    //Log(`GetStatBonusForObject s=${stat} l=${level} q=${quality} `)
+    let generator = ObjectBonusGenerators.get(stat);
+    if (generator == undefined){
+        Log(`NO STAT BONUS GENERATOR FOR: ${stat}`)
+        return 0;
+    }
+    return generator(stat, level, quality, bonusType, objectType)
+}
+
+export function IsStatGenerationSupported(stat: StatType){
+    let generator = ObjectBonusGenerators.get(stat);
+    return generator != undefined;
+}
+
+function CheckSupportedBonusType(stat: StatType, bonusType: StatBonusType, ...args: StatBonusType[]): boolean{
+    if (!args.includes(bonusType)){
+        Log(`Not supported bonus type ${bonusType} for ${stat}`)
+        return false;
+    }
+    return true;
+}
+
+function CheckSupportedObjectType(stat: StatType, objectType: ObjectType, ...args: ObjectType[]): boolean{
+    if (!args.includes(objectType)){
+        Log(`Not supported object type ${objectType} for ${stat}`)
+        return false;
+    }
+    return true;
+}
+
+let ScalingRangesByQuality = [
+    {Min: 1,  Max: 35},
+    {Min: 15, Max: 55},
+    {Min: 30, Max: 75},
+    {Min: 45, Max: 95},
+    {Min: 60, Max: 100},
+]
+
+let MaxLevelForScaling = 30;
+
+function GetBonusValue(minValue: number, maxValue: number, level?: number, quality?: number, levelPct?: number): number{
+    const diff = maxValue - minValue;
+    //Log(`Level: ${level}, quality: ${quality} Min: ${minValue} Max:${maxValue}`)
+
+    let result = math.random(minValue, maxValue);
+    if (level != undefined && quality != undefined){
+        levelPct = levelPct || 50;
+        const maxValueAtLevel = diff * (1 - levelPct / 100) + (diff * (levelPct / 100) / MaxLevelForScaling) * level;
+        const qualityScaling = ScalingRangesByQuality[quality - 1];
+        result = minValue + math.random(maxValueAtLevel * qualityScaling.Min / 100, maxValueAtLevel * qualityScaling.Max / 100)
+    }
+    else if (level != undefined){
+        levelPct = levelPct || 50;
+        const maxValueAtLevel = diff * (1 - levelPct / 100) + (diff * (levelPct / 100) / MaxLevelForScaling) * level;
+        result = minValue + math.random(0,  maxValueAtLevel)
+    }
+    else if (quality != undefined){
+        const qualityScaling = ScalingRangesByQuality[quality - 1];
+        result = minValue + math.random(diff * qualityScaling.Min / 100, diff * qualityScaling.Max / 100)
+    }
+    return clamp(result, minValue, maxValue);
+}
+
+const MaxValueMultByObjectType: {[name in ObjectType]: number} = {
+    [ObjectType.Player]: 1,
+    [ObjectType.Monster]: 1,
+    [ObjectType.Weapon]: 1,
+    [ObjectType.Armor]: 1,
+    [ObjectType.Artefact]: 1 / 3,
+    [ObjectType.Stimpack]: 1
+}
+
+type StatBonusGenerator = (stat: StatType, level: number, quality: number, bonusType: StatBonusType, objectType: ObjectType) => number;
+
+let ObjectBonusGenerators: Map<StatType, StatBonusGenerator> = new Map();
+
+ObjectBonusGenerators.set(StatType.ReloadSpeedBonusPct, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
+    return GetBonusValue(2, 100 * MaxValueMultByObjectType[objectType], level, quality);
+});
+
+ObjectBonusGenerators.set(StatType.MagSize, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    CheckSupportedObjectType(stat, objectType, ObjectType.Weapon)
+    return GetBonusValue(5, 500, level, quality);
+});
+
+ObjectBonusGenerators.set(StatType.CritChancePct, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    return GetBonusValue(1, 15 * MaxValueMultByObjectType[objectType], level, quality);
+});
+
+ObjectBonusGenerators.set(StatType.CritDamagePct, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    return GetBonusValue(3, 150 * MaxValueMultByObjectType[objectType], level, quality);
+});
+
+ObjectBonusGenerators.set(StatType.DamageResistancePct, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    return GetBonusValue(1, objectType == ObjectType.Armor ? 50 : 5, level, quality);
+});
+
+ObjectBonusGenerators.set(StatType.HPRegen, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    return GetBonusValue(5, 500 * MaxValueMultByObjectType[objectType], level, quality);
+});
+
+let WeaponDamageBonusByTypeGenerator: StatBonusGenerator = (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    return GetBonusValue(2, 150 * MaxValueMultByObjectType[objectType], level, quality);
+}
+
+ObjectBonusGenerators.set(StatType.DamageWithPistolBonusPct, WeaponDamageBonusByTypeGenerator);
+ObjectBonusGenerators.set(StatType.DamageWithSMGBonusPct, WeaponDamageBonusByTypeGenerator);
+ObjectBonusGenerators.set(StatType.DamageWithShotgunBonusPct, WeaponDamageBonusByTypeGenerator);
+ObjectBonusGenerators.set(StatType.DamageWithAssaultRifleBonusPct, WeaponDamageBonusByTypeGenerator);
+ObjectBonusGenerators.set(StatType.DamageWithMachingGunBonusPct, WeaponDamageBonusByTypeGenerator);
+ObjectBonusGenerators.set(StatType.DamageWithSniperRifleBonusPct, WeaponDamageBonusByTypeGenerator);
+
+let DamageBonusByEnemyTypeGenerator: StatBonusGenerator = (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    return GetBonusValue(3, 150 * MaxValueMultByObjectType[objectType], level, quality);
+}
+
+ObjectBonusGenerators.set(StatType.DamageToStalkersBonusPct, DamageBonusByEnemyTypeGenerator);
+ObjectBonusGenerators.set(StatType.DamageToMutantssBonusPct, DamageBonusByEnemyTypeGenerator);

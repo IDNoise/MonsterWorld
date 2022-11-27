@@ -190,7 +190,7 @@ declare interface game_object {
   // function can_select_weapon(boolean): void;
   // function weapon_strapped() const
   // function weapon_unstrapped() const
-  // function reload_weapon(): void; // for db.actor only, must comes after unload magazine cause it doesn't work with full mag
+  reload_weapon(): void; // for db.actor only, must comes after unload magazine cause it doesn't work with full mag
   // function hide_weapon(): void;
   // function get_current_outfit() const
   // function get_current_outfit_protection(number)

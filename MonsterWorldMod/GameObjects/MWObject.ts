@@ -210,13 +210,13 @@ function GetStatBonusField(stat: StatType, bonusType: StatBonusType): string { r
 function GetStatBaseField(stat: StatType): string { return `${stat}_base`; }
 function GetStatTotalField(stat: StatType): string { return `${stat}_total`; }
 
-export enum ObjectType {
-    Player,
-    Monster,
-    Weapon,
-    Armor,
-    Artefact,
-    Stimpack
+export const enum ObjectType {
+    Player = "Player",
+    Monster = "Monster",
+    Weapon = "Weapon",
+    Armor = "Armor",
+    Artefact = "Artefact",
+    Stimpack = "Stimpack",
 }
 
 const BonusesWithTTLField: string = "TimedStatBonuses";

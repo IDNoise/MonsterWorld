@@ -89,10 +89,10 @@ export class UIManager {
             s.mwLevel.Show(true)
 
             if (item.Type == ObjectType.Weapon){
-                s.mwLevel.TextControl().SetText(`L.${item.Level}        DPS:${math.floor((<MWWeapon>item).DPS)}`)
+                s.mwLevel.TextControl().SetText(`L.${item.Level}       DPS:${math.floor((<MWWeapon>item).DPS)}`)
             }
             else if (item.Type == ObjectType.Armor){
-                s.mwLevel.TextControl().SetText(`L.${item.Level}         HP:${math.floor((<MWArmor>item).HPBonus)}`)
+                s.mwLevel.TextControl().SetText(`L.${item.Level}       HP:${math.floor((<MWArmor>item).HPBonus)}`)
             }
             else if (item.Type == ObjectType.Stimpack){
                 s.mwLevel.TextControl().SetText(`${item.GetStat(StatType.HealPct)}%`)
@@ -473,7 +473,8 @@ export class UIManager {
         weaponStats[utils_ui.StatType.Handling].icon_p = "";
 
 
-        //TODO Armor setup
+        result[utils_ui.ItemType.Outfit] = {};
+        result[utils_ui.ItemType.Artefact] = {};
 
         return result;
     }

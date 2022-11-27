@@ -10,7 +10,7 @@ export class SkillCriticalDeath extends Skill {
         super(Id, Owner, PriceFormula, MaxLevel);
     }
 
-    get Description(): string { return `${this.Chance}% chance on critical kill for enemy to explode and damage all enemies in ${this.Range}m radius for ${this.HpPct}% of HP`; }
+    get Description(): string { return `${this.Chance}% chance on critical kill for enemy to explode and damage all enemies in ${this.Range}m radius for ${this.HpPct}% of Max HP`; }
 
     get Chance(): number { return this.ChancePctPerLevel(this.Level); }
     get HpPct(): number { return this.HpPctPerLevel(this.Level); }

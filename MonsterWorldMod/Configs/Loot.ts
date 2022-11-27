@@ -58,6 +58,18 @@ export let ArmorStatsForGeneration = [
     StatType.HPRegen,
 ]
 
+export let ArtefactStatsForGeneration = [
+    StatType.MaxHP,
+    StatType.HPRegen,
+    StatType.CritChancePct,
+    StatType.CritDamagePct,
+    StatType.RunSpeedMult,
+    StatType.SprintSpeedMult,
+    StatType.ReloadSpeedBonusPct,
+    StatType.XPGainMult,
+    StatType.DamageResistancePct,
+]
+
 export let WeaponStatsForGeneration = [
     StatType.Damage, 
     StatType.Rpm, 

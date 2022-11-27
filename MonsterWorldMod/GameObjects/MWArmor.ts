@@ -1,7 +1,7 @@
 import { Log } from '../../StalkerModBase';
 import * as cfg from '../Configs/Constants';
 import { ArmorStatsForGeneration } from '../Configs/Loot';
-import { StatType, StatBonusType, PctStats, GetBonusDescription, WeaponDamageBonusesByType as WeaponTypeDamageBonuses } from '../Configs/Stats';
+import { StatType, StatBonusType, PctStats, GetBonusDescription, WeaponDamageBonusesByType as WeaponTypeDamageBonuses, GetStatBonusForObject, DamageBonusesByEnemyType, GetBonusDescriptionByType } from '../Configs/Stats';
 import { TakeRandomUniqueElementsFromArray, RandomFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { MWItem } from './MWItem';
@@ -14,13 +14,10 @@ export class MWArmor extends MWItem {
     get Description(): string{
         let result = "";
 
-        result += GetBonusDescription(StatType.MaxHP, this.GetTotalFlatBonus(StatType.MaxHP));
         result += GetBonusDescription(StatType.ArtefactSlots, this.GetStat(StatType.ArtefactSlots));
-        result += GetBonusDescription(StatType.DamageResistancePct, this.GetTotalFlatBonus(StatType.DamageResistancePct));
-        result += GetBonusDescription(StatType.HPRegen, this.GetTotalPctBonus(StatType.HPRegen), true);
 
-        for(let stat of WeaponTypeDamageBonuses){
-            result += GetBonusDescription(stat, this.GetStat(stat));
+        for(let stat of this.GetPlayerStatBonusesOnEquip()){
+            result += GetBonusDescriptionByType(this, stat);
         }
 
         return result;
@@ -31,11 +28,15 @@ export class MWArmor extends MWItem {
     public override GetPlayerStatBonusesOnEquip(): StatType[] {
         let result = [
             StatType.MaxHP,
-            StatType.DamageResistancePct,
-            StatType.HPRegen,
         ];
 
+        for(let stat of ArmorStatsForGeneration)
+            result.push(stat)
+
         for(let stat of WeaponTypeDamageBonuses)
+            result.push(stat)
+
+        for(let stat of DamageBonusesByEnemyType)
             result.push(stat)
 
         return result;
@@ -55,23 +56,16 @@ export class MWArmor extends MWItem {
             availableStats.push(stat);  
 
         availableStats.push(RandomFromArray(WeaponTypeDamageBonuses))
+        availableStats.push(RandomFromArray(DamageBonusesByEnemyType))
+
 
         let statsToSelect = math.min(availableStats.length, 1 + this.Quality);
         let selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect);
 
         for(let stat of selectedStats){
-            if (stat == StatType.DamageResistancePct) {
-                let damageResistanceBonus = math.random(2 + 2 * (this.Quality - 1), (4 + 1.5 * (this.Quality - 1)) * this.Quality)
-                this.AddStatBonus(StatType.DamageResistancePct, StatBonusType.Flat, damageResistanceBonus, "generation")
-            }
-            else if (stat == StatType.HPRegen) {
-                let hpRegenBonus = math.random(10 + 5 * (this.Quality - 1), (30 + 10 * (this.Quality - 1)) * this.Quality)
-                this.AddStatBonus(StatType.HPRegen, StatBonusType.Pct, hpRegenBonus, "generation")
-            }
-            else if (WeaponTypeDamageBonuses.includes(stat)){
-                let weaponTypeDamageBonus = math.random(3 + 3 * (this.Quality - 1), (10 + 5 * (this.Quality - 1)) * this.Quality)
-                this.AddStatBonus(stat, StatBonusType.Flat, weaponTypeDamageBonus, "generation")
-            }
+            let bonusType = PctStats.includes(stat) ? StatBonusType.Flat : StatBonusType.Pct;
+            let bonus = GetStatBonusForObject(stat, this.Level, this.Quality, bonusType, this.Type);
+            this.AddStatBonus(stat, bonusType, bonus, "generation")
         }
     }
 }
