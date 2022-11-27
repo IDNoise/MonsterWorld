@@ -122,27 +122,27 @@ export class StalkerModBase {
     }
 
     protected OnItemTake(item: game_object) {
-        Log(`OnItemTake ${item.name()}`)
+        //Log(`OnItemTake ${item.name()}`)
     }
 
     protected OnItemDrop(item: game_object) {
-        Log(`OnItemDrop ${item.name()}`)
+        //Log(`OnItemDrop ${item.name()}`)
     }
 
     protected OnItemUse(item: game_object) {
-        Log(`OnItemUse ${item.name()}`)
+        //Log(`OnItemUse ${item.name()}`)
     }
 
     protected OnItemToBelt(item: game_object) {
-        Log(`OnItemToBelt ${item.name()}`)
+        //Log(`OnItemToBelt ${item.name()}`)
     }
 
     protected OnItemToRuck(item: game_object) {
-        Log(`OnItemToRuck ${item.name()}`)
+        //Log(`OnItemToRuck ${item.name()}`)
     }
 
     protected OnItemToSlot(item: game_object) {
-        Log(`OnItemToSlot ${item.name()}`)
+        //Log(`OnItemToSlot ${item.name()}`)
     }
 
     protected OnWeaponFired(obj: game_object, wpn: game_object, ammo_elapsed: number): void{
@@ -150,7 +150,7 @@ export class StalkerModBase {
     }
 
     protected OnWeaponReload(wpn: game_object, ammo_total: number): void{
-        Log(`OnWeaponReload ${wpn.name()} ammo: ${ammo_total}`)
+        //Log(`OnWeaponReload ${wpn.name()} ammo: ${ammo_total}`)
     }
 
     // GUI
@@ -159,11 +159,11 @@ export class StalkerModBase {
     }
 
     protected OnHudAnimationPlay(obj: game_object, anim_table: AnimationTable): void {
-        //Log(`OnHudAnimationPlay ${obj?.section()}:${obj?.id()}`);
+        //Log(`OnHudAnimationPlay ${obj?.section()}:${obj?.id()} - ${anim_table.anm_name}`);
     }
 
     protected OnHudAnimationEnd(item: game_object, section: Section, motion: any, state: any, slot: any): void {
-        //Log(`OnHudAnimationPlay ${item?.section()}:${item?.id()} section:${section} motion:${motion} state: ${state} slot:${slot}`);
+        //Log(`OnHudAnimationEnd ${item?.section()}:${item?.id()} section:${section} motion:${motion} state: ${state} slot:${slot}`);
     }
 
     //Input 
@@ -181,7 +181,7 @@ export class StalkerModBase {
     }
 
     protected RegisterCallbacks():void{
-        Log("Register callbacks");
+        //Log("Register callbacks");
 
         //
         //Actor

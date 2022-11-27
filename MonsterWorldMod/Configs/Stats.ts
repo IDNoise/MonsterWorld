@@ -10,6 +10,7 @@ export const enum StatType{
     SprintSpeedMult = "SprintSpeedMult",
     XPGainMult = "XPGainMult",
     EvasionChancePct = "EvasionChancePct",
+    FreeShotOnCritChancePct = "FreeShotOnCritChancePct",
 
     //Weapon
     Damage = "Damage",
@@ -38,7 +39,7 @@ export const enum StatType{
 
     DamageWithPistolBonusPct = "DamageWithPistolBonusPct",
     DamageWithSMGBonusPct = "DamageWithSMGBonusPct",
-    DamageWithShotgunBonusPct = "DamageWithShotgunBonusPct",
+    //DamageWithShotgunBonusPct = "DamageWithShotgunBonusPct",
     DamageWithAssaultRifleBonusPct = "DamageWithAssaultRifleBonusPct",
     DamageWithMachingGunBonusPct = "DamageWithMachingGunBonusPct",
     DamageWithSniperRifleBonusPct = "DamageWithSniperRifleBonusPct",
@@ -51,6 +52,7 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.HPRegen]: "HP Regen",
     [StatType.XPGainMult]: "XP Gain",
     [StatType.EvasionChancePct]: "Evasion Chance",
+    [StatType.FreeShotOnCritChancePct]: "Free Shot on Crit Chance",
 
     [StatType.Damage]: "Damage",
     
@@ -73,7 +75,7 @@ export let StatTitles: {[key in StatType]: string} = {
 
     [StatType.DamageWithPistolBonusPct]: "Damage with Pistols",
     [StatType.DamageWithSMGBonusPct]: "Damage with SMGs",
-    [StatType.DamageWithShotgunBonusPct]: "Damage with Shotguns",
+    //[StatType.DamageWithShotgunBonusPct]: "Damage with Shotguns",
     [StatType.DamageWithAssaultRifleBonusPct]: "Damage with Assault Rifles",
     [StatType.DamageWithMachingGunBonusPct]: "Damage with Machine Guns",
     [StatType.DamageWithSniperRifleBonusPct]: "Damage with Sniper Rifles",
@@ -95,7 +97,7 @@ export let PctStats: StatType[] = [
     StatType.HealPct,
     StatType.DamageWithPistolBonusPct,
     StatType.DamageWithSMGBonusPct,
-    StatType.DamageWithShotgunBonusPct,
+    //StatType.DamageWithShotgunBonusPct,
     StatType.DamageWithAssaultRifleBonusPct,
     StatType.DamageWithMachingGunBonusPct,
     StatType.DamageWithSniperRifleBonusPct,
@@ -118,7 +120,7 @@ export let NegativeBonuses = [
 export let WeaponDamageBonusesByType: StatType[] = [
     StatType.DamageWithPistolBonusPct,
     StatType.DamageWithSMGBonusPct,
-    StatType.DamageWithShotgunBonusPct,
+    //StatType.DamageWithShotgunBonusPct,
     StatType.DamageWithAssaultRifleBonusPct,
     StatType.DamageWithMachingGunBonusPct,
     StatType.DamageWithSniperRifleBonusPct,
@@ -128,6 +130,23 @@ export let DamageBonusesByEnemyType: StatType[] = [
     StatType.DamageToStalkersBonusPct,
     StatType.DamageToMutantssBonusPct,
 ]
+
+type MaxStatValueConfig = {
+    Total?: number,
+    Flat?: number,
+    Pct?: number,
+}
+
+export let MaxValueByStat: Map<StatType, MaxStatValueConfig> = new Map()
+.set(StatType.ReloadSpeedBonusPct, {Total: 300})
+.set(StatType.DamageResistancePct, {Total: 90})
+.set(StatType.CritChancePct, {Total: 25})
+.set(StatType.EvasionChancePct, {Total: 25})
+.set(StatType.HPRegen, {Total: 5})
+.set(StatType.RunSpeedMult, {Total: 1.75})
+.set(StatType.SprintSpeedMult, {Total: 1.75})
+.set(StatType.FreeShotOnCritChancePct, {Total: 50})
+;
 
 export function GetBonusDescriptionByType(object: MWObject, stat: StatType): string{
     let result = "";
@@ -220,7 +239,7 @@ const MaxValueMultByObjectType: {[name in ObjectType]: number} = {
     [ObjectType.Monster]: 1,
     [ObjectType.Weapon]: 1,
     [ObjectType.Armor]: 1,
-    [ObjectType.Artefact]: 1 / 3,
+    [ObjectType.Artefact]: 1 / 2,
     [ObjectType.Stimpack]: 1
 }
 
@@ -256,7 +275,7 @@ ObjectBonusGenerators.set(StatType.DamageResistancePct, (stat, level, quality, b
 
 ObjectBonusGenerators.set(StatType.HPRegen, (stat, level, quality, bonusType, objectType) => {
     CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
-    return GetBonusValue(5, 500 * MaxValueMultByObjectType[objectType], level, quality);
+    return GetBonusValue(5, 1000 * MaxValueMultByObjectType[objectType], level, quality);
 });
 
 ObjectBonusGenerators.set(StatType.XPGainMult, (stat, level, quality, bonusType, objectType) => {
@@ -267,12 +286,17 @@ ObjectBonusGenerators.set(StatType.XPGainMult, (stat, level, quality, bonusType,
 ObjectBonusGenerators.set(StatType.MaxHP, (stat, level, quality, bonusType, objectType) => {
     if (bonusType == StatBonusType.Pct)
         return GetBonusValue(2, 75 * MaxValueMultByObjectType[objectType], level, quality);
-    return GetBonusValue(3, 600 * MaxValueMultByObjectType[objectType], level, quality);
+    return GetBonusValue(10, 1000 * MaxValueMultByObjectType[objectType], level, quality, 1);
 });
 
 ObjectBonusGenerators.set(StatType.EvasionChancePct, (stat, level, quality, bonusType, objectType) => {
     CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
     return GetBonusValue(0.5, 10 * MaxValueMultByObjectType[objectType], level, quality);
+});
+
+ObjectBonusGenerators.set(StatType.FreeShotOnCritChancePct, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Flat)
+    return GetBonusValue(3, 30 * MaxValueMultByObjectType[objectType], level, quality);
 });
 
 
@@ -283,7 +307,7 @@ let WeaponDamageBonusByTypeGenerator: StatBonusGenerator = (stat, level, quality
 
 ObjectBonusGenerators.set(StatType.DamageWithPistolBonusPct, WeaponDamageBonusByTypeGenerator);
 ObjectBonusGenerators.set(StatType.DamageWithSMGBonusPct, WeaponDamageBonusByTypeGenerator);
-ObjectBonusGenerators.set(StatType.DamageWithShotgunBonusPct, WeaponDamageBonusByTypeGenerator);
+//ObjectBonusGenerators.set(StatType.DamageWithShotgunBonusPct, WeaponDamageBonusByTypeGenerator);
 ObjectBonusGenerators.set(StatType.DamageWithAssaultRifleBonusPct, WeaponDamageBonusByTypeGenerator);
 ObjectBonusGenerators.set(StatType.DamageWithMachingGunBonusPct, WeaponDamageBonusByTypeGenerator);
 ObjectBonusGenerators.set(StatType.DamageWithSniperRifleBonusPct, WeaponDamageBonusByTypeGenerator);

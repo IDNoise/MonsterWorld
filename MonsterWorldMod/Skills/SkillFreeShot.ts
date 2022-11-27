@@ -15,8 +15,8 @@ export class SkillFreeShot extends Skill {
 
     override OnWeaponFired(weapon: MWWeapon): void {
         super.OnWeaponFired(weapon);
-        if (weapon.AmmoLeft > 0 && IsPctRolled(this.FreeShotChancePct)) {
-            weapon.GO.cast_Weapon().SetAmmoElapsed(weapon.AmmoLeft + 1);
+        if (weapon.AmmoElapsed > 0 && IsPctRolled(this.FreeShotChancePct)) {
+            weapon.AmmoElapsed++;
         }
     }
 }

@@ -9,7 +9,7 @@ import { UIManager } from './Managers/UIManager';
 import { MWObject, ObjectType } from './GameObjects/MWObject';
 import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/Difficulty';
 import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, DropType, GetStimpackByQuality, QualityConfigs } from './Configs/Loot';
-import { StatType } from './Configs/Stats';
+import { MaxValueByStat, StatType } from './Configs/Stats';
 import { ObjectOrId, GetId, CreateVector, CreateWorldPositionAtPosWithGO, Save } from './Helpers/StalkerAPI';
 import { GetRandomFromArray } from './Helpers/Collections';
 import { IsPctRolled } from './Helpers/Random';
@@ -193,10 +193,6 @@ export class World {
     public OnPlayerSpawned():void{
         this.enemyDamageMult = GetDifficultyDamageMult();
         this.enemyDropChanceMult = GetDifficultyDropChanceMult()
-        // db.actor.inventory_for_each((item) => {
-        //     if (item.is_weapon())
-        //         this.GetWeapon(item.id());
-        // })
     }
 
     public Save(data: { [key: string]: any; }) {
@@ -251,21 +247,22 @@ export class World {
             this.Player.IterateSkills((s) => s.OnPlayerHit(monster!, damage))
         }
 
-        Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage}) in ${boneId}`)
+        //Log(`Player was hit by ${monster.Name} for ${damage}(${monster.Damage}) in ${boneId}`)
     }
 
     public OnMonstersHit(monsterHitsThisFrame: Map<Id, HitInfo>) {
-        Log(`OnMonstersHit`)
+        //Log(`OnMonstersHit`)
 
         let hitsByWeapon = new Map<MWWeapon, [MWMonster, boolean][]>();
         for(const [_, hitInfo] of monsterHitsThisFrame){
             let hits = hitsByWeapon.get(hitInfo.weapon) || [];
             hits.push([hitInfo.monster, hitInfo.isCritPartHit])
             hitsByWeapon.set(hitInfo.weapon, hits)
-            Log(`OnMonstersHit. ${hits.length} with ${hitInfo.weapon.SectionId}`)
+            //Log(`OnMonstersHit. ${hits.length} with ${hitInfo.weapon.SectionId}`)
         }
         
         for(const [weapon, hits] of hitsByWeapon){
+            let wasCrit = false;
             let isCritByWeapon = IsPctRolled(this.GetStat(StatType.CritChancePct, weapon, this.Player))
             let bonusWeaponDamageMult = 1 + this.Player.GetStat(this.GetDamageBonusStatByWeaponType(weapon.WeaponType)) / 100;
             let weaponDamage = weapon.Damage * bonusWeaponDamageMult / hits.length;
@@ -285,6 +282,7 @@ export class World {
                 if (isCrit){
                     let critDamageMult = 1 + this.GetStat(StatType.CritDamagePct, weapon, this.Player) / 100;
                     monsterDamage *= critDamageMult
+                    wasCrit = true;
                 }
 
                 this.Player.IterateSkills((s) => monsterDamage = s.OnMonsterBeforeHit(monster, isCrit, monsterDamage))
@@ -293,6 +291,10 @@ export class World {
                 this.UIManager.ShowDamage(realDamage, isCrit, monster.IsDead)
                 this.Player.IterateSkills((s) => s.OnMonsterHit(monster, isCrit))
             }
+
+            if (wasCrit && IsPctRolled(this.Player.GetStat(StatType.FreeShotOnCritChancePct)) && weapon.AmmoElapsed > 0){
+                weapon.AmmoElapsed++;
+            }
         }
     }
 
@@ -300,7 +302,7 @@ export class World {
         switch(type){
             case WeaponType.Pistol: return StatType.DamageWithPistolBonusPct;
             case WeaponType.SMG: return StatType.DamageWithSMGBonusPct;
-            case WeaponType.Shotgun: return StatType.DamageWithShotgunBonusPct;
+            //case WeaponType.Shotgun: return StatType.DamageWithShotgunBonusPct;
             case WeaponType.AssaultRifle: return StatType.DamageWithAssaultRifleBonusPct;
             case WeaponType.MachineGun: return StatType.DamageWithMachingGunBonusPct;
             case WeaponType.SniperRifle: return StatType.DamageWithSniperRifleBonusPct;
@@ -325,11 +327,16 @@ export class World {
         for(let source of sources){
             value += source.GetStat(stat);
         }
+        let maxValueCfg = MaxValueByStat.get(stat);
+        if (maxValueCfg && maxValueCfg.Total){
+            value = math.min(value, maxValueCfg.Total)
+        }
+
         return value;
     }
 
     public OnMonsterKilled(monster: MWMonster, isCrit: boolean) {
-        Log(`OnMonsterKilled. ${monster.Name} (${monster.SectionId})`)
+        //Log(`OnMonsterKilled. ${monster.Name} (${monster.SectionId})`)
 
         this.UIManager.ShowXPReward(monster.XPReward)
         this.Player.CurrentXP += monster.XPReward;
@@ -343,11 +350,11 @@ export class World {
 
         this.AddTTLTimer(monster.id, 3);
 
-        Log(`OnMonsterKilled END. ${monster.Name} (${monster.SectionId})`)
+        //Log(`OnMonsterKilled END. ${monster.Name} (${monster.SectionId})`)
     }
 
     GenerateDrop(monster: MWMonster) {
-        Log(`GenerateDrop`)
+        //Log(`GenerateDrop`)
         let type = GetDropType(monster.Rank);
 
         let sgo: cse_alife_object | undefined = undefined;
@@ -367,7 +374,7 @@ export class World {
         }
 
         if (sgo != undefined){
-            Log(`Spawned ${sgo.section_name()}:${sgo.id}`)
+            //Log(`Spawned ${sgo.section_name()}:${sgo.id}`)
             Save<ItemSpawnParams>(sgo.id, "MW_SpawnParams", {Level: dropLevel, Quality: qualityLevel});
             this.HighlightDroppedItem(sgo.id, type, qualityLevel);
             this.AddTTLTimer(sgo.id, 300)

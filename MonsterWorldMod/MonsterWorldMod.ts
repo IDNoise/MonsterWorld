@@ -94,6 +94,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (weapon == undefined)
             return;
 
+        weapon.IsInIdleAnimation = anim_table.anm_name.includes("idle");
         if (ReloadAnims.includes(anim_table.anm_name))
             weapon.OnReloadStart(anim_table)
     }
@@ -114,7 +115,7 @@ export class MonsterWorldMod extends StalkerModBase {
         if (bind == key_bindings.kWPN_RELOAD){
             let weapon = this.World.Player.ActiveWeapon;
             let weaponGO = weapon?.GO.cast_Weapon();
-            if (weapon != undefined && weaponGO != undefined)
+            if (weapon != undefined && weaponGO != undefined && weapon.IsInIdleAnimation)
             {
                 let ammoElapsed = weaponGO.GetAmmoElapsed();
                 if (ammoElapsed > weapon.GetStatBase(StatType.MagSize) && ammoElapsed < weapon.MagSize){
@@ -227,6 +228,11 @@ export class MonsterWorldMod extends StalkerModBase {
     private debugDropQuality: number = 1;
     protected override OnKeyRelease(key: DIK_keys): void {
         super.OnKeyRelease(key)
+
+        let noTest = true;
+        if (noTest) 
+            return;
+
         if (key == DIK_keys.DIK_DELETE) {
             this.World.Player.SkillPoints += 1000;
         }

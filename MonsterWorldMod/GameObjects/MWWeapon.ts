@@ -9,6 +9,7 @@ import { ObjectType } from './MWObject';
 
 export class MWWeapon extends MWItem {
 
+    public IsInIdleAnimation: boolean = false;
 
     get Type(): ObjectType { return ObjectType.Weapon }
 
@@ -20,7 +21,8 @@ export class MWWeapon extends MWItem {
     get DPS(): number { return this.Damage  * (1 / this.TimeBetweenShots) }
     get MagSize(): number { return math.floor(this.GetStat(StatType.MagSize)); }
     get FireDistance(): number { return this.GO?.cast_Weapon().GetFireDistance() || 1; }
-    get AmmoLeft(): number { return this.GO?.cast_Weapon().GetAmmoElapsed() || 1; }
+    get AmmoElapsed(): number { return this.GO?.cast_Weapon().GetAmmoElapsed() || 1; }
+    set AmmoElapsed(ammo: number) { this.GO?.cast_Weapon().SetAmmoElapsed(math.min(ammo, this.MagSize)) }
 
     get Description(): string{
         let result = "";
@@ -76,7 +78,7 @@ export class MWWeapon extends MWItem {
 
         for (let uType of WeaponStatsUsingUpgrades) {
             let upgrades = GetWeaponUpgradesByStat(this.Section, uType)
-            Log(`weaponUpgradesByBonusType ${uType}:${upgrades.length}`)
+            //Log(`weaponUpgradesByBonusType ${uType}:${upgrades.length}`)
             if (upgrades.length != 0)
                 weaponUpgradesByBonusType.set(uType, upgrades);
         }
@@ -85,21 +87,21 @@ export class MWWeapon extends MWItem {
         for(let type of WeaponStatsForGeneration){
             if (!WeaponStatsUsingUpgrades.includes(type) || weaponUpgradesByBonusType.has(type)){
                 availableBonuses.push(type)
-                Log(`availableBonuses ${type}`)
+                //Log(`availableBonuses ${type}`)
             }
         }        
 
         let statsToSelect = math.min(availableBonuses.length, 1 + this.Quality + math.floor(this.Level / 10));
         let selectedStats = GetRandomUniqueElementsFromArray(availableBonuses, statsToSelect);
 
-        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.Flatness)){ //Bullet speed is additional random bonus
+        if (IsPctRolled(30 + 10*this.Quality) && weaponUpgradesByBonusType.has(StatType.Flatness)){ //Bullet speed is additional random bonus
             selectedStats.push(StatType.Flatness);
-            Log(`selectedUpgradeTypes ${StatType.Flatness}`)
+            //Log(`selectedUpgradeTypes ${StatType.Flatness}`)
         }
 
-        if (IsPctRolled(30) && weaponUpgradesByBonusType.has(StatType.AutoFireMode)){ //Auto fire is additional random bonus
+        if (IsPctRolled(30 + 10*this.Quality) && weaponUpgradesByBonusType.has(StatType.AutoFireMode)){ //Auto fire is additional random bonus
             selectedStats.push(StatType.AutoFireMode);
-            Log(`selectedUpgradeTypes ${StatType.AutoFireMode}`)
+            //Log(`selectedUpgradeTypes ${StatType.AutoFireMode}`)
         }
 
         let damageBonusPct = 0;
@@ -108,14 +110,18 @@ export class MWWeapon extends MWItem {
             if (stat == StatType.Damage) {
                 damageBonusPct += math.random(3 + 7 * (this.Quality - 1), (15 + 15 * (this.Quality - 1)) * this.Quality)
             }
-            else if (stat == StatType.ReloadSpeedBonusPct || stat == StatType.CritChancePct || stat == StatType.MagSize) {
+            else if (stat == StatType.ReloadSpeedBonusPct || stat == StatType.CritChancePct) {
                 let bonus = GetStatBonusForObject(stat, this.Level, this.Quality, StatBonusType.Flat, this.Type);
+                this.AddStatBonus(stat, StatBonusType.Flat, bonus, "generation")
+            }
+            else if (stat == StatType.MagSize) {
+                let bonus = GetStatBonusForObject(stat, this.Level, this.Quality, StatBonusType.Pct, this.Type);
 
                 while (stat == StatType.MagSize && magSize * bonus / 100 < 1){
                     bonus += 3;
                 }
 
-                this.AddStatBonus(stat, StatBonusType.Flat, bonus, "generation")
+                this.AddStatBonus(stat, StatBonusType.Pct, bonus, "generation")
             }
             else if (stat == StatType.AutoFireMode) {
                 allSelectedUpgrades.push(weaponUpgradesByBonusType.get(stat)[0]);
@@ -138,7 +144,7 @@ export class MWWeapon extends MWItem {
                     let defaultValue = GetWeaponBaseValueByStat(this.Section, stat);
                     if (defaultValue == 0) 
                         defaultValue = 1;
-                    Log(`Bonus ${stat}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
+                    //Log(`Bonus ${stat}: ${bonusValue}, base: ${defaultValue}. %: ${bonusValue / defaultValue * 100}`);
                     bonusValue = bonusValue / defaultValue * 100;
 
                     this.AddStatBonus(stat, StatBonusType.Pct, math.abs(bonusValue), "generation")
@@ -151,24 +157,22 @@ export class MWWeapon extends MWItem {
             this.AddStatBonus(StatType.Damage, StatBonusType.Pct, damageBonusPct, "generation")
         }
 
-        Log(`Base DPS: ${baseDPS} DPS: ${this.DPS}. Damage per hit: ${damagePerHit}. Fire rate: ${fireRate}`)
+        //Log(`Base DPS: ${baseDPS} DPS: ${this.DPS}. Damage per hit: ${damagePerHit}. Fire rate: ${fireRate}`)
         for (let upgrade of allSelectedUpgrades) {
             upgrade = upgrade.replace("mwu", "mwe");
-            Log(`Installing upgrade: ${upgrade}`)
+            //Log(`Installing upgrade: ${upgrade}`)
             this.GO.install_upgrade(upgrade);
         }
         this.RefillMagazine();
     }
 
-    RefillMagazine(){
-        this.GO?.cast_Weapon().SetAmmoElapsed(this.MagSize)
-    }
+    RefillMagazine(){ this.AmmoElapsed = this.MagSize; }
 }
 
 export enum WeaponType{
     Pistol = 0,
-    Shotgun,
-    SMG,
+    //Shotgun = 1,
+    SMG = 2,
     AssaultRifle,
     MachineGun,
     SniperRifle,

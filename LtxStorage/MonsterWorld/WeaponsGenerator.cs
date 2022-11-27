@@ -15,7 +15,14 @@ public class WeaponsGenerator : BaseGenerator {
     };
 
     private readonly List<string> ignoredWeapons = new List<string>() {
-        "wpn_saiga12s_1p29"
+        // "wpn_saiga12s",
+        // "wpn_saiga12s_ps01",
+        // "wpn_saiga12s_1p29",
+        // "wpn_saiga12s_kobra",
+        // "wpn_vepr_ps01",
+        // "wpn_vepr_kobra",
+        // "wpn_vepr_1p29",
+        // "wpn_vepr",
     };
 
     private Section baseParamsSection;
@@ -52,6 +59,7 @@ public class WeaponsGenerator : BaseGenerator {
         var allVariantWeapons = new Dictionary<string, Section>();
         foreach (var w in Storage.AllFiles.Where(f => f.Name.StartsWith("w_")).SelectMany(f => f.Sections)
                      .Where(s => s.Name.StartsWith("wpn_") && s.AllParentSectionNames.Contains("default_weapon_params"))) {
+            
             if (ignoredWeapons.Contains(w.Name))
                 continue;
             
@@ -146,12 +154,13 @@ public class WeaponsGenerator : BaseGenerator {
         var weaponsByType = new Dictionary<WeaponType, List<Section>>();
         var index = 1;
         foreach (var (baseWeapon, variants) in baseWithVariants) {
-            Console.WriteLine($"Generating [{index++} / {baseWithVariants.Count}]: for {baseWeapon.Name}");
             var type = MonsterWorldHelpers.GetWeaponType(baseWeapon);
-            if (type == WeaponType.NotSupported) {
+            if (type is WeaponType.NotSupported or WeaponType.Shotgun) {
                 Console.WriteLine($"Not supported: {baseWeapon["kind"]} for {baseWeapon.Name}");
                 continue;
             }
+            
+            Console.WriteLine($"Generating [{index++} / {baseWithVariants.Count}]: for {baseWeapon.Name}");
 
             var variantSectionNames = new List<string>();
 
@@ -196,10 +205,12 @@ public class WeaponsGenerator : BaseGenerator {
             typeSections.Add(newWeaponSection);
         }
 
-        foreach (var (type, sections) in weaponsByType) Storage.MakeSection(type.ToString().ToLower(), mwWeaponsFile, properties: sections.Select(s => s.Name));
+        foreach (var (type, sections) in weaponsByType) 
+            if (sections.Count > 0)
+                Storage.MakeSection(type.ToString().ToLower(), mwWeaponsFile, properties: sections.Select(s => s.Name));
 
         Storage.MakeSection("mw_drops_by_weapon_type", mwWeaponsFile, properties: new {
-            sections = string.Join(",", weaponsByType.Keys.Select(k => k.ToString().ToLower()))
+            sections = string.Join(",", weaponsByType.Where(kv => kv.Value.Count > 0).Select(kv => kv.Key.ToString().ToLower()))
         });
     }
 
@@ -218,18 +229,19 @@ public class WeaponsGenerator : BaseGenerator {
         }
 
         var steps = 20;
+        var basePct = 5;
 
         {
             var rpm = weapon.GetInt("rpm");
-            var valuePerStep = (int)GetValuePerStep(rpm, 5, rpm <= 100 ? 2 : 1);
+            var valuePerStep = (int)GetValuePerStep(rpm, basePct, rpm <= 100 ? 2 : 1);
             for (var i = 0; i < steps; i++) result[UpgradeType.Rpm].Add(GenerateUpgrade(new { rpm = ToUpgradeValue(valuePerStep) }));
         }
 
         {
             var bulletSpeed = weapon.GetInt("bullet_speed");
             var fireDistance = weaponFireDistanceByType[MonsterWorldHelpers.GetWeaponType(weapon)];
-            var valuePerStepBulletSpeed = (int)GetValuePerStep(bulletSpeed, 5, 1);
-            var valuePerStepFireDistance = (int)GetValuePerStep(fireDistance, 5, 1);
+            var valuePerStepBulletSpeed = (int)GetValuePerStep(bulletSpeed, basePct, 1);
+            var valuePerStepFireDistance = (int)GetValuePerStep(fireDistance, basePct, 1);
             for (var i = 0; i < steps; i++)
                 result[UpgradeType.BulletSpeed].Add(GenerateUpgrade(new {
                     bullet_speed = ToUpgradeValue(valuePerStepBulletSpeed),
@@ -246,13 +258,13 @@ public class WeaponsGenerator : BaseGenerator {
             var zoom_cam_max_angle_horz = weapon.GetFloat("zoom_cam_max_angle_horz");
             var zoom_cam_step_angle_horz = weapon.GetFloat("zoom_cam_step_angle_horz");
             if (cam_max_angle > 1f) {
-                var valuePerStep_cam_max_angle = -GetValuePerStep(cam_max_angle, 5);
-                var valuePerStep_cam_max_angle_horz = -GetValuePerStep(cam_max_angle_horz, 5);
-                var valuePerStep_cam_step_angle_horz = -GetValuePerStep(cam_step_angle_horz, 5);
-                var valuePerStep_zoom_cam_max_angle = -GetValuePerStep(zoom_cam_max_angle, 5);
-                var valuePerStep_zoom_cam_max_angle_horz = -GetValuePerStep(zoom_cam_max_angle_horz, 5);
-                var valuePerStep_zoom_cam_step_angle_horz = -GetValuePerStep(zoom_cam_step_angle_horz, 5);
-                var valuePerStep_crosshair_intertion = -GetValuePerStep(crosshair_inertion, 5);
+                var valuePerStep_cam_max_angle = -GetValuePerStep(cam_max_angle, basePct);
+                var valuePerStep_cam_max_angle_horz = -GetValuePerStep(cam_max_angle_horz, basePct);
+                var valuePerStep_cam_step_angle_horz = -GetValuePerStep(cam_step_angle_horz, basePct);
+                var valuePerStep_zoom_cam_max_angle = -GetValuePerStep(zoom_cam_max_angle, basePct);
+                var valuePerStep_zoom_cam_max_angle_horz = -GetValuePerStep(zoom_cam_max_angle_horz, basePct);
+                var valuePerStep_zoom_cam_step_angle_horz = -GetValuePerStep(zoom_cam_step_angle_horz, basePct);
+                var valuePerStep_crosshair_intertion = -GetValuePerStep(crosshair_inertion, basePct);
 
                 for (var i = 0; i < steps; i++)
                     result[UpgradeType.Recoil].Add(GenerateUpgrade(new {
@@ -284,20 +296,20 @@ public class WeaponsGenerator : BaseGenerator {
             var PDM_disp_vel_factor = weapon.GetFloat("PDM_disp_vel_factor");
 
             if (fireDispersionBase > 0.025) {
-                var valuePerStep_fire_dispersion_base = -GetValuePerStep(fireDispersionBase, 5);
-                var valuePerStep_cam_relax_speed = GetValuePerStep(cam_relax_speed, 5);
-                var valuePerStep_zoom_cam_relax_speed = GetValuePerStep(zoom_cam_relax_speed, 5);
-                var valuePerStep_cam_dispersion = -GetValuePerStep(cam_dispersion, 5);
-                var valuePerStep_cam_dispersion_frac = -GetValuePerStep(cam_dispersion_frac, 5);
-                var valuePerStep_cam_dispersion_inc = -GetValuePerStep(cam_dispersion_inc, 5);
-                var valuePerStep_zoom_cam_dispersion = -GetValuePerStep(zoom_cam_dispersion, 5);
-                var valuePerStep_zoom_cam_dispersion_frac = -GetValuePerStep(zoom_cam_dispersion_frac, 5);
-                var valuePerStep_zoom_cam_dispersion_inc = -GetValuePerStep(zoom_cam_dispersion_inc, 5);
-                var valuePerStep_PDM_disp_accel_factor = -GetValuePerStep(PDM_disp_accel_factor, 5);
-                var valuePerStep_PDM_disp_base = -GetValuePerStep(PDM_disp_base, 5);
-                var valuePerStep_PDM_disp_crouch = -GetValuePerStep(PDM_disp_crouch, 5);
-                var valuePerStep_PDM_disp_crouch_no_acc = -GetValuePerStep(PDM_disp_crouch_no_acc, 5);
-                var valuePerStep_PDM_disp_vel_factor = -GetValuePerStep(PDM_disp_vel_factor, 5);
+                var valuePerStep_fire_dispersion_base = -GetValuePerStep(fireDispersionBase, basePct);
+                var valuePerStep_cam_relax_speed = GetValuePerStep(cam_relax_speed, basePct);
+                var valuePerStep_zoom_cam_relax_speed = GetValuePerStep(zoom_cam_relax_speed, basePct);
+                var valuePerStep_cam_dispersion = -GetValuePerStep(cam_dispersion, basePct);
+                var valuePerStep_cam_dispersion_frac = -GetValuePerStep(cam_dispersion_frac, basePct);
+                var valuePerStep_cam_dispersion_inc = -GetValuePerStep(cam_dispersion_inc, basePct);
+                var valuePerStep_zoom_cam_dispersion = -GetValuePerStep(zoom_cam_dispersion, basePct);
+                var valuePerStep_zoom_cam_dispersion_frac = -GetValuePerStep(zoom_cam_dispersion_frac, basePct);
+                var valuePerStep_zoom_cam_dispersion_inc = -GetValuePerStep(zoom_cam_dispersion_inc, basePct);
+                var valuePerStep_PDM_disp_accel_factor = -GetValuePerStep(PDM_disp_accel_factor, basePct);
+                var valuePerStep_PDM_disp_base = -GetValuePerStep(PDM_disp_base, basePct);
+                var valuePerStep_PDM_disp_crouch = -GetValuePerStep(PDM_disp_crouch, basePct);
+                var valuePerStep_PDM_disp_crouch_no_acc = -GetValuePerStep(PDM_disp_crouch_no_acc, basePct);
+                var valuePerStep_PDM_disp_vel_factor = -GetValuePerStep(PDM_disp_vel_factor, basePct);
 
                 for (var i = 0; i < steps; i++)
                     result[UpgradeType.Dispersion].Add(GenerateUpgrade(new {

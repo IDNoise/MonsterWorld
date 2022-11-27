@@ -1,7 +1,7 @@
 import { Log } from '../../StalkerModBase';
 import { World } from '../World';
 import { Skill } from '../Skills/Skill';
-import { StatType, StatBonusType, PctStats, MultStats } from '../Configs/Stats';
+import { StatType, StatBonusType, PctStats, MultStats, MaxValueByStat } from '../Configs/Stats';
 import { Save, Load } from '../Helpers/StalkerAPI';
 import { SumTable } from '../Helpers/Collections';
 
@@ -9,28 +9,28 @@ export abstract class MWObject {
     Skills: Map<string, Skill> = new Map();
 
     constructor(public id: Id) {
-        Log(`Construct ${id}`)
+        //Log(`Construct ${id}`)
     }
 
     Initialize(): void{
-        Log(`Initialize ${this.SectionId} : ${this.Type}`)
+       // Log(`Initialize ${this.SectionId} : ${this.Type}`)
         if (!this.WasInitializedForFirstTime){
             this.OnFirstTimeInitialize();
             this.WasInitializedForFirstTime = true;
         }
         this.OnInitialize()
-        Log(`Initialize finished`)
+        //Log(`Initialize finished`)
     }
 
     private get WasInitializedForFirstTime(): boolean { return this.Load("Initialized"); }
     private set WasInitializedForFirstTime(initialized: boolean) { this.Save("Initialized", initialized); }
 
     protected OnFirstTimeInitialize(): void {
-        Log(`OnFirstTimeInitialize: ${this.SectionId}`)
+        //Log(`OnFirstTimeInitialize: ${this.SectionId}`)
     }
 
     protected OnInitialize(): void {
-        Log(`OnInitialize: ${this.SectionId}`)
+        //Log(`OnInitialize: ${this.SectionId}`)
         this.SetupSkills();
     }
 
@@ -89,7 +89,7 @@ export abstract class MWObject {
 
     public AddStatBonus(stat: StatType, bonusType: StatBonusType, bonus: number, source: string, duration?: number): void{
         let field = GetStatBonusField(stat, bonusType);
-        Log(`Adding stat bonus to ${this.SectionId} stat: ${stat}, type: ${bonusType} (${field}), bonus: ${bonus}, source: ${source}`)
+        //Log(`Adding stat bonus to ${this.SectionId} stat: ${stat}, type: ${bonusType} (${field}), bonus: ${bonus}, source: ${source}`)
 
         if (bonus == 0){
             return;
@@ -112,7 +112,7 @@ export abstract class MWObject {
 
     public RemoveStatBonus(stat: StatType, bonusType: StatBonusType, source: string): void{
         let field = GetStatBonusField(stat, bonusType);
-        Log(`Removing stat bonus from ${this.SectionId} stat: ${stat}, type: ${bonusType} (${field}), source: ${source}`)
+        //Log(`Removing stat bonus from ${this.SectionId} stat: ${stat}, type: ${bonusType} (${field}), source: ${source}`)
 
         let bonuses = this.Load<LuaTable<string, number>>(field, new LuaTable());
         if (bonuses.has(source)){
@@ -140,10 +140,23 @@ export abstract class MWObject {
     RecalculateStatTotal(stat: StatType){
         let current = this.GetStat(stat)
         let base = this.GetStatBase(stat); 
+        let maxValueCfg = MaxValueByStat.get(stat);
+
         let flatBonus = this.GetTotalFlatBonus(stat)
+        if (maxValueCfg && maxValueCfg.Flat){
+            flatBonus = math.min(flatBonus, maxValueCfg.Flat)
+        }
+
         let pctBonus = this.GetTotalPctBonus(stat)
+        if (maxValueCfg && maxValueCfg.Pct){
+            pctBonus = math.min(pctBonus, maxValueCfg.Pct)
+        }
 
         let total = (base + flatBonus) * (1 + pctBonus / 100);
+        if (maxValueCfg && maxValueCfg.Total){
+            total = math.min(pctBonus, maxValueCfg.Total)
+        }
+
         this.Save(GetStatTotalField(stat), total)
         this.OnStatChanged(stat, current, total);
     }
@@ -174,7 +187,7 @@ export abstract class MWObject {
     }
 
     protected OnStatChanged(stat: StatType, prev: number, current: number){
-        Log(`OnStatChanged ${stat} from ${prev} to ${current}`)
+        //Log(`OnStatChanged ${stat} from ${prev} to ${current}`)
         if (stat == StatType.MaxHP){
             if (current > prev)
                 this.HP += (current - prev);
@@ -187,7 +200,7 @@ export abstract class MWObject {
     LoadSkillData<T>(skillId: string, varname: string, def?: T): T { return this.Load(`Skill_${skillId}_${varname}`, def); }
 
     protected SetupSkills() {
-        Log(`SetupSkills: ${this.SectionId}`)
+        //Log(`SetupSkills: ${this.SectionId}`)
     }
 
     protected AddSkill(skilLId: string, skill: Skill){

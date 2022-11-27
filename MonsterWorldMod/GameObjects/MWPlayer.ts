@@ -86,11 +86,13 @@ export class MWPlayer extends MWObject {
     override SetupSkills() {
         super.SetupSkills();
         this.AddSkill("PassiveMaxHP", new SkillPassiveStatBonus(StatType.MaxHP, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
-        this.AddSkill("PassiveHPRegen", new SkillPassiveStatBonus(StatType.HPRegen, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
+        this.AddSkill("PassiveHPRegen", new SkillPassiveStatBonus(StatType.HPRegen, StatBonusType.Pct, (level: number) => 20 * level, PriceFormulaConstant(1), 50))
         this.AddSkill("PassiveRunSpeed", new SkillPassiveStatBonus(StatType.RunSpeedMult, StatBonusType.Pct, (level: number) => 2 * level, PriceFormulaConstant(1), 25))
+        this.AddSkill("PassiveSprintSpeed", new SkillPassiveStatBonus(StatType.SprintSpeedMult, StatBonusType.Pct, (level: number) => 1 * level, PriceFormulaConstant(1), 25))
         this.AddSkill("PassiveReloadSpeed", new SkillPassiveStatBonus(StatType.ReloadSpeedBonusPct, StatBonusType.Flat, (level: number) => 2 * level, PriceFormulaConstant(1), 25))
         this.AddSkill("PassiveCritDamage", new SkillPassiveStatBonus(StatType.CritDamagePct, StatBonusType.Flat, (level: number) => 5 * level, PriceFormulaConstant(1), 50))
         this.AddSkill("PassiveXpGain", new SkillPassiveStatBonus(StatType.XPGainMult, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 25))
+        this.AddSkill("PassiveXpGain", new SkillPassiveStatBonus(StatType.FreeShotOnCritChancePct, StatBonusType.Pct, (level: number) => 5 * level, PriceFormulaConstant(1), 25))
     }
 
     override IterateSkills(iterator: (s: Skill) => void, onlyWithLevel?: boolean): void {
