@@ -3407,6 +3407,22 @@ ObjectBonusGenerators:set(
         return GetBonusValue(5, 500 * MaxValueMultByObjectType[objectType], level, quality)
     end
 )
+ObjectBonusGenerators:set(
+    "XPGainMult",
+    function(stat, level, quality, bonusType, objectType)
+        CheckSupportedBonusType(stat, bonusType, "pct")
+        return GetBonusValue(10, 150 * MaxValueMultByObjectType[objectType], level, quality)
+    end
+)
+ObjectBonusGenerators:set(
+    "MaxHP",
+    function(stat, level, quality, bonusType, objectType)
+        if bonusType == "pct" then
+            return GetBonusValue(2, 75 * MaxValueMultByObjectType[objectType], level, quality)
+        end
+        return GetBonusValue(3, 600 * MaxValueMultByObjectType[objectType], level, quality)
+    end
+)
 local function WeaponDamageBonusByTypeGenerator(stat, level, quality, bonusType, objectType)
     CheckSupportedBonusType(stat, bonusType, "pct")
     return GetBonusValue(2, 150 * MaxValueMultByObjectType[objectType], level, quality)
@@ -5222,8 +5238,6 @@ end
 function MWArmor.prototype.GenerateStats(self)
     MWItem.prototype.GenerateStats(self)
     self:SetStatBase("ArtefactSlots", self.Quality)
-    local maxHPBonus = 5 * self.Level + math.random((self.Quality - 1) * self.Level / 2, (5 + 2 * self.Quality) * self.Level)
-    self:AddStatBonus("MaxHP", "flat", maxHPBonus, "generation")
     local availableStats = {}
     for ____, stat in ipairs(ArmorStatsForGeneration) do
         availableStats[#availableStats + 1] = stat
@@ -5232,8 +5246,9 @@ function MWArmor.prototype.GenerateStats(self)
     availableStats[#availableStats + 1] = RandomFromArray(DamageBonusesByEnemyType)
     local statsToSelect = math.min(#availableStats, 1 + self.Quality)
     local selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect)
+    selectedStats[#selectedStats + 1] = "MaxHP"
     for ____, stat in ipairs(selectedStats) do
-        local bonusType = __TS__ArrayIncludes(PctStats, stat) and "flat" or "pct"
+        local bonusType = (__TS__ArrayIncludes(PctStats, stat) or stat == "MaxHP") and "flat" or "pct"
         local bonus = GetStatBonusForObject(
             stat,
             self.Level,
@@ -6635,7 +6650,11 @@ function World.prototype.GetMonster(self, monster)
 end
 function World.prototype.GetItem(self, item)
     local itemId = GetId(item)
-    local se_obj = alife_object(itemId)
+    local ____alife_result_object_result_0 = alife()
+    if ____alife_result_object_result_0 ~= nil then
+        ____alife_result_object_result_0 = ____alife_result_object_result_0:object(itemId)
+    end
+    local se_obj = ____alife_result_object_result_0
     local go = level.object_by_id(itemId)
     if se_obj == nil or go == nil then
         return nil
@@ -6663,33 +6682,33 @@ function World.prototype.GetItem(self, item)
 end
 function World.prototype.GetWeapon(self, itemOrId)
     local item = self:GetItem(itemOrId)
-    local ____item_Type_0 = item
-    if ____item_Type_0 ~= nil then
-        ____item_Type_0 = ____item_Type_0.Type
+    local ____item_Type_2 = item
+    if ____item_Type_2 ~= nil then
+        ____item_Type_2 = ____item_Type_2.Type
     end
-    if ____item_Type_0 == "Weapon" then
+    if ____item_Type_2 == "Weapon" then
         return item
     end
     return nil
 end
 function World.prototype.GetArmor(self, itemOrId)
     local item = self:GetItem(itemOrId)
-    local ____item_Type_2 = item
-    if ____item_Type_2 ~= nil then
-        ____item_Type_2 = ____item_Type_2.Type
+    local ____item_Type_4 = item
+    if ____item_Type_4 ~= nil then
+        ____item_Type_4 = ____item_Type_4.Type
     end
-    if ____item_Type_2 == "Armor" then
+    if ____item_Type_4 == "Armor" then
         return item
     end
     return nil
 end
 function World.prototype.GetArtefact(self, itemOrId)
     local item = self:GetItem(itemOrId)
-    local ____item_Type_4 = item
-    if ____item_Type_4 ~= nil then
-        ____item_Type_4 = ____item_Type_4.Type
+    local ____item_Type_6 = item
+    if ____item_Type_6 ~= nil then
+        ____item_Type_6 = ____item_Type_6.Type
     end
-    if ____item_Type_4 == "Artefact" then
+    if ____item_Type_6 == "Artefact" then
         return item
     end
     return nil
@@ -6723,29 +6742,29 @@ function World.prototype.OnItemUse(self, item)
             "mw_heal_pct",
             25
         )
-        local ____self_Player_6, ____HP_7 = self.Player, "HP"
-        ____self_Player_6[____HP_7] = ____self_Player_6[____HP_7] + self.Player.MaxHP * healPct / 100
+        local ____self_Player_8, ____HP_9 = self.Player, "HP"
+        ____self_Player_8[____HP_9] = ____self_Player_8[____HP_9] + self.Player.MaxHP * healPct / 100
     end
 end
 function World.prototype.OnItemToRuck(self, itemGO)
     local item = self:GetItem(itemGO)
-    local ____item_OnItemUnequipped_result_8 = item
-    if ____item_OnItemUnequipped_result_8 ~= nil then
-        ____item_OnItemUnequipped_result_8 = ____item_OnItemUnequipped_result_8:OnItemUnequipped()
+    local ____item_OnItemUnequipped_result_10 = item
+    if ____item_OnItemUnequipped_result_10 ~= nil then
+        ____item_OnItemUnequipped_result_10 = ____item_OnItemUnequipped_result_10:OnItemUnequipped()
     end
 end
 function World.prototype.OnItemToSlot(self, itemGO)
     local item = self:GetItem(itemGO)
-    local ____item_OnItemEquipped_result_10 = item
-    if ____item_OnItemEquipped_result_10 ~= nil then
-        ____item_OnItemEquipped_result_10 = ____item_OnItemEquipped_result_10:OnItemEquipped()
+    local ____item_OnItemEquipped_result_12 = item
+    if ____item_OnItemEquipped_result_12 ~= nil then
+        ____item_OnItemEquipped_result_12 = ____item_OnItemEquipped_result_12:OnItemEquipped()
     end
 end
 function World.prototype.OnItemToBelt(self, itemGO)
     local item = self:GetItem(itemGO)
-    local ____item_OnItemEquipped_result_12 = item
-    if ____item_OnItemEquipped_result_12 ~= nil then
-        ____item_OnItemEquipped_result_12 = ____item_OnItemEquipped_result_12:OnItemEquipped()
+    local ____item_OnItemEquipped_result_14 = item
+    if ____item_OnItemEquipped_result_14 ~= nil then
+        ____item_OnItemEquipped_result_14 = ____item_OnItemEquipped_result_14:OnItemEquipped()
     end
 end
 function World.prototype.OnWeaponFired(self, wpn, ammo_elapsed)
@@ -6789,11 +6808,11 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
     local damage = monster.Damage
     if attackerGO:is_stalker() and shit.weapon_id ~= 0 and shit.weapon_id ~= attackerGO:id() then
         local weapon = level.object_by_id(shit.weapon_id)
-        local ____weapon_is_weapon_result_14 = weapon
-        if ____weapon_is_weapon_result_14 ~= nil then
-            ____weapon_is_weapon_result_14 = ____weapon_is_weapon_result_14:is_weapon()
+        local ____weapon_is_weapon_result_16 = weapon
+        if ____weapon_is_weapon_result_16 ~= nil then
+            ____weapon_is_weapon_result_16 = ____weapon_is_weapon_result_16:is_weapon()
         end
-        if ____weapon_is_weapon_result_14 then
+        if ____weapon_is_weapon_result_16 then
             damage = damage * clamp(
                 weapon:cast_Weapon():RPM(),
                 0.3,
@@ -6807,8 +6826,8 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
     if self.Player.HP > self.Player.MaxHP * 0.5 and damage >= self.Player.HP then
         damage = self.Player.HP - 1
     end
-    local ____self_Player_16, ____HP_17 = self.Player, "HP"
-    ____self_Player_16[____HP_17] = ____self_Player_16[____HP_17] - damage
+    local ____self_Player_18, ____HP_19 = self.Player, "HP"
+    ____self_Player_18[____HP_19] = ____self_Player_18[____HP_19] - damage
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
@@ -6905,8 +6924,8 @@ end
 function World.prototype.OnMonsterKilled(self, monster, isCrit)
     Log(((("OnMonsterKilled. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
     self.UIManager:ShowXPReward(monster.XPReward)
-    local ____self_Player_18, ____CurrentXP_19 = self.Player, "CurrentXP"
-    ____self_Player_18[____CurrentXP_19] = ____self_Player_18[____CurrentXP_19] + monster.XPReward
+    local ____self_Player_20, ____CurrentXP_21 = self.Player, "CurrentXP"
+    ____self_Player_20[____CurrentXP_21] = ____self_Player_20[____CurrentXP_21] + monster.XPReward
     local dropChance = monster.DropChance * self.enemyDropChanceMult
     if IsPctRolled(dropChance) then
         self:GenerateDrop(monster)
@@ -7016,9 +7035,9 @@ end
 function World.prototype.RemoveHighlight(self, id)
     self.Timers:Remove(tostring(id) .. "_highlight")
     local particles = self.highlightParticles[id]
-    local ____particles_stop_result_20 = particles
-    if ____particles_stop_result_20 ~= nil then
-        ____particles_stop_result_20 = ____particles_stop_result_20:stop()
+    local ____particles_stop_result_22 = particles
+    if ____particles_stop_result_22 ~= nil then
+        ____particles_stop_result_22 = ____particles_stop_result_22:stop()
     end
     self.highlightParticles[id] = nil
 end

@@ -79,7 +79,7 @@ export class World {
     
     public GetItem(item: ObjectOrId): MWItem | undefined {
         let itemId = GetId(item);
-        let se_obj = alife_object(itemId);
+        let se_obj = alife()?.object(itemId);
         let go = level.object_by_id(itemId);
         if (se_obj == null || go == null)
             return undefined;

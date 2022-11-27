@@ -47,10 +47,6 @@ export class MWArmor extends MWItem {
 
         this.SetStatBase(StatType.ArtefactSlots, this.Quality);
 
-        //Armor always has HP bonus
-        let maxHPBonus = 5 * this.Level + math.random((this.Quality - 1) * this.Level / 2, (5 + 2 * this.Quality) * this.Level);
-        this.AddStatBonus(StatType.MaxHP, StatBonusType.Flat, maxHPBonus, "generation")
-
         let availableStats: StatType[] = [];
         for(let stat of ArmorStatsForGeneration)
             availableStats.push(stat);  
@@ -58,12 +54,12 @@ export class MWArmor extends MWItem {
         availableStats.push(RandomFromArray(WeaponTypeDamageBonuses))
         availableStats.push(RandomFromArray(DamageBonusesByEnemyType))
 
-
         let statsToSelect = math.min(availableStats.length, 1 + this.Quality);
         let selectedStats = TakeRandomUniqueElementsFromArray(availableStats, statsToSelect);
+        selectedStats.push(StatType.MaxHP) //Always has hp bonus
 
         for(let stat of selectedStats){
-            let bonusType = PctStats.includes(stat) ? StatBonusType.Flat : StatBonusType.Pct;
+            let bonusType = PctStats.includes(stat) || stat == StatType.MaxHP ? StatBonusType.Flat : StatBonusType.Pct;
             let bonus = GetStatBonusForObject(stat, this.Level, this.Quality, bonusType, this.Type);
             this.AddStatBonus(stat, bonusType, bonus, "generation")
         }

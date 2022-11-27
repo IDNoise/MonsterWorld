@@ -256,6 +256,18 @@ ObjectBonusGenerators.set(StatType.HPRegen, (stat, level, quality, bonusType, ob
     return GetBonusValue(5, 500 * MaxValueMultByObjectType[objectType], level, quality);
 });
 
+ObjectBonusGenerators.set(StatType.XPGainMult, (stat, level, quality, bonusType, objectType) => {
+    CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
+    return GetBonusValue(10, 150 * MaxValueMultByObjectType[objectType], level, quality);
+});
+
+ObjectBonusGenerators.set(StatType.MaxHP, (stat, level, quality, bonusType, objectType) => {
+    if (bonusType == StatBonusType.Pct)
+        return GetBonusValue(2, 75 * MaxValueMultByObjectType[objectType], level, quality);
+    return GetBonusValue(3, 600 * MaxValueMultByObjectType[objectType], level, quality);
+});
+
+
 let WeaponDamageBonusByTypeGenerator: StatBonusGenerator = (stat, level, quality, bonusType, objectType) => {
     CheckSupportedBonusType(stat, bonusType, StatBonusType.Pct)
     return GetBonusValue(2, 150 * MaxValueMultByObjectType[objectType], level, quality);
