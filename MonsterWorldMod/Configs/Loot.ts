@@ -1,3 +1,4 @@
+import { Log } from '../../StalkerModBase';
 import { GetByWeightFromArray, TakeRandomElementFromArray, GetByWeightFromTable } from '../Helpers/Collections';
 import { MonsterRank } from './Enemies';
 import { StatType } from "./Stats";
@@ -9,13 +10,13 @@ export const enum DropType {
     Armor,
 }
 
-export let EnemyDropChanceByRank: number[] = [15, 100, 35];
 export let MinQuality = 1;
 export let MaxQuality = 5;
 
 export let HigherLevelDropChancePct = 5;
 
 export type QualityConfig = {
+    MinPlayerLevel: number,
     Weight: number,
     Title: string,
     TextColor: ARGBColor,
@@ -23,14 +24,14 @@ export type QualityConfig = {
 }
 
 export let QualityConfigs : LuaTable<number, QualityConfig> =  new LuaTable();
-QualityConfigs.set(1, {Weight: 250, Title: "Common",    TextColor: GetARGB(255,230,230,230), Particles: "static\\effects\\net_base_green"});
-QualityConfigs.set(2, {Weight: 20,  Title: "Uncommmon", TextColor: GetARGB(255,20,20,230),   Particles: "static\\effects\\net_base_green"});
-QualityConfigs.set(3, {Weight: 10,  Title: "Rare",      TextColor: GetARGB(255,20,230,20),   Particles: "static\\effects\\net_base_blue"});
-QualityConfigs.set(4, {Weight: 5,   Title: "Epic",      TextColor: GetARGB(255,230,20,20),   Particles: "static\\effects\\net_base_red"});
-QualityConfigs.set(5, {Weight: 1,   Title: "Legendary", TextColor: GetARGB(255,240,165,5),   Particles: "_samples_particles_\\holo_lines"});
+QualityConfigs.set(1, {MinPlayerLevel: 1,  Weight: 100, Title: "Common",    TextColor: GetARGB(255,230,230,230), Particles: "explosions\\effects\\campfire_hot_glow"});
+QualityConfigs.set(2, {MinPlayerLevel: 2,  Weight: 25,  Title: "Uncommmon", TextColor: GetARGB(255,20,20,230),   Particles: "static\\effects\\net_base_green",});
+QualityConfigs.set(3, {MinPlayerLevel: 5,  Weight: 15,  Title: "Rare",      TextColor: GetARGB(255,20,230,20),   Particles: "static\\effects\\net_base_blue"});
+QualityConfigs.set(4, {MinPlayerLevel: 10, Weight: 7,   Title: "Epic",      TextColor: GetARGB(255,230,20,20),   Particles: "static\\effects\\net_base_red"});
+QualityConfigs.set(5, {MinPlayerLevel: 15, Weight: 2,   Title: "Legendary", TextColor: GetARGB(255,240,165,5),   Particles: "_samples_particles_\\holo_lines"});
 
-export function GetDropQuality(): number {
-    return GetByWeightFromTable(QualityConfigs, (el) => el.Weight)
+export function GetDropQuality(level: number): number {
+    return GetByWeightFromTable(QualityConfigs, (el) => el.MinPlayerLevel >= level ? el.Weight : 0)
 }
 
 export type DropConfig = {

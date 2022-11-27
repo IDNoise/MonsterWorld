@@ -37,11 +37,6 @@ export class MWWeapon extends MWItem {
         return result;
     }
 
-    public override OnItemPickedUp(){
-        super.OnItemPickedUp();
-        this.RefillMagazine();
-    }
-
     OnReloadStart(anim_table: AnimationTable) {
         let mult = 1 + MonsterWorld.GetStat(StatType.ReloadSpeedBonusPct, this, MonsterWorld.Player) / 100;
         anim_table.anm_speed *= mult

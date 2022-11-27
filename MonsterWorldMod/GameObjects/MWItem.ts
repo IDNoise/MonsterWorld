@@ -13,6 +13,7 @@ export abstract class MWItem extends MWObject {
 
         this.Level = spawnCfg.Level;
         this.Quality = math.max(MinQuality, math.min(MaxQuality, spawnCfg.Quality));
+        this.GO.set_condition(100)
 
         this.GenerateStats();
     }
@@ -21,7 +22,6 @@ export abstract class MWItem extends MWObject {
 
     public OnItemPickedUp(){
         Log(`OnItemPickedUp ${this.SectionId}`)
-        this.GO.set_condition(100)
     }
 
     public GetPlayerStatBonusesOnEquip(): StatType[] { return [] }

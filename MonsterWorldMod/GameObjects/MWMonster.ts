@@ -5,6 +5,7 @@ import { MonsterConfigs, MonsterRank, MonsterRankConfigs, MonsterType } from '..
 import { StatType } from '../Configs/Stats';
 import { GetCurrentLocationType } from '../Configs/Levels';
 import { EnemyLocationTypeMults } from '../Configs/Constants';
+import { Log } from '../../StalkerModBase';
 
 export class MWMonster extends MWObject{
     get Type(): ObjectType { return ObjectType.Monster }
@@ -25,7 +26,7 @@ export class MWMonster extends MWObject{
         let enemyDamage = this.GetDamage(this.Level) * (monsterCfg.DamageMult || 1) * monsterRankCfg.DamageMult * locationMults.DamageMult;
 
         this.SetStatBase(StatType.MaxHP, enemyHP)
-        this.Damage = enemyDamage;
+        this.SetStatBase(StatType.Damage, enemyDamage);
         this.XPReward = xpReward;
 
         se_save_var(this.id, this.GO.name(), "looted", true)
@@ -58,13 +59,14 @@ export class MWMonster extends MWObject{
         return nameInfo;
     }
 
-    get DropChance(): number { return loot.EnemyDropChanceByRank[this.Rank] * EnemyLocationTypeMults.get(GetCurrentLocationType()).DropChanceMult; }
+    get DropChance(): number { 
+        return MonsterRankConfigs[this.Rank].DropChance * EnemyLocationTypeMults.get(GetCurrentLocationType()).DropChanceMult; 
+    }
 
     get XPReward(): number { return this.Load("XPReward"); }
     set XPReward(expReward: number) { this.Save("XPReward", expReward); }
 
-    get Damage(): number { return this.Load("DMG"); }
-    set Damage(damage: number) { this.Save("DMG", damage); }
+    get Damage(): number { return this.GetStat(StatType.Damage); }
 
     get Rank(): MonsterRank { return this.Load("Rank"); }
     set Rank(rank: MonsterRank) { this.Save("Rank", rank); }

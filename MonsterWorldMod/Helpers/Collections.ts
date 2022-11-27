@@ -61,9 +61,11 @@ export function GetByWeightFromTable<TK extends AnyNotNil, TV>(tbl: LuaTable<TK,
 
     let randValue = math.random(1, totalWeight);
     let weightStartCheck = 0;
-    let first: TK | undefined = undefined;
     for(let [k, v] of tbl){
-        weightStartCheck += weightGetter(v);
+        let weight = weightGetter(v);
+        if (weight <= 0) 
+            continue;
+        weightStartCheck += weight;
 
         if (randValue <= weightStartCheck){
             return k;

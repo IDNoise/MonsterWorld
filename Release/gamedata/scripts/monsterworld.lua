@@ -3398,12 +3398,18 @@ function ____exports.GetByWeightFromTable(tbl, weightGetter)
     end
     local randValue = math.random(1, totalWeight)
     local weightStartCheck = 0
-    local first = nil
     for k, v in pairs(tbl) do
-        weightStartCheck = weightStartCheck + weightGetter(v)
-        if randValue <= weightStartCheck then
-            return k
+        do
+            local weight = weightGetter(v)
+            if weight <= 0 then
+                goto __continue18
+            end
+            weightStartCheck = weightStartCheck + weight
+            if randValue <= weightStartCheck then
+                return k
+            end
         end
+        ::__continue18::
     end
     return keys[1]
 end
@@ -3744,6 +3750,7 @@ ____exports.MonsterRankConfigs = {
         HpMult = 1,
         XpMult = 1,
         DamageMult = 1,
+        DropChance = 15,
         DropLevelIncreaseChance = 1,
         DropQualityIncreaseChance = 1,
         TextColor = GetARGB(255, 120, 250, 30)
@@ -3753,8 +3760,9 @@ ____exports.MonsterRankConfigs = {
         HpMult = 3,
         XpMult = 2,
         DamageMult = 1.5,
-        DropLevelIncreaseChance = 20,
-        DropQualityIncreaseChance = 20,
+        DropChance = 35,
+        DropLevelIncreaseChance = 10,
+        DropQualityIncreaseChance = 10,
         TextColor = GetARGB(255, 20, 20, 240)
     },
     {
@@ -3762,8 +3770,9 @@ ____exports.MonsterRankConfigs = {
         HpMult = 10,
         XpMult = 5,
         DamageMult = 3,
-        DropLevelIncreaseChance = 50,
-        DropQualityIncreaseChance = 50,
+        DropChance = 100,
+        DropLevelIncreaseChance = 25,
+        DropQualityIncreaseChance = 25,
         TextColor = GetARGB(255, 240, 20, 20)
     }
 }
@@ -3799,6 +3808,7 @@ ____exports.MonsterConfigs.Dog = {
     LocationLevelEnd = 7,
     HpMult = 0.5,
     XpMult = 0.4,
+    DamageMult = 0.5,
     SquadSizeMin = 6,
     SquadSizeMax = 12,
     CommonSection = "dog_weak_white",
@@ -4015,45 +4025,49 @@ local ____exports = {}
 local ____Collections = require("MonsterWorldMod.Helpers.Collections")
 local GetByWeightFromArray = ____Collections.GetByWeightFromArray
 local GetByWeightFromTable = ____Collections.GetByWeightFromTable
-____exports.EnemyDropChanceByRank = {15, 100, 35}
 ____exports.MinQuality = 1
 ____exports.MaxQuality = 5
 ____exports.HigherLevelDropChancePct = 5
 ____exports.QualityConfigs = {}
 ____exports.QualityConfigs[1] = {
-    Weight = 250,
+    MinPlayerLevel = 1,
+    Weight = 100,
     Title = "Common",
     TextColor = GetARGB(255, 230, 230, 230),
-    Particles = "static\\effects\\net_base_green"
+    Particles = "explosions\\effects\\campfire_hot_glow"
 }
 ____exports.QualityConfigs[2] = {
-    Weight = 20,
+    MinPlayerLevel = 2,
+    Weight = 25,
     Title = "Uncommmon",
     TextColor = GetARGB(255, 20, 20, 230),
     Particles = "static\\effects\\net_base_green"
 }
 ____exports.QualityConfigs[3] = {
-    Weight = 10,
+    MinPlayerLevel = 5,
+    Weight = 15,
     Title = "Rare",
     TextColor = GetARGB(255, 20, 230, 20),
     Particles = "static\\effects\\net_base_blue"
 }
 ____exports.QualityConfigs[4] = {
-    Weight = 5,
+    MinPlayerLevel = 10,
+    Weight = 7,
     Title = "Epic",
     TextColor = GetARGB(255, 230, 20, 20),
     Particles = "static\\effects\\net_base_red"
 }
 ____exports.QualityConfigs[5] = {
-    Weight = 1,
+    MinPlayerLevel = 15,
+    Weight = 2,
     Title = "Legendary",
     TextColor = GetARGB(255, 240, 165, 5),
     Particles = "_samples_particles_\\holo_lines"
 }
-function ____exports.GetDropQuality()
+function ____exports.GetDropQuality(level)
     return GetByWeightFromTable(
         ____exports.QualityConfigs,
-        function(el) return el.Weight end
+        function(el) return el.MinPlayerLevel >= level and el.Weight or 0 end
     )
 end
 ____exports.DropConfigs = {{Type = 0, WeightsByRank = {75, 75, 75}}, {Type = 1, WeightsByRank = {10, 15, 25}}, {Type = 3, WeightsByRank = {10, 15, 25}}, {Type = 2, WeightsByRank = {5, 10, 20}}}
@@ -4173,7 +4187,6 @@ local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
 local MWObject = ____MWObject.MWObject
 local ObjectType = ____MWObject.ObjectType
 local constants = require("MonsterWorldMod.Configs.Constants")
-local loot = require("MonsterWorldMod.Configs.Loot")
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
 local MonsterConfigs = ____Enemies.MonsterConfigs
 local MonsterRankConfigs = ____Enemies.MonsterRankConfigs
@@ -4211,7 +4224,7 @@ __TS__SetDescriptor(
     MWMonster.prototype,
     "DropChance",
     {get = function(self)
-        return loot.EnemyDropChanceByRank[self.Rank + 1] * EnemyLocationTypeMults[GetCurrentLocationType()].DropChanceMult
+        return MonsterRankConfigs[self.Rank + 1].DropChance * EnemyLocationTypeMults[GetCurrentLocationType()].DropChanceMult
     end},
     true
 )
@@ -4231,14 +4244,9 @@ __TS__SetDescriptor(
 __TS__SetDescriptor(
     MWMonster.prototype,
     "Damage",
-    {
-        get = function(self)
-            return self:Load("DMG")
-        end,
-        set = function(self, damage)
-            self:Save("DMG", damage)
-        end
-    },
+    {get = function(self)
+        return self:GetStat(5)
+    end},
     true
 )
 __TS__SetDescriptor(
@@ -4279,7 +4287,7 @@ function MWMonster.prototype.OnFirstTimeInitialize(self)
     local xpReward = self:GetXPReward(self.Level) * (monsterCfg.XpMult or 1) * monsterRankCfg.XpMult * locationMults.XpMult
     local enemyDamage = self:GetDamage(self.Level) * (monsterCfg.DamageMult or 1) * monsterRankCfg.DamageMult * locationMults.DamageMult
     self:SetStatBase(2, enemyHP)
-    self.Damage = enemyDamage
+    self:SetStatBase(5, enemyDamage)
     self.XPReward = xpReward
     se_save_var(
         self.id,
@@ -4363,11 +4371,11 @@ function MWItem.prototype.OnFirstTimeInitialize(self)
         MinQuality,
         math.min(MaxQuality, spawnCfg.Quality)
     )
+    self.GO:set_condition(100)
     self:GenerateStats()
 end
 function MWItem.prototype.OnItemPickedUp(self)
     Log("OnItemPickedUp " .. self.SectionId)
-    self.GO:set_condition(100)
 end
 function MWItem.prototype.GetPlayerStatBonusesOnEquip(self)
     return {}
@@ -4560,10 +4568,6 @@ __TS__SetDescriptor(
     end},
     true
 )
-function MWWeapon.prototype.OnItemPickedUp(self)
-    MWItem.prototype.OnItemPickedUp(self)
-    self:RefillMagazine()
-end
 function MWWeapon.prototype.OnReloadStart(self, anim_table)
     local mult = 1 + MonsterWorld:GetStat(14, self, MonsterWorld.Player) / 100
     anim_table.anm_speed = anim_table.anm_speed * mult
@@ -6305,11 +6309,10 @@ function World.prototype.DestroyObject(self, id)
 end
 function World.prototype.OnTakeItem(self, itemGO)
     local item = self:GetItem(itemGO)
-    local ____item_OnItemPickedUp_result_0 = item
-    if ____item_OnItemPickedUp_result_0 ~= nil then
-        ____item_OnItemPickedUp_result_0 = ____item_OnItemPickedUp_result_0:OnItemPickedUp()
+    if item ~= nil then
+        item:OnItemPickedUp()
+        self:CleanupObjectTimersAndMinimapMarks(itemGO:id())
     end
-    self:CleanupObjectTimersAndMinimapMarks(itemGO:id())
 end
 function World.prototype.CleanupObjectTimersAndMinimapMarks(self, id)
     self:RemoveTTLTimer(id)
@@ -6328,22 +6331,22 @@ function World.prototype.OnItemUse(self, item)
             "mw_heal_pct",
             25
         )
-        local ____self_Player_2, ____HP_3 = self.Player, "HP"
-        ____self_Player_2[____HP_3] = ____self_Player_2[____HP_3] + self.Player.MaxHP * healPct / 100
+        local ____self_Player_0, ____HP_1 = self.Player, "HP"
+        ____self_Player_0[____HP_1] = ____self_Player_0[____HP_1] + self.Player.MaxHP * healPct / 100
     end
 end
 function World.prototype.OnItemToRuck(self, itemGO)
     local item = self:GetItem(itemGO)
-    local ____item_OnItemUnequipped_result_4 = item
-    if ____item_OnItemUnequipped_result_4 ~= nil then
-        ____item_OnItemUnequipped_result_4 = ____item_OnItemUnequipped_result_4:OnItemUnequipped()
+    local ____item_OnItemUnequipped_result_2 = item
+    if ____item_OnItemUnequipped_result_2 ~= nil then
+        ____item_OnItemUnequipped_result_2 = ____item_OnItemUnequipped_result_2:OnItemUnequipped()
     end
 end
 function World.prototype.OnItemToSlot(self, itemGO)
     local item = self:GetItem(itemGO)
-    local ____item_OnItemEquipped_result_6 = item
-    if ____item_OnItemEquipped_result_6 ~= nil then
-        ____item_OnItemEquipped_result_6 = ____item_OnItemEquipped_result_6:OnItemEquipped()
+    local ____item_OnItemEquipped_result_4 = item
+    if ____item_OnItemEquipped_result_4 ~= nil then
+        ____item_OnItemEquipped_result_4 = ____item_OnItemEquipped_result_4:OnItemEquipped()
     end
 end
 function World.prototype.OnItemToBelt(self, item)
@@ -6389,11 +6392,11 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
     local damage = monster.Damage
     if attackerGO:is_stalker() and shit.weapon_id ~= 0 and shit.weapon_id ~= attackerGO:id() then
         local weapon = level.object_by_id(shit.weapon_id)
-        local ____weapon_is_weapon_result_8 = weapon
-        if ____weapon_is_weapon_result_8 ~= nil then
-            ____weapon_is_weapon_result_8 = ____weapon_is_weapon_result_8:is_weapon()
+        local ____weapon_is_weapon_result_6 = weapon
+        if ____weapon_is_weapon_result_6 ~= nil then
+            ____weapon_is_weapon_result_6 = ____weapon_is_weapon_result_6:is_weapon()
         end
-        if ____weapon_is_weapon_result_8 then
+        if ____weapon_is_weapon_result_6 then
             damage = damage * clamp(
                 weapon:cast_Weapon():RPM(),
                 0.3,
@@ -6405,8 +6408,8 @@ function World.prototype.OnPlayerHit(self, shit, boneId)
     if self.Player.HP > self.Player.MaxHP * 0.5 and damage >= self.Player.HP then
         damage = self.Player.HP - 1
     end
-    local ____self_Player_10, ____HP_11 = self.Player, "HP"
-    ____self_Player_10[____HP_11] = ____self_Player_10[____HP_11] - damage
+    local ____self_Player_8, ____HP_9 = self.Player, "HP"
+    ____self_Player_8[____HP_9] = ____self_Player_8[____HP_9] - damage
     Log((((((("Player was hit by " .. monster.Name) .. " for ") .. tostring(damage)) .. "(") .. tostring(monster.Damage)) .. ") in ") .. tostring(boneId))
 end
 function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
@@ -6431,7 +6434,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
             local isCritPartHit = ____value[2]
             do
                 if monster.IsDead then
-                    goto __continue43
+                    goto __continue44
                 end
                 local monsterDamage = weaponDamage
                 if monster.GO:is_stalker() then
@@ -6448,35 +6451,35 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
                 self.UIManager:ShowDamage(realDamage, isCrit, monster.IsDead)
                 self.Player:IterateSkills(function(s) return s:OnMonsterHit(monster, isCrit) end)
             end
-            ::__continue43::
+            ::__continue44::
         end
     end
 end
 function World.prototype.GetDamageBonusStatByWeaponType(self, ____type)
     repeat
-        local ____switch52 = ____type
-        local ____cond52 = ____switch52 == WeaponType.Pistol
-        if ____cond52 then
+        local ____switch53 = ____type
+        local ____cond53 = ____switch53 == WeaponType.Pistol
+        if ____cond53 then
             return 19
         end
-        ____cond52 = ____cond52 or ____switch52 == WeaponType.SMG
-        if ____cond52 then
+        ____cond53 = ____cond53 or ____switch53 == WeaponType.SMG
+        if ____cond53 then
             return 20
         end
-        ____cond52 = ____cond52 or ____switch52 == WeaponType.Shotgun
-        if ____cond52 then
+        ____cond53 = ____cond53 or ____switch53 == WeaponType.Shotgun
+        if ____cond53 then
             return 21
         end
-        ____cond52 = ____cond52 or ____switch52 == WeaponType.AssaultRifle
-        if ____cond52 then
+        ____cond53 = ____cond53 or ____switch53 == WeaponType.AssaultRifle
+        if ____cond53 then
             return 22
         end
-        ____cond52 = ____cond52 or ____switch52 == WeaponType.MachineGun
-        if ____cond52 then
+        ____cond53 = ____cond53 or ____switch53 == WeaponType.MachineGun
+        if ____cond53 then
             return 23
         end
-        ____cond52 = ____cond52 or ____switch52 == WeaponType.SniperRifle
-        if ____cond52 then
+        ____cond53 = ____cond53 or ____switch53 == WeaponType.SniperRifle
+        if ____cond53 then
             return 24
         end
     until true
@@ -6503,8 +6506,8 @@ end
 function World.prototype.OnMonsterKilled(self, monster, isCrit)
     Log(((("OnMonsterKilled. " .. monster.Name) .. " (") .. monster.SectionId) .. ")")
     self.UIManager:ShowXPReward(monster.XPReward)
-    local ____self_Player_12, ____CurrentXP_13 = self.Player, "CurrentXP"
-    ____self_Player_12[____CurrentXP_13] = ____self_Player_12[____CurrentXP_13] + monster.XPReward
+    local ____self_Player_10, ____CurrentXP_11 = self.Player, "CurrentXP"
+    ____self_Player_10[____CurrentXP_11] = ____self_Player_10[____CurrentXP_11] + monster.XPReward
     local dropChance = monster.DropChance * self.enemyDropChanceMult
     if IsPctRolled(dropChance) then
         self:GenerateDrop(monster)
@@ -6545,7 +6548,7 @@ function World.prototype.GetDropLevelAndQualityFromMonster(self, monster)
     if IsPctRolled(HigherLevelDropChancePct) then
         dropLevel = dropLevel + 1
     end
-    local qualityLevel = GetDropQuality()
+    local qualityLevel = GetDropQuality(dropLevel)
     local rankCfg = MonsterRankConfigs[monster.Rank + 1]
     if IsPctRolled(rankCfg.DropLevelIncreaseChance) then
         dropLevel = dropLevel + 1
@@ -6614,9 +6617,9 @@ end
 function World.prototype.RemoveHighlight(self, id)
     self.Timers:Remove(tostring(id) .. "_highlight")
     local particles = self.highlightParticles[id]
-    local ____particles_stop_result_14 = particles
-    if ____particles_stop_result_14 ~= nil then
-        ____particles_stop_result_14 = ____particles_stop_result_14:stop()
+    local ____particles_stop_result_12 = particles
+    if ____particles_stop_result_12 ~= nil then
+        ____particles_stop_result_12 = ____particles_stop_result_12:stop()
     end
     self.highlightParticles[id] = nil
 end
@@ -6648,14 +6651,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue91
+                goto __continue92
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue91::
+        ::__continue92::
     end
     return result
 end
@@ -6806,6 +6809,7 @@ local ____CritBones = require("MonsterWorldMod.Constants.CritBones")
 local CriticalBones = ____CritBones.CriticalBones
 local ____StalkerAPI = require("MonsterWorldMod.Helpers.StalkerAPI")
 local CreateWorldPositionAtGO = ____StalkerAPI.CreateWorldPositionAtGO
+local Save = ____StalkerAPI.Save
 ____exports.MonsterWorldMod = __TS__Class()
 local MonsterWorldMod = ____exports.MonsterWorldMod
 MonsterWorldMod.name = "MonsterWorldMod"
@@ -7011,40 +7015,41 @@ function MonsterWorldMod.prototype.OnKeyRelease(self, key)
         ____self_World_Player_10[____SkillPoints_11] = ____self_World_Player_10[____SkillPoints_11] + 1000
     end
     local item = nil
-    local level = math.random(1, 30)
-    local quality = math.random(1, 5)
+    local dropLevel = math.random(1, 30)
+    local qualityLevel = math.random(1, 5)
     local itemType = 0
     if key == DIK_keys.DIK_UP then
         item = self.World:GenerateWeaponDrop(
-            level,
-            quality,
+            dropLevel,
+            qualityLevel,
             CreateWorldPositionAtGO(db.actor)
         )
         itemType = 0
     elseif key == DIK_keys.DIK_DOWN then
         item = self.World:GenerateStimpackDrop(
-            level,
-            quality,
+            dropLevel,
+            qualityLevel,
             CreateWorldPositionAtGO(db.actor)
         )
         itemType = 1
     elseif key == DIK_keys.DIK_RIGHT then
         item = self.World:GenerateArmorDrop(
-            level,
-            quality,
+            dropLevel,
+            qualityLevel,
             CreateWorldPositionAtGO(db.actor)
         )
         itemType = 3
     elseif key == DIK_keys.DIK_LEFT then
         item = self.World:GenerateArtefactDrop(
-            level,
-            quality,
+            dropLevel,
+            qualityLevel,
             CreateWorldPositionAtGO(db.actor)
         )
         itemType = 2
     end
     if item ~= nil then
-        self.World:HighlightDroppedItem(item.id, itemType, quality)
+        Save(item.id, "MW_SpawnParams", {Level = dropLevel, Quality = qualityLevel})
+        self.World:HighlightDroppedItem(item.id, itemType, qualityLevel)
     end
 end
 function MonsterWorldMod.prototype.CanHitPlayer(self, attackerId)

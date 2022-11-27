@@ -3,7 +3,8 @@ import { HitInfo, World } from './World';
 import { ReloadAnims } from './Constants/WeaponAnimations';
 import { MinQuality, MaxQuality, DropType } from './Configs/Loot';
 import { CriticalBones } from './Constants/CritBones';
-import { CreateWorldPositionAtGO } from './Helpers/StalkerAPI';
+import { CreateWorldPositionAtGO, Save } from './Helpers/StalkerAPI';
+import { ItemSpawnParams } from './GameObjects/MWItem';
 
 export class MonsterWorldMod extends StalkerModBase {
     public World: World;
@@ -224,27 +225,28 @@ export class MonsterWorldMod extends StalkerModBase {
         }
 
         let item: cse_alife_object | undefined = undefined;
-        let level = math.random(1, 30);
-        let quality = math.random(1, 5);
+        let dropLevel = math.random(1, 30);
+        let qualityLevel = math.random(1, 5);
         let itemType: DropType = DropType.Weapon;
         if (key == DIK_keys.DIK_UP) {
-            item = this.World.GenerateWeaponDrop(level, quality, CreateWorldPositionAtGO(db.actor));
+            item = this.World.GenerateWeaponDrop(dropLevel, qualityLevel, CreateWorldPositionAtGO(db.actor));
             itemType = DropType.Weapon;
         }
         else if (key == DIK_keys.DIK_DOWN) {
-            item = this.World.GenerateStimpackDrop(level, quality, CreateWorldPositionAtGO(db.actor));
+            item = this.World.GenerateStimpackDrop(dropLevel, qualityLevel, CreateWorldPositionAtGO(db.actor));
             itemType = DropType.Stimpack;
         }
         else if (key == DIK_keys.DIK_RIGHT) {
-            item = this.World.GenerateArmorDrop(level, quality, CreateWorldPositionAtGO(db.actor));
+            item = this.World.GenerateArmorDrop(dropLevel, qualityLevel, CreateWorldPositionAtGO(db.actor));
             itemType = DropType.Armor;
         }
         else if (key == DIK_keys.DIK_LEFT) {
-            item = this.World.GenerateArtefactDrop(level, quality, CreateWorldPositionAtGO(db.actor));
+            item = this.World.GenerateArtefactDrop(dropLevel, qualityLevel, CreateWorldPositionAtGO(db.actor));
             itemType = DropType.Artefact;
         }
         if (item != null){ 
-            this.World.HighlightDroppedItem(item.id, itemType, quality) 
+            Save<ItemSpawnParams>(item.id, "MW_SpawnParams", {Level: dropLevel, Quality: qualityLevel});
+            this.World.HighlightDroppedItem(item.id, itemType, qualityLevel) 
         }
     }
 

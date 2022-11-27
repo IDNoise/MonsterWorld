@@ -116,8 +116,10 @@ export class World {
     public OnTakeItem(itemGO: game_object) {
         //Log(`OnTakeItem: ${item.id()}`)
         let item = this.GetItem(itemGO)
-        item?.OnItemPickedUp();
-        this.CleanupObjectTimersAndMinimapMarks(itemGO.id());
+        if (item != undefined){
+            item.OnItemPickedUp();
+            this.CleanupObjectTimersAndMinimapMarks(itemGO.id());
+        }
     }
 
     private CleanupObjectTimersAndMinimapMarks(id: Id){
@@ -342,7 +344,7 @@ export class World {
             dropLevel++;
         }
 
-        let qualityLevel = GetDropQuality();
+        let qualityLevel = GetDropQuality(dropLevel);
         let rankCfg = MonsterRankConfigs[monster.Rank]
     
         if (IsPctRolled(rankCfg.DropLevelIncreaseChance)) dropLevel++;
