@@ -1,20 +1,3 @@
 /node_modules
 /LtxStorage/bin
 /LtxStorage/obj
-/Release/gamedata/configs/axr_options.ltx
-/Release/gamedata/particles.xr
-/Release/gamedata — копия
-/Release/gamedata/VERSIONS/AMCM.ltx
-/Release/gamedata/configs/mcm_key_localization.ltx
-/Release/gamedata/configs/text/eng/ui_st_mcm.xml
-/Release/gamedata/configs/text/rus/ui_st_mcm.xml
-/Release/gamedata/configs/ui/ui_mcm.xml
-/Release/gamedata/configs/ui/ui_mcm_16.xml
-/Release/gamedata/configs/ui/ui_mm_main.xml
-/Release/gamedata/configs/ui/ui_mm_main_16.xml
-/Release/gamedata/scripts/dph_mcm_save_storage.script
-/Release/gamedata/scripts/mcm_log.script
-/Release/gamedata/scripts/ui_main_menu.script
-/Release/gamedata/scripts/ui_mcm.script
-/Release/gamedata/textures/AMCM_Banner.dds
-/Release/gamedata/textures/LogoAMCM.dds

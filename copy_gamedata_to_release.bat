@@ -1,2 +1,2 @@
 xcopy "f:\Games\AnomalyMW\gamedata" "e:\Projects\Stalker\MonsterWorld\Release\gamedata" /c /i /e /h /y
-git clean -xf
+git clean -f -d
