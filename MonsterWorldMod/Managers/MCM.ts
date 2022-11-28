@@ -1,11 +1,15 @@
+import { Log } from '../../StalkerModBase';
+import { AllMonsterTypes, MonsterConfig, MonsterConfigs, MonsterType } from '../Configs/Enemies';
 export class MCM {
     constructor(){
         this.InitProgression();
+        this.InitEnemies();
     }
 
     GetConfig(): MCMMainGroup{
         return {id: MainGroupId, gr: [
             this.GroupProgression(),
+            this.GroupEnemies(),
             // SubGroup("mw_main", [
             //     Title("title", "Monster World"),
             //     Line()
@@ -57,47 +61,51 @@ export class MCM {
     }
 
     GetProgressionValue(field: ProgressionFieldType):number {
-        return ui_mcm?.get(`${MainGroupId}/${ProgressionSubGroupId}/${field}`) || this.ProgressionDefaults.get(field)!
+        let result = ui_mcm?.get<number>(`${MainGroupId}/${ProgressionSubGroupId}/${field}`);
+        if (result == undefined){
+            return this.ProgressionDefaults.get(field)!
+        }
+        return result;
     }
 
     GroupProgression(): MCMSubGroup {
-        return this.SubGroup(ProgressionSubGroupId, [
-            this.Track("PlayerHPBase", 100, 2500, 10, this.ProgressionDefaults),
-            this.Track("PlayerHPPerLevel", 0, 100, 1, this.ProgressionDefaults),
-            this.Track("PlayerHPRegenBase", 0, 10, 0.05, this.ProgressionDefaults),
-            this.Track("PlayerHPRegenPctPerLevel", 0, 100, 1, this.ProgressionDefaults),
-            this.Track("PlayerRunSpeedPctPerLevel", 0, 10, 1, this.ProgressionDefaults),
-            this.Track("PlayerDefaultCritDamagePct", 150, 500, 10, this.ProgressionDefaults),
+        return this.SubGroupWithFields(ProgressionSubGroupId, [
+            this.TrackWithDefaultsMap("PlayerHPBase", 100, 2500, 10, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerHPPerLevel", 0, 100, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerHPRegenBase", 0, 10, 0.05, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerHPRegenPctPerLevel", 0, 100, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerRunSpeedPctPerLevel", 0, 10, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerDefaultCritDamagePct", 150, 500, 10, this.ProgressionDefaults),
             this.Line(),
-            this.Track("PlayerRunSpeedCoeff", 2, 5, 0.1, this.ProgressionDefaults),
-            this.Track("PlayerRunBackSpeedCoeff", 1, 5, 0.1, this.ProgressionDefaults),
-            this.Track("PlayerSprintSpeedCoeff", 1, 5, 0.1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerRunSpeedCoeff", 2, 5, 0.1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerRunBackSpeedCoeff", 1, 5, 0.1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerSprintSpeedCoeff", 1, 5, 0.1, this.ProgressionDefaults),
             this.Line(),    
-            this.Track("PlayerXPForFirstLevel", 100, 1000, 1, this.ProgressionDefaults),
-            this.Track("PlayerXPExp", 1, 2, 0.01, this.ProgressionDefaults),
-            this.Track("PlayerXPPct", 10, 300, 1, this.ProgressionDefaults),
-            this.Track("SkillPointsPerLevelUp", 1, 20, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerXPForFirstLevel", 100, 1000, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerXPExp", 1, 2, 0.01, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("PlayerXPPct", 10, 300, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("SkillPointsPerLevelUp", 1, 20, 1, this.ProgressionDefaults),
             this.Line(),    
-            this.Track("EnemyHPBase", 10, 500, 5, this.ProgressionDefaults),
-            this.Track("EnemyHPExpPerLevel", 1, 2, 0.01, this.ProgressionDefaults),
-            this.Track("EnemyHPPctPerLevel", 10, 300, 1, this.ProgressionDefaults),
-            this.Track("EnemyHpDeltaPct", 1, 50, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyHPBase", 10, 500, 5, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyHPExpPerLevel", 1, 2, 0.01, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyHPPctPerLevel", 10, 300, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyHpDeltaPct", 1, 50, 1, this.ProgressionDefaults),
             this.Line(),    
-            this.Track("EnemyDamageBase", 1, 100, 1, this.ProgressionDefaults),
-            this.Track("EnemyDamageExpPerLevel", 1, 2, 0.01, this.ProgressionDefaults),
-            this.Track("EnemyDamagePctPerLevel", 1, 300, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyDamageBase", 1, 100, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyDamageExpPerLevel", 1, 2, 0.01, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyDamagePctPerLevel", 1, 300, 1, this.ProgressionDefaults),
             this.Line(),    
-            this.Track("EnemyXpRewardBase", 1, 100, 1, this.ProgressionDefaults),
-            this.Track("EnemyXpRewardExpPerLevel", 1, 2, 0.01, this.ProgressionDefaults),
-            this.Track("EnemyXpRewardPctPerLevel", 10, 300, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyXpRewardBase", 1, 100, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyXpRewardExpPerLevel", 1, 2, 0.01, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyXpRewardPctPerLevel", 10, 300, 1, this.ProgressionDefaults),
             this.Line(),    
-            this.Track("EnemyHigherLevelChance", 1, 100, 1, this.ProgressionDefaults),
-            this.Track("EnemyEliteChance", 1, 100, 1, this.ProgressionDefaults),
-            this.Track("EnemyBossChance", 1, 100, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyHigherLevelChance", 1, 100, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyEliteChance", 1, 100, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("EnemyBossChance", 1, 100, 1, this.ProgressionDefaults),
             this.Line(),    
-            this.Track("WeaponDPSBase", 10, 1000, 1, this.ProgressionDefaults),
-            this.Track("WeaponDPSExpPerLevel", 1, 2, 0.01, this.ProgressionDefaults),
-            this.Track("WeaponDPSPctPerQuality", 1, 100, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("WeaponDPSBase", 10, 1000, 1, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("WeaponDPSExpPerLevel", 1, 2, 0.01, this.ProgressionDefaults),
+            this.TrackWithDefaultsMap("WeaponDPSPctPerQuality", 1, 100, 1, this.ProgressionDefaults),
         ])
     }
     
@@ -105,8 +113,73 @@ export class MCM {
         //Location levels
     }
 
-    GroupEnemies(): void {
-        //Enable/disable, setup mults and sizes and sections
+
+    //Enable/disable, setup mults and sizes and sections
+
+    GetMonsterConfig(type: MonsterType): MonsterConfig {
+        let getField = <T>(field: string, def: T) => {
+            let result = ui_mcm?.get<T>(`${MainGroupId}/${EnemiesSubGroupId}/${type}/${field}`);
+            if (result == undefined) return def;
+            return result
+        }
+        return {
+            Enabled: getField("Enabled", MonsterConfigs.get(type).Enabled),
+            LocationLevelStart: getField("LocationLevelStart", MonsterConfigs.get(type).LocationLevelStart),
+            LocationLevelEnd: getField("LocationLevelEnd", MonsterConfigs.get(type).LocationLevelEnd),
+            LocationType: MonsterConfigs.get(type).LocationType,
+
+            SquadSizeMin:  getField("SquadSizeMin", MonsterConfigs.get(type).SquadSizeMin),
+            SquadSizeMax:  getField("SquadSizeMax", MonsterConfigs.get(type).SquadSizeMax),
+
+            HpMult: getField("HpMult", MonsterConfigs.get(type).HpMult),
+            DamageMult: getField("DamageMult", MonsterConfigs.get(type).DamageMult),
+            XpMult: getField("XpMult", MonsterConfigs.get(type).XpMult),
+            CommonSection: MonsterConfigs.get(type).CommonSection,
+            EliteSection: MonsterConfigs.get(type).EliteSection,
+            BossSection: MonsterConfigs.get(type).BossSection,
+        }
+    }
+
+    private EnemyParamsDefaults: Map<EnemyParamsField, number> = new Map<EnemyParamsField, number>();
+    private InitEnemies() {
+        this.EnemyParamsDefaults
+            .set("MaxMonstersOnLocation", 150)
+            .set("RespawnInterval", 600)
+            .set("MinDistanceFromPlayer", 125)
+    }
+
+    GetEnemyParams(field: EnemyParamsField): number {
+        let result = ui_mcm?.get<number>(`${MainGroupId}/${EnemiesSubGroupId}/Params/${field}`);
+        if (result == undefined){
+            return this.EnemyParamsDefaults.get(field)!;
+        }
+        return result;
+    }
+
+    GroupEnemies(): MCMSubGroup {
+        let subgroups: MCMSubGroup[] = [];
+
+        subgroups.push(this.SubGroupWithFields("Params", [
+            this.TrackWithDefaultsMap("MaxMonstersOnLocation", 50, 300, 1, this.EnemyParamsDefaults),
+            this.TrackWithDefaultsMap("RespawnInterval", 100, 36000, 100, this.EnemyParamsDefaults),
+            this.TrackWithDefaultsMap("MinDistanceFromPlayer", 50, 300, 1, this.EnemyParamsDefaults),
+        ]))
+        
+        for(let type of AllMonsterTypes){
+            let defaultCfg = MonsterConfigs.get(type);
+            subgroups.push(this.SubGroupWithFields(type, [
+                this.Checkbox("Enabled", defaultCfg.Enabled == true),
+                this.TrackWithDefaultsObject("LocationLevelStart", 1, 33, 1, defaultCfg),
+                this.TrackWithDefaultsObject("LocationLevelEnd", 0, 33, 1, defaultCfg),
+                this.TrackWithDefaultsObject("SquadSizeMin", 1, 15, 1, defaultCfg),
+                this.TrackWithDefaultsObject("SquadSizeMax", 1, 30, 1, defaultCfg),
+                this.TrackWithDefaultsObject("HpMult", 1, 20, 0.1, defaultCfg),
+                this.TrackWithDefaultsObject("DamageMult", 1, 20, 0.1, defaultCfg),
+                this.TrackWithDefaultsObject("XpMult", 1, 20, 0.1, defaultCfg),
+            ]))
+        }
+
+        return this.SubGroupWithGroups(EnemiesSubGroupId, subgroups);
     }
 
     GroupLoot(): void {
@@ -120,8 +193,12 @@ export class MCM {
 
     // UI HELPERS
 
-    SubGroup(id: string, elements: MCMElement[]): MCMSubGroup{
+    SubGroupWithFields(id: string, elements: MCMElement[]): MCMSubGroup{
         return { id: id, sh: true, gr: elements }
+    }
+
+    SubGroupWithGroups(id: string, elements: MCMSubGroup[]): MCMSubGroup{
+        return { id: id, sh: false, gr: elements }
     }
     
     private lineNumber = 0;
@@ -129,25 +206,41 @@ export class MCM {
         return {id: `line_${this.lineNumber++}`, type: MCMElementType.Line}
     }
     
-    Title(id: string, text: string, align?: MCMTextAligment, color?: [number, number, number, number]): MCMElement {
-        return {id: id, type: MCMElementType.Title, text: text, align: align, clr: color}
+    Title(elementId: string, text: string, align?: MCMTextAligment, color?: [number, number, number, number]): MCMElement {
+        return {id: elementId, type: MCMElementType.Title, text: text, align: align, clr: color}
     }
     
-    Checkbox(id: string, def: boolean): MCMElement {
-        return {id: id, type: MCMElementType.Checkbox, val: MCMValueType.Bool, def: def}
+    Checkbox(elementId: string, def: boolean): MCMElement {
+        return {id: elementId, type: MCMElementType.Checkbox, val: MCMValueType.Bool, def: def}
     }
     
-    InputNumber(id: string, min: number, max: number, def: number): MCMElement {
-        return {id: id, type: MCMElementType.Input, val: MCMValueType.Number, def: def, min: min, max: max}
+    InputNumber(elementId: string, min: number, max: number, def: number): MCMElement {
+        return {id: elementId, type: MCMElementType.Input, val: MCMValueType.Number, def: def, min: min, max: max}
     }
     
-    Track(id: string, min: number, max: number, step: number, defSource: Map<string, number>): MCMElement {
-        return {id: id, type: MCMElementType.Track, val: MCMValueType.Number, def: defSource.get(id), min: min, max: max, step: step}
+    Track(elementId: string, min: number, max: number, step: number, def: number): MCMElement {
+        return {id: elementId, type: MCMElementType.Track, val: MCMValueType.Number, def: def, min: min, max: max, step: step}
+    }
+
+    TrackWithDefaultsMap(elementId: string, min: number, max: number, step: number, defSource: Map<string, number>): MCMElement {
+        return this.Track(elementId, min, max, step, defSource.get(elementId)!)
+    }
+
+    TrackWithDefaultsObject(elementId: string, min: number, max: number, step: number, defSource: any): MCMElement {
+        return this.Track(elementId, min, max, step, defSource[elementId])
     }
 }
 
 export function GetProgressionValue(field: ProgressionFieldType):number {
     return MonsterWorld.MCM.GetProgressionValue(field)
+}
+
+export function GetEnemyParams(field: EnemyParamsField): number {
+    return MonsterWorld.MCM.GetEnemyParams(field)
+}
+
+export function GetMonsterConfig(type: MonsterType): MonsterConfig {
+    return MonsterWorld.MCM.GetMonsterConfig(type)
 }
 
 export type ProgressionFieldType = 
@@ -188,6 +281,9 @@ export type ProgressionFieldType =
     "WeaponDPSExpPerLevel" |
     "WeaponDPSPctPerQuality"
 
+export type EnemyParamsField = "MaxMonstersOnLocation" | "RespawnInterval" | "MinDistanceFromPlayer";
+
 const MainGroupId = "MonsterWorld"
 const ProgressionSubGroupId = "MWProgression"
+const EnemiesSubGroupId = "MWEnemies"
 

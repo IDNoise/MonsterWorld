@@ -1,11 +1,11 @@
 import { Log } from '../../StalkerModBase';
-import { MonsterType, MonsterConfigs, MonsterRank } from '../Configs/Enemies';
+import { MonsterType, MonsterRank, AllMonsterTypes } from '../Configs/Enemies';
 import { GetCurrentLocationCfg, LocationType, LocationConfigs } from '../Configs/Levels';
 import { MonsterSpawnParams } from '../GameObjects/MWMonster';
 import { GetRandomFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { Load, Save, NumberToCondList } from '../Helpers/StalkerAPI';
-import { GetProgressionValue } from './MCM';
+import { GetEnemyParams, GetMonsterConfig, GetProgressionValue } from './MCM';
 
 export class SpawnManager {
     private safeSmarts: LuaSet<Id>
@@ -67,7 +67,7 @@ export class SpawnManager {
         } 
 
         //Log(`Trying to spawn for: ${smart.name()}`)
-        let respawnInterval = 600;
+        let respawnInterval = GetEnemyParams("RespawnInterval");
         let maxPopulation = 2;
         if (!Load(smart.id, "MW_Initialized", false) || smart.respawn_idle != respawnInterval || smart.max_population != maxPopulation){
             if (Load(smart.id, "MW_Initialized", false)){
@@ -82,14 +82,32 @@ export class SpawnManager {
                 return false;
 
             let selectedMonsters: MonsterType[] = [];
-            for(const [monsterType, monsterCfg] of MonsterConfigs){
+            let enabledMonsters: MonsterType[] = [];
+            for(const monsterType of AllMonsterTypes){
+                let monsterCfg = GetMonsterConfig(monsterType)
+
+                if (monsterCfg.Enabled == false)
+                    continue;
+                
+                enabledMonsters.push(monsterType)
+                
                 //Log(`Level check: ${monsterCfg.level_start} > ${locationCfg.level} = ${(monsterCfg.level_start > locationCfg.level)}`)
-                if (monsterCfg.LocationLevelStart > locationCfg.Level || (monsterCfg.LocationLevelEnd || 100) < locationCfg.Level)
+                if (monsterCfg.LocationLevelStart > locationCfg.Level || (monsterCfg.LocationLevelEnd != 0 && monsterCfg.LocationLevelEnd < locationCfg.Level))
                     continue;
                 //Log(`LevelType check: ${monsterCfg.level_type} & ${locationCfg.type} = ${(monsterCfg.level_type & locationCfg.type)}`)
                 if ((monsterCfg.LocationType & locationCfg.Type) != locationCfg.Type)
                     continue;
+
                 selectedMonsters.push(monsterType);
+            }
+
+            if (selectedMonsters.length == 0){
+                if (enabledMonsters.length > 0){
+                    selectedMonsters.push(GetRandomFromArray(enabledMonsters))
+                }
+                else {
+                    selectedMonsters.push(MonsterType.Boar)
+                }
             }
 
             Save(smart.id, "MW_MonsterTypes", selectedMonsters);
@@ -102,13 +120,13 @@ export class SpawnManager {
             }
             smart.already_spawned = {"spawn_section_1": {num: 0}}
             smart.faction = "monster";
-            smart.respawn_radius = 125;
+            smart.respawn_radius = GetEnemyParams("MinDistanceFromPlayer");
 
             //Log(`Initialized: ${smart.name()}`)
             Save(smart.id, "MW_Initialized", true);
         }
 
-        if (MonsterWorld.Monsters.length() > 150) //Limit amount of enemies on map
+        if (MonsterWorld.Monsters.length() > GetEnemyParams("MaxMonstersOnLocation")) //Limit amount of enemies on map
             return false;
 
         //Log(`Spawning for: ${smart.name()}`)
@@ -130,7 +148,7 @@ export class SpawnManager {
 
         let monsterTypes = Load<MonsterType[]>(obj.smart_id, "MW_MonsterTypes");
         let monsterType = GetRandomFromArray(monsterTypes);
-        let monsterCfg = MonsterConfigs.get(monsterType);
+        let monsterCfg = GetMonsterConfig(monsterType);
         if (monsterCfg == undefined){
             Log(`SPAWN PROBLEM  NO monsterCfg! ${monsterType}`)
         }

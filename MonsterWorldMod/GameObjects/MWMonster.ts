@@ -1,10 +1,10 @@
 import { MWObject, ObjectType } from './MWObject';
-import { MonsterConfigs, MonsterRank, MonsterRankConfigs, MonsterType } from '../Configs/Enemies';
+import { MonsterRank, MonsterRankConfigs, MonsterType } from '../Configs/Enemies';
 import { StatType } from '../Configs/Stats';
 import { GetCurrentLocationType } from '../Configs/Levels';
 import { EnemyLocationTypeMults } from '../Configs/Constants';
 import { Log } from '../../StalkerModBase';
-import { GetProgressionValue } from '../Managers/MCM';
+import { GetProgressionValue, GetMonsterConfig } from '../Managers/MCM';
 
 export class MWMonster extends MWObject{
     get Type(): ObjectType { return ObjectType.Monster }
@@ -17,12 +17,12 @@ export class MWMonster extends MWObject{
         this.Rank = spawnConfig.Rank;
 
         let locationMults = EnemyLocationTypeMults.get(GetCurrentLocationType())
-        let monsterCfg = MonsterConfigs.get(this.MonsterType);
+        let monsterCfg = GetMonsterConfig(this.MonsterType);
         let monsterRankCfg = MonsterRankConfigs[this.Rank]
 
-        let enemyHP = this.GetMaxHP(this.Level) * (monsterCfg.HpMult || 1) * monsterRankCfg.HpMult * locationMults.HpMult;
-        let xpReward = this.GetXPReward(this.Level) * (monsterCfg.XpMult || 1) * monsterRankCfg.XpMult * locationMults.XpMult;
-        let enemyDamage = this.GetDamage(this.Level) * (monsterCfg.DamageMult || 1) * monsterRankCfg.DamageMult * locationMults.DamageMult;
+        let enemyHP = this.GetMaxHP(this.Level) * monsterCfg.HpMult * monsterRankCfg.HpMult * locationMults.HpMult;
+        let xpReward = this.GetXPReward(this.Level) * monsterCfg.XpMult * monsterRankCfg.XpMult * locationMults.XpMult;
+        let enemyDamage = this.GetDamage(this.Level) * monsterCfg.DamageMult * monsterRankCfg.DamageMult * locationMults.DamageMult;
 
         this.SetStatBase(StatType.MaxHP, enemyHP)
         this.SetStatBase(StatType.Damage, enemyDamage);

@@ -2863,9 +2863,6 @@ function StalkerModBase.prototype.RegisterCallbacks(self)
         return result
     end
 end
-function StalkerModBase.prototype.GetMCMConfig(self)
-    return {id = ____exports.StalkerModBase.ModName, gr = {}}
-end
 StalkerModBase.ModName = "StarlkerModBase"
 StalkerModBase.IsLogEnabled = true
 return ____exports
@@ -3129,6 +3126,28 @@ return ____exports
  end,
 ["MonsterWorldMod.Configs.Enemies"] = function(...) 
 local ____exports = {}
+____exports.AllMonsterTypes = {
+    "Dog",
+    "PseudoDog",
+    "Cat",
+    "Boar",
+    "Snork",
+    "Lurker",
+    "Bloodsucker",
+    "Fracture",
+    "Flesh",
+    "Chimera",
+    "Burer",
+    "Controller",
+    "Psysucker",
+    "Giant",
+    "Monolith",
+    "Bandit",
+    "Mercenary",
+    "Sin",
+    "Army",
+    "Zombified"
+}
 ____exports.MonsterRankConfigs = {
     {
         HpMult = 1,
@@ -3160,6 +3179,7 @@ ____exports.MonsterRankConfigs = {
 }
 ____exports.MonsterConfigs = {}
 ____exports.MonsterConfigs.Bandit = {
+    Enabled = true,
     LocationLevelStart = 1,
     LocationLevelEnd = 8,
     LocationType = 3,
@@ -3173,11 +3193,13 @@ ____exports.MonsterConfigs.Bandit = {
     BossSection = "sim_default_bandit_4"
 }
 ____exports.MonsterConfigs.Flesh = {
+    Enabled = true,
     LocationLevelStart = 1,
     LocationLevelEnd = 3,
     LocationType = 1,
     HpMult = 1.4,
     XpMult = 1.2,
+    DamageMult = 1,
     SquadSizeMin = 5,
     SquadSizeMax = 10,
     CommonSection = "flesh_01a_weak",
@@ -3185,6 +3207,7 @@ ____exports.MonsterConfigs.Flesh = {
     BossSection = "flesh_bolot"
 }
 ____exports.MonsterConfigs.Dog = {
+    Enabled = true,
     LocationType = 1,
     LocationLevelStart = 1,
     LocationLevelEnd = 7,
@@ -3198,10 +3221,13 @@ ____exports.MonsterConfigs.Dog = {
     BossSection = "dog_strong_black"
 }
 ____exports.MonsterConfigs.Boar = {
+    Enabled = true,
     LocationType = 1,
     LocationLevelStart = 2,
     LocationLevelEnd = 9,
     HpMult = 1.25,
+    XpMult = 1,
+    DamageMult = 1,
     SquadSizeMin = 4,
     SquadSizeMax = 8,
     CommonSection = "boar_01a_weak",
@@ -3209,8 +3235,10 @@ ____exports.MonsterConfigs.Boar = {
     BossSection = "boar_02a_hard"
 }
 ____exports.MonsterConfigs.Zombified = {
+    Enabled = true,
     LocationType = 7,
     LocationLevelStart = 2,
+    LocationLevelEnd = 0,
     HpMult = 1.5,
     XpMult = 1,
     DamageMult = 1.25,
@@ -3221,11 +3249,13 @@ ____exports.MonsterConfigs.Zombified = {
     BossSection = "sim_default_zombied_4"
 }
 ____exports.MonsterConfigs.Cat = {
+    Enabled = true,
     LocationLevelStart = 3,
     LocationLevelEnd = 14,
     LocationType = 1,
     HpMult = 0.75,
     XpMult = 0.75,
+    DamageMult = 1,
     SquadSizeMin = 4,
     SquadSizeMax = 8,
     CommonSection = "cat_normal_d",
@@ -3233,7 +3263,9 @@ ____exports.MonsterConfigs.Cat = {
     BossSection = "cat_strong_afro"
 }
 ____exports.MonsterConfigs.Army = {
+    Enabled = true,
     LocationLevelStart = 4,
+    LocationLevelEnd = 0,
     LocationType = 3,
     HpMult = 1.75,
     XpMult = 1.25,
@@ -3244,12 +3276,14 @@ ____exports.MonsterConfigs.Army = {
     EliteSection = "sim_default_military_2",
     BossSection = "sim_default_military_3"
 }
-____exports.MonsterConfigs["Pseudo Dog"] = {
+____exports.MonsterConfigs.PseudoDog = {
+    Enabled = true,
     LocationLevelStart = 4,
+    LocationLevelEnd = 0,
     LocationType = 7,
     HpMult = 1.25,
-    DamageMult = 1.25,
     XpMult = 1.25,
+    DamageMult = 1.25,
     SquadSizeMin = 3,
     SquadSizeMax = 6,
     CommonSection = "pseudodog_weak",
@@ -3257,10 +3291,13 @@ ____exports.MonsterConfigs["Pseudo Dog"] = {
     BossSection = "pseudodog_arena"
 }
 ____exports.MonsterConfigs.Snork = {
+    Enabled = true,
     LocationLevelStart = 5,
+    LocationLevelEnd = 0,
     LocationType = 7,
     HpMult = 1.5,
     XpMult = 1.25,
+    DamageMult = 1,
     SquadSizeMin = 4,
     SquadSizeMax = 8,
     CommonSection = "snork_weak3",
@@ -3268,11 +3305,13 @@ ____exports.MonsterConfigs.Snork = {
     BossSection = "snork_strong_no_mask"
 }
 ____exports.MonsterConfigs.Lurker = {
+    Enabled = true,
     LocationLevelStart = 5,
+    LocationLevelEnd = 0,
     LocationType = 1,
     HpMult = 1.25,
-    DamageMult = 1.5,
     XpMult = 1.35,
+    DamageMult = 1.5,
     SquadSizeMin = 3,
     SquadSizeMax = 8,
     CommonSection = "lurker_1_weak",
@@ -3280,11 +3319,13 @@ ____exports.MonsterConfigs.Lurker = {
     BossSection = "lurker_3_strong"
 }
 ____exports.MonsterConfigs.Bloodsucker = {
+    Enabled = true,
     LocationLevelStart = 5,
+    LocationLevelEnd = 0,
     LocationType = bit.bor(2, 4),
     HpMult = 2.5,
-    DamageMult = 1.5,
     XpMult = 2,
+    DamageMult = 1.5,
     SquadSizeMin = 2,
     SquadSizeMax = 5,
     CommonSection = "bloodsucker_green_weak",
@@ -3292,11 +3333,13 @@ ____exports.MonsterConfigs.Bloodsucker = {
     BossSection = "bloodsucker_strong_big"
 }
 ____exports.MonsterConfigs.Fracture = {
+    Enabled = true,
     LocationLevelStart = 6,
     LocationLevelEnd = 16,
     LocationType = 3,
     HpMult = 1.75,
     XpMult = 1.35,
+    DamageMult = 1,
     SquadSizeMin = 3,
     SquadSizeMax = 7,
     CommonSection = "fracture_weak",
@@ -3304,10 +3347,13 @@ ____exports.MonsterConfigs.Fracture = {
     BossSection = "fracture_3"
 }
 ____exports.MonsterConfigs.Burer = {
+    Enabled = true,
     LocationLevelStart = 7,
+    LocationLevelEnd = 0,
     LocationType = bit.bor(4, 2),
     HpMult = 2.5,
     XpMult = 1.5,
+    DamageMult = 1,
     SquadSizeMin = 2,
     SquadSizeMax = 5,
     CommonSection = "burer_weak2",
@@ -3315,19 +3361,23 @@ ____exports.MonsterConfigs.Burer = {
     BossSection = "burer_blue_blue"
 }
 ____exports.MonsterConfigs.Controller = {
+    Enabled = true,
     LocationLevelStart = 7,
+    LocationLevelEnd = 0,
     LocationType = 4,
     HpMult = 6,
     XpMult = 3,
+    DamageMult = 1,
     SquadSizeMin = 1,
     SquadSizeMax = 3,
-    MaxSquadsPerSmart = 1,
     CommonSection = "m_controller_normal666",
     EliteSection = "m_controller_normal777",
     BossSection = "m_controller_normal1111"
 }
 ____exports.MonsterConfigs.Sin = {
+    Enabled = true,
     LocationLevelStart = 8,
+    LocationLevelEnd = 0,
     LocationType = 3,
     HpMult = 2.1,
     XpMult = 1.5,
@@ -3339,11 +3389,13 @@ ____exports.MonsterConfigs.Sin = {
     BossSection = "sim_default_greh_4"
 }
 ____exports.MonsterConfigs.Psysucker = {
+    Enabled = true,
     LocationLevelStart = 15,
+    LocationLevelEnd = 0,
     LocationType = bit.bor(4, 2),
     HpMult = 2,
-    DamageMult = 1.25,
     XpMult = 1.5,
+    DamageMult = 1.25,
     SquadSizeMin = 3,
     SquadSizeMax = 7,
     CommonSection = "psysucker_white",
@@ -3351,20 +3403,23 @@ ____exports.MonsterConfigs.Psysucker = {
     BossSection = "psysucker_black"
 }
 ____exports.MonsterConfigs.Giant = {
+    Enabled = true,
     LocationLevelStart = 12,
+    LocationLevelEnd = 0,
     LocationType = 1,
     HpMult = 8,
-    DamageMult = 2,
     XpMult = 3,
+    DamageMult = 2,
     SquadSizeMin = 1,
     SquadSizeMax = 3,
-    MaxSquadsPerSmart = 1,
     CommonSection = "gigant_weak",
     EliteSection = "gigant_normal",
     BossSection = "gigant_strong"
 }
 ____exports.MonsterConfigs.Mercenary = {
+    Enabled = true,
     LocationLevelStart = 12,
+    LocationLevelEnd = 0,
     LocationType = 3,
     HpMult = 2.25,
     XpMult = 1.5,
@@ -3376,20 +3431,23 @@ ____exports.MonsterConfigs.Mercenary = {
     BossSection = "sim_default_killer_4"
 }
 ____exports.MonsterConfigs.Chimera = {
+    Enabled = true,
     LocationLevelStart = 15,
+    LocationLevelEnd = 0,
     LocationType = 1,
     HpMult = 4,
     DamageMult = 3,
     XpMult = 3,
     SquadSizeMin = 2,
     SquadSizeMax = 5,
-    MaxSquadsPerSmart = 1,
     CommonSection = "chimera_weak",
     EliteSection = "chimera_strong",
     BossSection = "chimera_strong4"
 }
 ____exports.MonsterConfigs.Monolith = {
+    Enabled = true,
     LocationLevelStart = 15,
+    LocationLevelEnd = 0,
     LocationType = 7,
     HpMult = 2.5,
     XpMult = 1.75,
@@ -3404,39 +3462,10 @@ return ____exports
  end,
 ["MonsterWorldMod.Configs.Constants"] = function(...) 
 local ____exports = {}
-____exports.PlayerHPBase = 100
-____exports.PlayerHPPerLevel = 25
-____exports.PlayerHPRegenBase = 0.25
-____exports.PlayerHPRegenPctPerLevel = 10
-____exports.PlayerRunSpeedPctPerLevel = 1
-____exports.PlayerDefaultCritDamagePct = 250
-____exports.PlayerRunSpeedCoeff = 2.5
-____exports.PlayerRunBackSpeedCoeff = 1.5
-____exports.PlayerSprintSpeedCoeff = 2.2
-____exports.PlayerXPForFirstLevel = 250
-____exports.PlayerXPExp = 1.3
-____exports.PlayerXPPct = 100
-____exports.SkillPointsPerLevelUp = 5
-____exports.EnemyHPBase = 50
-____exports.EnemyHPExpPerLevel = 1.15
-____exports.EnemyHPPctPerLevel = 50
-____exports.EnemyHpDeltaPct = 10
-____exports.EnemyDamageBase = ____exports.PlayerHPBase / 25
-____exports.EnemyDamageExpPerLevel = 1.075
-____exports.EnemyDamagePctPerLevel = ____exports.PlayerHPPerLevel / ____exports.PlayerHPBase * 100
-____exports.EnemyXpRewardBase = ____exports.PlayerXPForFirstLevel / 20
-____exports.EnemyXpRewardExpPerLevel = 1.25
-____exports.EnemyXpRewardPctPerLevel = 50
-____exports.EnemyHigherLevelChance = 5
-____exports.EnemyEliteChance = 12
-____exports.EnemyBossChance = 3
 ____exports.EnemyLocationTypeMults = {}
 ____exports.EnemyLocationTypeMults[1] = {HpMult = 1, XpMult = 1, DamageMult = 1, DropChanceMult = 1}
 ____exports.EnemyLocationTypeMults[2] = {HpMult = 1.5, XpMult = 1.5, DamageMult = 1.5, DropChanceMult = 1.25}
 ____exports.EnemyLocationTypeMults[4] = {HpMult = 2.5, XpMult = 2.5, DamageMult = 2.5, DropChanceMult = 2}
-____exports.WeaponDPSBase = ____exports.EnemyHPBase / 0.5
-____exports.WeaponDPSExpPerLevel = ____exports.EnemyHPExpPerLevel
-____exports.WeaponDPSPctPerQuality = 10
 return ____exports
  end,
 ["MonsterWorldMod.Helpers.Random"] = function(...) 
@@ -3642,6 +3671,496 @@ function MWArmor.prototype.GenerateStats(self)
 end
 return ____exports
  end,
+["MonsterWorldMod.Managers.MCM"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local Map = ____lualib.Map
+local __TS__New = ____lualib.__TS__New
+local ____exports = {}
+local MainGroupId, ProgressionSubGroupId, EnemiesSubGroupId
+local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
+local AllMonsterTypes = ____Enemies.AllMonsterTypes
+local MonsterConfigs = ____Enemies.MonsterConfigs
+____exports.MCM = __TS__Class()
+local MCM = ____exports.MCM
+MCM.name = "MCM"
+function MCM.prototype.____constructor(self)
+    self.ProgressionDefaults = __TS__New(Map)
+    self.EnemyParamsDefaults = __TS__New(Map)
+    self.lineNumber = 0
+    self:InitProgression()
+    self:InitEnemies()
+end
+function MCM.prototype.GetConfig(self)
+    return {
+        id = MainGroupId,
+        gr = {
+            self:GroupProgression(),
+            self:GroupEnemies()
+        }
+    }
+end
+function MCM.prototype.InitProgression(self)
+    self.ProgressionDefaults:set("PlayerHPBase", 100):set("PlayerHPPerLevel", 25):set("PlayerHPRegenBase", 0.25):set("PlayerHPRegenPctPerLevel", 10):set("PlayerRunSpeedPctPerLevel", 1):set("PlayerDefaultCritDamagePct", 250):set("PlayerRunSpeedCoeff", 2.5):set("PlayerRunBackSpeedCoeff", 1.5):set("PlayerSprintSpeedCoeff", 2.2):set("PlayerXPForFirstLevel", 250):set("PlayerXPExp", 1.3):set("PlayerXPPct", 100):set("SkillPointsPerLevelUp", 5):set("EnemyHPBase", 50):set("EnemyHPExpPerLevel", 1.15):set("EnemyHPPctPerLevel", 50):set("EnemyHpDeltaPct", 10):set(
+        "EnemyDamageBase",
+        self.ProgressionDefaults:get("PlayerHPBase") / 25
+    ):set("EnemyDamageExpPerLevel", 1.075):set(
+        "EnemyDamagePctPerLevel",
+        self.ProgressionDefaults:get("PlayerHPPerLevel") / self.ProgressionDefaults:get("PlayerHPBase") * 100
+    ):set(
+        "EnemyXpRewardBase",
+        self.ProgressionDefaults:get("PlayerXPForFirstLevel") / 20
+    ):set("EnemyXpRewardExpPerLevel", 1.25):set("EnemyXpRewardPctPerLevel", 50):set("EnemyHigherLevelChance", 5):set("EnemyEliteChance", 12):set("EnemyBossChance", 3):set(
+        "WeaponDPSBase",
+        self.ProgressionDefaults:get("EnemyHPBase") / 0.5
+    ):set(
+        "WeaponDPSExpPerLevel",
+        self.ProgressionDefaults:get("EnemyHPExpPerLevel")
+    ):set("WeaponDPSPctPerQuality", 10)
+end
+function MCM.prototype.GetProgressionValue(self, field)
+    local ____ui_mcm_get_result_0 = ui_mcm
+    if ____ui_mcm_get_result_0 ~= nil then
+        ____ui_mcm_get_result_0 = ____ui_mcm_get_result_0.get((((MainGroupId .. "/") .. ProgressionSubGroupId) .. "/") .. field)
+    end
+    local result = ____ui_mcm_get_result_0
+    if result == nil then
+        return self.ProgressionDefaults:get(field)
+    end
+    return result
+end
+function MCM.prototype.GroupProgression(self)
+    return self:SubGroupWithFields(
+        ProgressionSubGroupId,
+        {
+            self:TrackWithDefaultsMap(
+                "PlayerHPBase",
+                100,
+                2500,
+                10,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerHPPerLevel",
+                0,
+                100,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerHPRegenBase",
+                0,
+                10,
+                0.05,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerHPRegenPctPerLevel",
+                0,
+                100,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerRunSpeedPctPerLevel",
+                0,
+                10,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerDefaultCritDamagePct",
+                150,
+                500,
+                10,
+                self.ProgressionDefaults
+            ),
+            self:Line(),
+            self:TrackWithDefaultsMap(
+                "PlayerRunSpeedCoeff",
+                2,
+                5,
+                0.1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerRunBackSpeedCoeff",
+                1,
+                5,
+                0.1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerSprintSpeedCoeff",
+                1,
+                5,
+                0.1,
+                self.ProgressionDefaults
+            ),
+            self:Line(),
+            self:TrackWithDefaultsMap(
+                "PlayerXPForFirstLevel",
+                100,
+                1000,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerXPExp",
+                1,
+                2,
+                0.01,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "PlayerXPPct",
+                10,
+                300,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "SkillPointsPerLevelUp",
+                1,
+                20,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:Line(),
+            self:TrackWithDefaultsMap(
+                "EnemyHPBase",
+                10,
+                500,
+                5,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyHPExpPerLevel",
+                1,
+                2,
+                0.01,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyHPPctPerLevel",
+                10,
+                300,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyHpDeltaPct",
+                1,
+                50,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:Line(),
+            self:TrackWithDefaultsMap(
+                "EnemyDamageBase",
+                1,
+                100,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyDamageExpPerLevel",
+                1,
+                2,
+                0.01,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyDamagePctPerLevel",
+                1,
+                300,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:Line(),
+            self:TrackWithDefaultsMap(
+                "EnemyXpRewardBase",
+                1,
+                100,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyXpRewardExpPerLevel",
+                1,
+                2,
+                0.01,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyXpRewardPctPerLevel",
+                10,
+                300,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:Line(),
+            self:TrackWithDefaultsMap(
+                "EnemyHigherLevelChance",
+                1,
+                100,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyEliteChance",
+                1,
+                100,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "EnemyBossChance",
+                1,
+                100,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:Line(),
+            self:TrackWithDefaultsMap(
+                "WeaponDPSBase",
+                10,
+                1000,
+                1,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "WeaponDPSExpPerLevel",
+                1,
+                2,
+                0.01,
+                self.ProgressionDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "WeaponDPSPctPerQuality",
+                1,
+                100,
+                1,
+                self.ProgressionDefaults
+            )
+        }
+    )
+end
+function MCM.prototype.GroupLocations(self)
+end
+function MCM.prototype.GetMonsterConfig(self, ____type)
+    local function getField(field, def)
+        local ____ui_mcm_get_result_2 = ui_mcm
+        if ____ui_mcm_get_result_2 ~= nil then
+            ____ui_mcm_get_result_2 = ____ui_mcm_get_result_2.get((((((MainGroupId .. "/") .. EnemiesSubGroupId) .. "/") .. ____type) .. "/") .. field)
+        end
+        local result = ____ui_mcm_get_result_2
+        if result == nil then
+            return def
+        end
+        return result
+    end
+    return {
+        Enabled = getField("Enabled", MonsterConfigs[____type].Enabled),
+        LocationLevelStart = getField("LocationLevelStart", MonsterConfigs[____type].LocationLevelStart),
+        LocationLevelEnd = getField("LocationLevelEnd", MonsterConfigs[____type].LocationLevelEnd),
+        LocationType = MonsterConfigs[____type].LocationType,
+        SquadSizeMin = getField("SquadSizeMin", MonsterConfigs[____type].SquadSizeMin),
+        SquadSizeMax = getField("SquadSizeMax", MonsterConfigs[____type].SquadSizeMax),
+        HpMult = getField("HpMult", MonsterConfigs[____type].HpMult),
+        DamageMult = getField("DamageMult", MonsterConfigs[____type].DamageMult),
+        XpMult = getField("XpMult", MonsterConfigs[____type].XpMult),
+        CommonSection = MonsterConfigs[____type].CommonSection,
+        EliteSection = MonsterConfigs[____type].EliteSection,
+        BossSection = MonsterConfigs[____type].BossSection
+    }
+end
+function MCM.prototype.InitEnemies(self)
+    self.EnemyParamsDefaults:set("MaxMonstersOnLocation", 150):set("RespawnInterval", 600):set("MinDistanceFromPlayer", 125)
+end
+function MCM.prototype.GetEnemyParams(self, field)
+    local ____ui_mcm_get_result_4 = ui_mcm
+    if ____ui_mcm_get_result_4 ~= nil then
+        ____ui_mcm_get_result_4 = ____ui_mcm_get_result_4.get((((MainGroupId .. "/") .. EnemiesSubGroupId) .. "/Params/") .. field)
+    end
+    local result = ____ui_mcm_get_result_4
+    if result == nil then
+        return self.EnemyParamsDefaults:get(field)
+    end
+    return result
+end
+function MCM.prototype.GroupEnemies(self)
+    local subgroups = {}
+    subgroups[#subgroups + 1] = self:SubGroupWithFields(
+        "Params",
+        {
+            self:TrackWithDefaultsMap(
+                "MaxMonstersOnLocation",
+                50,
+                300,
+                1,
+                self.EnemyParamsDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "RespawnInterval",
+                100,
+                36000,
+                100,
+                self.EnemyParamsDefaults
+            ),
+            self:TrackWithDefaultsMap(
+                "MinDistanceFromPlayer",
+                50,
+                300,
+                1,
+                self.EnemyParamsDefaults
+            )
+        }
+    )
+    for ____, ____type in ipairs(AllMonsterTypes) do
+        local defaultCfg = MonsterConfigs[____type]
+        subgroups[#subgroups + 1] = self:SubGroupWithFields(
+            ____type,
+            {
+                self:Checkbox("Enabled", defaultCfg.Enabled == true),
+                self:TrackWithDefaultsObject(
+                    "LocationLevelStart",
+                    1,
+                    33,
+                    1,
+                    defaultCfg
+                ),
+                self:TrackWithDefaultsObject(
+                    "LocationLevelEnd",
+                    0,
+                    33,
+                    1,
+                    defaultCfg
+                ),
+                self:TrackWithDefaultsObject(
+                    "SquadSizeMin",
+                    1,
+                    15,
+                    1,
+                    defaultCfg
+                ),
+                self:TrackWithDefaultsObject(
+                    "SquadSizeMax",
+                    1,
+                    30,
+                    1,
+                    defaultCfg
+                ),
+                self:TrackWithDefaultsObject(
+                    "HpMult",
+                    1,
+                    20,
+                    0.1,
+                    defaultCfg
+                ),
+                self:TrackWithDefaultsObject(
+                    "DamageMult",
+                    1,
+                    20,
+                    0.1,
+                    defaultCfg
+                ),
+                self:TrackWithDefaultsObject(
+                    "XpMult",
+                    1,
+                    20,
+                    0.1,
+                    defaultCfg
+                )
+            }
+        )
+    end
+    return self:SubGroupWithGroups(EnemiesSubGroupId, subgroups)
+end
+function MCM.prototype.GroupLoot(self)
+end
+function MCM.prototype.GroupMisc(self)
+end
+function MCM.prototype.SubGroupWithFields(self, id, elements)
+    return {id = id, sh = true, gr = elements}
+end
+function MCM.prototype.SubGroupWithGroups(self, id, elements)
+    return {id = id, sh = false, gr = elements}
+end
+function MCM.prototype.Line(self)
+    local ____self_6, ____lineNumber_7 = self, "lineNumber"
+    local ____self_lineNumber_8 = ____self_6[____lineNumber_7]
+    ____self_6[____lineNumber_7] = ____self_lineNumber_8 + 1
+    return {
+        id = "line_" .. tostring(____self_lineNumber_8),
+        type = "line"
+    }
+end
+function MCM.prototype.Title(self, elementId, text, align, color)
+    return {
+        id = elementId,
+        type = "title",
+        text = text,
+        align = align,
+        clr = color
+    }
+end
+function MCM.prototype.Checkbox(self, elementId, def)
+    return {id = elementId, type = "check", val = 1, def = def}
+end
+function MCM.prototype.InputNumber(self, elementId, min, max, def)
+    return {
+        id = elementId,
+        type = "input",
+        val = 2,
+        def = def,
+        min = min,
+        max = max
+    }
+end
+function MCM.prototype.Track(self, elementId, min, max, step, def)
+    return {
+        id = elementId,
+        type = "track",
+        val = 2,
+        def = def,
+        min = min,
+        max = max,
+        step = step
+    }
+end
+function MCM.prototype.TrackWithDefaultsMap(self, elementId, min, max, step, defSource)
+    return self:Track(
+        elementId,
+        min,
+        max,
+        step,
+        defSource:get(elementId)
+    )
+end
+function MCM.prototype.TrackWithDefaultsObject(self, elementId, min, max, step, defSource)
+    return self:Track(
+        elementId,
+        min,
+        max,
+        step,
+        defSource[elementId]
+    )
+end
+function ____exports.GetProgressionValue(field)
+    return MonsterWorld.MCM:GetProgressionValue(field)
+end
+function ____exports.GetEnemyParams(field)
+    return MonsterWorld.MCM:GetEnemyParams(field)
+end
+function ____exports.GetMonsterConfig(____type)
+    return MonsterWorld.MCM:GetMonsterConfig(____type)
+end
+MainGroupId = "MonsterWorld"
+ProgressionSubGroupId = "MWProgression"
+EnemiesSubGroupId = "MWEnemies"
+return ____exports
+ end,
 ["MonsterWorldMod.GameObjects.MWMonster"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -3650,14 +4169,15 @@ local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local ____exports = {}
 local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
 local MWObject = ____MWObject.MWObject
-local constants = require("MonsterWorldMod.Configs.Constants")
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
-local MonsterConfigs = ____Enemies.MonsterConfigs
 local MonsterRankConfigs = ____Enemies.MonsterRankConfigs
 local ____Levels = require("MonsterWorldMod.Configs.Levels")
 local GetCurrentLocationType = ____Levels.GetCurrentLocationType
 local ____Constants = require("MonsterWorldMod.Configs.Constants")
 local EnemyLocationTypeMults = ____Constants.EnemyLocationTypeMults
+local ____MCM = require("MonsterWorldMod.Managers.MCM")
+local GetProgressionValue = ____MCM.GetProgressionValue
+local GetMonsterConfig = ____MCM.GetMonsterConfig
 ____exports.MWMonster = __TS__Class()
 local MWMonster = ____exports.MWMonster
 MWMonster.name = "MWMonster"
@@ -3745,11 +4265,11 @@ function MWMonster.prototype.OnFirstTimeInitialize(self)
     self.Level = spawnConfig.Level
     self.Rank = spawnConfig.Rank
     local locationMults = EnemyLocationTypeMults[GetCurrentLocationType()]
-    local monsterCfg = MonsterConfigs[self.MonsterType]
+    local monsterCfg = GetMonsterConfig(self.MonsterType)
     local monsterRankCfg = MonsterRankConfigs[self.Rank + 1]
-    local enemyHP = self:GetMaxHP(self.Level) * (monsterCfg.HpMult or 1) * monsterRankCfg.HpMult * locationMults.HpMult
-    local xpReward = self:GetXPReward(self.Level) * (monsterCfg.XpMult or 1) * monsterRankCfg.XpMult * locationMults.XpMult
-    local enemyDamage = self:GetDamage(self.Level) * (monsterCfg.DamageMult or 1) * monsterRankCfg.DamageMult * locationMults.DamageMult
+    local enemyHP = self:GetMaxHP(self.Level) * monsterCfg.HpMult * monsterRankCfg.HpMult * locationMults.HpMult
+    local xpReward = self:GetXPReward(self.Level) * monsterCfg.XpMult * monsterRankCfg.XpMult * locationMults.XpMult
+    local enemyDamage = self:GetDamage(self.Level) * monsterCfg.DamageMult * monsterRankCfg.DamageMult * locationMults.DamageMult
     self:SetStatBase("MaxHP", enemyHP)
     self:SetStatBase("Damage", enemyDamage)
     self.XPReward = xpReward
@@ -3761,21 +4281,33 @@ function MWMonster.prototype.OnFirstTimeInitialize(self)
     )
 end
 function MWMonster.prototype.GetMaxHP(self, level)
-    local pctMult = 1 + constants.EnemyHPPctPerLevel / 100 * (level - 1)
-    local expMult = math.pow(constants.EnemyHPExpPerLevel, level - 1)
-    local deltaMult = 1 + math.random(-constants.EnemyHpDeltaPct, constants.EnemyHpDeltaPct) / 100
-    return constants.EnemyHPBase * pctMult * expMult * deltaMult
+    local pctMult = 1 + GetProgressionValue("EnemyHPPctPerLevel") / 100 * (level - 1)
+    local expMult = math.pow(
+        GetProgressionValue("EnemyHPExpPerLevel"),
+        level - 1
+    )
+    local deltaMult = 1 + math.random(
+        -GetProgressionValue("EnemyHpDeltaPct"),
+        GetProgressionValue("EnemyHpDeltaPct")
+    ) / 100
+    return GetProgressionValue("EnemyHPBase") * pctMult * expMult * deltaMult
 end
 function MWMonster.prototype.GetXPReward(self, level)
-    local pctMult = 1 + constants.EnemyXpRewardPctPerLevel / 100 * (level - 1)
-    local expMult = math.pow(constants.EnemyXpRewardExpPerLevel, level - 1)
-    local xp = constants.EnemyXpRewardBase * pctMult * expMult
+    local pctMult = 1 + GetProgressionValue("EnemyXpRewardPctPerLevel") / 100 * (level - 1)
+    local expMult = math.pow(
+        GetProgressionValue("EnemyXpRewardExpPerLevel"),
+        level - 1
+    )
+    local xp = GetProgressionValue("EnemyXpRewardBase") * pctMult * expMult
     return math.floor(xp)
 end
 function MWMonster.prototype.GetDamage(self, level)
-    local pctMult = 1 + constants.EnemyDamagePctPerLevel / 100 * (level - 1)
-    local expMult = math.pow(constants.EnemyDamageExpPerLevel, level - 1)
-    return constants.EnemyDamageBase * pctMult * expMult
+    local pctMult = 1 + GetProgressionValue("EnemyDamagePctPerLevel") / 100 * (level - 1)
+    local expMult = math.pow(
+        GetProgressionValue("EnemyDamageExpPerLevel"),
+        level - 1
+    )
+    return GetProgressionValue("EnemyDamageBase") * pctMult * expMult
 end
 return ____exports
  end,
@@ -3787,7 +4319,6 @@ local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local __TS__StringReplace = ____lualib.__TS__StringReplace
 local ____exports = {}
-local cfg = require("MonsterWorldMod.Configs.Constants")
 local ____Loot = require("MonsterWorldMod.Configs.Loot")
 local WeaponStatsUsingUpgrades = ____Loot.WeaponStatsUsingUpgrades
 local WeaponStatsForGeneration = ____Loot.WeaponStatsForGeneration
@@ -3801,6 +4332,8 @@ local ____Collections = require("MonsterWorldMod.Helpers.Collections")
 local GetRandomUniqueElementsFromArray = ____Collections.GetRandomUniqueElementsFromArray
 local ____Random = require("MonsterWorldMod.Helpers.Random")
 local IsPctRolled = ____Random.IsPctRolled
+local ____MCM = require("MonsterWorldMod.Managers.MCM")
+local GetProgressionValue = ____MCM.GetProgressionValue
 local ____MWItem = require("MonsterWorldMod.GameObjects.MWItem")
 local MWItem = ____MWItem.MWItem
 ____exports.MWWeapon = __TS__Class()
@@ -3938,7 +4471,10 @@ end
 function MWWeapon.prototype.GenerateStats(self)
     MWItem.prototype.GenerateStats(self)
     self.WeaponType = ini_sys:r_float_ex(self.Section, "weapon_type")
-    local baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, self.Level - 1)
+    local baseDPS = GetProgressionValue("WeaponDPSBase") * math.pow(
+        GetProgressionValue("WeaponDPSExpPerLevel"),
+        self.Level - 1
+    )
     local rpm = GetWeaponBaseValueByStat(self.Section, "Rpm")
     local fireRate = 60 / rpm
     local damagePerHit = baseDPS * fireRate
@@ -4045,7 +4581,7 @@ function MWWeapon.prototype.GenerateStats(self)
             end
         end
     end
-    damageBonusPct = damageBonusPct + cfg.WeaponDPSPctPerQuality * (self.Quality - 1)
+    damageBonusPct = damageBonusPct + GetProgressionValue("WeaponDPSPctPerQuality") * (self.Quality - 1)
     if damageBonusPct > 0 then
         self:AddStatBonus("Damage", "pct", damageBonusPct, "generation")
     end
@@ -4933,13 +5469,14 @@ local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__New = ____lualib.__TS__New
 local ____exports = {}
-local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
-local MWObject = ____MWObject.MWObject
-local cfg = require("MonsterWorldMod.Configs.Constants")
+local ____MCM = require("MonsterWorldMod.Managers.MCM")
+local GetProgressionValue = ____MCM.GetProgressionValue
 local ____Skill = require("MonsterWorldMod.Skills.Skill")
 local PriceFormulaConstant = ____Skill.PriceFormulaConstant
 local ____SkillPassiveStatBonus = require("MonsterWorldMod.Skills.SkillPassiveStatBonus")
 local SkillPassiveStatBonus = ____SkillPassiveStatBonus.SkillPassiveStatBonus
+local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
+local MWObject = ____MWObject.MWObject
 ____exports.MWPlayer = __TS__Class()
 local MWPlayer = ____exports.MWPlayer
 MWPlayer.name = "MWPlayer"
@@ -4956,9 +5493,12 @@ __TS__SetDescriptor(
     MWPlayer.prototype,
     "RequeiredXP",
     {get = function(self)
-        local expMult = math.pow(cfg.PlayerXPExp, self.Level)
-        local pctMult = 1 + cfg.PlayerXPPct * self.Level / 100
-        local xp = cfg.PlayerXPForFirstLevel * expMult * pctMult
+        local expMult = math.pow(
+            GetProgressionValue("PlayerXPExp"),
+            self.Level
+        )
+        local pctMult = 1 + GetProgressionValue("PlayerXPPct") * self.Level / 100
+        local xp = GetProgressionValue("PlayerXPForFirstLevel") * expMult * pctMult
         return math.max(
             1,
             math.floor(xp)
@@ -5033,13 +5573,24 @@ function MWPlayer.prototype.OnFirstTimeInitialize(self)
     MWObject.prototype.OnFirstTimeInitialize(self)
     self.Level = 0
     self.CurrentXP = 0
-    self:SetStatBase("MaxHP", cfg.PlayerHPBase)
-    self:SetStatBase("HPRegen", cfg.PlayerHPRegenBase)
-    self:AddStatBonus("CritDamagePct", "flat", cfg.PlayerDefaultCritDamagePct, "initial")
+    self:SetStatBase(
+        "MaxHP",
+        GetProgressionValue("PlayerHPBase")
+    )
+    self:SetStatBase(
+        "HPRegen",
+        GetProgressionValue("PlayerHPRegenBase")
+    )
+    self:AddStatBonus(
+        "CritDamagePct",
+        "flat",
+        GetProgressionValue("PlayerDefaultCritDamagePct"),
+        "initial"
+    )
 end
 function MWPlayer.prototype.LevelUp(self)
     self.Level = self.Level + 1
-    self.SkillPoints = self.SkillPoints + cfg.SkillPointsPerLevelUp
+    self.SkillPoints = self.SkillPoints + GetProgressionValue("SkillPointsPerLevelUp")
     self:UpdateLevelBonuses()
     local ____MonsterWorld_UIManager_ShowLevelUpMessage_result_0 = MonsterWorld.UIManager
     if ____MonsterWorld_UIManager_ShowLevelUpMessage_result_0 ~= nil then
@@ -5057,17 +5608,32 @@ function MWPlayer.prototype.Update(self, deltaTime)
     self:IterateSkills(function(s) return s:Update(deltaTime) end)
 end
 function MWPlayer.prototype.UpdateLevelBonuses(self)
-    self:AddStatBonus("MaxHP", "pct", cfg.PlayerHPPerLevel * self.Level, "level_bonus")
-    self:AddStatBonus("HPRegen", "pct", cfg.PlayerHPRegenPctPerLevel * self.Level, "level_bonus")
-    self:AddStatBonus("RunSpeedMult", "pct", cfg.PlayerRunSpeedPctPerLevel * self.Level, "level_bonus")
+    self:AddStatBonus(
+        "MaxHP",
+        "pct",
+        GetProgressionValue("PlayerHPPerLevel") * self.Level,
+        "level_bonus"
+    )
+    self:AddStatBonus(
+        "HPRegen",
+        "pct",
+        GetProgressionValue("PlayerHPRegenPctPerLevel") * self.Level,
+        "level_bonus"
+    )
+    self:AddStatBonus(
+        "RunSpeedMult",
+        "pct",
+        GetProgressionValue("PlayerRunSpeedPctPerLevel") * self.Level,
+        "level_bonus"
+    )
 end
 function MWPlayer.prototype.OnStatChanged(self, stat, prev, current)
     MWObject.prototype.OnStatChanged(self, stat, prev, current)
     if stat == "RunSpeedMult" then
-        db.actor:set_actor_run_coef(cfg.PlayerRunSpeedCoeff * current)
-        db.actor:set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * current)
+        db.actor:set_actor_run_coef(MonsterWorld.MCM:GetProgressionValue("PlayerRunSpeedCoeff") * current)
+        db.actor:set_actor_runback_coef(MonsterWorld.MCM:GetProgressionValue("PlayerRunBackSpeedCoeff") * current)
     elseif stat == "SprintSpeedMult" then
-        db.actor:set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * current)
+        db.actor:set_actor_sprint_koef(MonsterWorld.MCM:GetProgressionValue("PlayerSprintSpeedCoeff") * current)
     end
 end
 function MWPlayer.prototype.SetupSkills(self)
@@ -5301,11 +5867,11 @@ function ____exports.NumberToCondList(value)
     )
 end
 function ____exports.GetId(objOrId)
+    if objOrId == nil then
+        return nil
+    end
     if type(objOrId) == "number" then
         return objOrId
-    end
-    if objOrId == nil then
-        return -1
     end
     if type(objOrId.id) == "number" then
         return objOrId.id
@@ -5313,21 +5879,7 @@ function ____exports.GetId(objOrId)
     if type(objOrId.id) == "function" then
         return objOrId:id()
     end
-    return -1
-end
-return ____exports
- end,
-["MonsterWorldMod.Managers.MCM"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-____exports.MCM = __TS__Class()
-local MCM = ____exports.MCM
-MCM.name = "MCM"
-function MCM.prototype.____constructor(self)
-end
-function MCM.prototype.GetConfig(self)
-    return {id = "Monster World", gr = {}}
+    return nil
 end
 return ____exports
  end,
@@ -5338,12 +5890,8 @@ local __TS__StringIncludes = ____lualib.__TS__StringIncludes
 local ____exports = {}
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
-local ____Constants = require("MonsterWorldMod.Configs.Constants")
-local EnemyEliteChance = ____Constants.EnemyEliteChance
-local EnemyBossChance = ____Constants.EnemyBossChance
-local EnemyHigherLevelChance = ____Constants.EnemyHigherLevelChance
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
-local MonsterConfigs = ____Enemies.MonsterConfigs
+local AllMonsterTypes = ____Enemies.AllMonsterTypes
 local ____Levels = require("MonsterWorldMod.Configs.Levels")
 local GetCurrentLocationCfg = ____Levels.GetCurrentLocationCfg
 local LocationConfigs = ____Levels.LocationConfigs
@@ -5355,6 +5903,10 @@ local ____StalkerAPI = require("MonsterWorldMod.Helpers.StalkerAPI")
 local Load = ____StalkerAPI.Load
 local Save = ____StalkerAPI.Save
 local NumberToCondList = ____StalkerAPI.NumberToCondList
+local ____MCM = require("MonsterWorldMod.Managers.MCM")
+local GetEnemyParams = ____MCM.GetEnemyParams
+local GetMonsterConfig = ____MCM.GetMonsterConfig
+local GetProgressionValue = ____MCM.GetProgressionValue
 ____exports.SpawnManager = __TS__Class()
 local SpawnManager = ____exports.SpawnManager
 SpawnManager.name = "SpawnManager"
@@ -5412,7 +5964,7 @@ function SpawnManager.prototype.OnTryRespawn(self, smart)
     if self.safeSmarts[smart.id] ~= nil then
         return false
     end
-    local respawnInterval = 600
+    local respawnInterval = GetEnemyParams("RespawnInterval")
     local maxPopulation = 2
     if not Load(smart.id, "MW_Initialized", false) or smart.respawn_idle ~= respawnInterval or smart.max_population ~= maxPopulation then
         if Load(smart.id, "MW_Initialized", false) then
@@ -5424,9 +5976,15 @@ function SpawnManager.prototype.OnTryRespawn(self, smart)
             return false
         end
         local selectedMonsters = {}
-        for monsterType, monsterCfg in pairs(MonsterConfigs) do
+        local enabledMonsters = {}
+        for ____, monsterType in ipairs(AllMonsterTypes) do
             do
-                if monsterCfg.LocationLevelStart > locationCfg.Level or (monsterCfg.LocationLevelEnd or 100) < locationCfg.Level then
+                local monsterCfg = GetMonsterConfig(monsterType)
+                if monsterCfg.Enabled == false then
+                    goto __continue17
+                end
+                enabledMonsters[#enabledMonsters + 1] = monsterType
+                if monsterCfg.LocationLevelStart > locationCfg.Level or monsterCfg.LocationLevelEnd ~= 0 and monsterCfg.LocationLevelEnd < locationCfg.Level then
                     goto __continue17
                 end
                 if bit.band(monsterCfg.LocationType, locationCfg.Type) ~= locationCfg.Type then
@@ -5436,6 +5994,13 @@ function SpawnManager.prototype.OnTryRespawn(self, smart)
             end
             ::__continue17::
         end
+        if #selectedMonsters == 0 then
+            if #enabledMonsters > 0 then
+                selectedMonsters[#selectedMonsters + 1] = GetRandomFromArray(enabledMonsters)
+            else
+                selectedMonsters[#selectedMonsters + 1] = "Boar"
+            end
+        end
         Save(smart.id, "MW_MonsterTypes", selectedMonsters)
         smart.respawn_params = {spawn_section_1 = {
             num = NumberToCondList(math.random(1, 2)),
@@ -5443,10 +6008,10 @@ function SpawnManager.prototype.OnTryRespawn(self, smart)
         }}
         smart.already_spawned = {spawn_section_1 = {num = 0}}
         smart.faction = "monster"
-        smart.respawn_radius = 125
+        smart.respawn_radius = GetEnemyParams("MinDistanceFromPlayer")
         Save(smart.id, "MW_Initialized", true)
     end
-    if #MonsterWorld.Monsters > 150 then
+    if #MonsterWorld.Monsters > GetEnemyParams("MaxMonstersOnLocation") then
         return false
     end
     return true
@@ -5462,7 +6027,7 @@ function SpawnManager.prototype.OnSimSquadAddMember(self, obj, section, pos, lvi
     end
     local monsterTypes = Load(obj.smart_id, "MW_MonsterTypes")
     local monsterType = GetRandomFromArray(monsterTypes)
-    local monsterCfg = MonsterConfigs[monsterType]
+    local monsterCfg = GetMonsterConfig(monsterType)
     if monsterCfg == nil then
         Log("SPAWN PROBLEM  NO monsterCfg! " .. monsterType)
     end
@@ -5494,14 +6059,14 @@ function SpawnManager.prototype.OnSimSquadAddMember(self, obj, section, pos, lvi
         while i < squadSize do
             do
                 local squadMemberLevel = enemyLvl
-                if IsPctRolled(EnemyHigherLevelChance) then
+                if IsPctRolled(GetProgressionValue("EnemyHigherLevelChance")) then
                     squadMemberLevel = squadMemberLevel + 1
                 end
                 local rank = 0
-                if not isBossSpawned and IsPctRolled(EnemyEliteChance) then
+                if not isBossSpawned and IsPctRolled(GetProgressionValue("EnemyEliteChance")) then
                     elitesSpawned = elitesSpawned + 1
                     rank = 1
-                elseif not isBossSpawned and elitesSpawned == 0 and IsPctRolled(EnemyBossChance) then
+                elseif not isBossSpawned and elitesSpawned == 0 and IsPctRolled(GetProgressionValue("EnemyBossChance")) then
                     isBossSpawned = true
                     rank = 2
                 end
@@ -5520,12 +6085,12 @@ function SpawnManager.prototype.OnSimSquadAddMember(self, obj, section, pos, lvi
                 )
                 if monsterId == nil then
                     Log("SPAWN PROBLEM  NO monster!")
-                    goto __continue32
+                    goto __continue37
                 end
                 Save(monsterId, "MW_SpawnParams", {Type = monsterType, Level = squadMemberLevel, Rank = rank})
                 i = i + 1
             end
-            ::__continue32::
+            ::__continue37::
         end
     end
 end
@@ -5613,10 +6178,10 @@ local __TS__Iterator = ____lualib.__TS__Iterator
 local ____exports = {}
 local ____StalkerModBase = require("StalkerModBase")
 local Log = ____StalkerModBase.Log
-local ____Loot = require("MonsterWorldMod.Configs.Loot")
-local QualityConfigs = ____Loot.QualityConfigs
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
 local MonsterRankConfigs = ____Enemies.MonsterRankConfigs
+local ____Loot = require("MonsterWorldMod.Configs.Loot")
+local QualityConfigs = ____Loot.QualityConfigs
 ____exports.UIManager = __TS__Class()
 local UIManager = ____exports.UIManager
 UIManager.name = "UIManager"
@@ -6264,6 +6829,9 @@ __TS__SetDescriptor(
 )
 function World.prototype.GetMonster(self, monster)
     local monsterId = GetId(monster)
+    if monsterId == nil then
+        return nil
+    end
     local se_obj = alife_object(monsterId)
     local go = level.object_by_id(monsterId)
     if se_obj == nil or go == nil or not (go:is_monster() or go:is_stalker()) then
@@ -6278,6 +6846,9 @@ function World.prototype.GetMonster(self, monster)
 end
 function World.prototype.GetItem(self, item)
     local itemId = GetId(item)
+    if itemId == nil then
+        return nil
+    end
     local ____alife_result_object_result_0 = alife()
     if ____alife_result_object_result_0 ~= nil then
         ____alife_result_object_result_0 = ____alife_result_object_result_0:object(itemId)
@@ -6420,7 +6991,6 @@ function World.prototype.Update(self, deltaTime)
     self.Timers:Update(deltaTime)
     self.UIManager:Update()
     self.Player:Update(deltaTime)
-    self.Player:IterateSkills(function(s) return s:Update(deltaTime) end)
     for _, monster in pairs(self.Monsters) do
         monster:Update(deltaTime)
     end
@@ -6485,7 +7055,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
             local isCritPartHit = ____value[2]
             do
                 if monster.IsDead then
-                    goto __continue53
+                    goto __continue54
                 end
                 local monsterDamage = weaponDamage
                 if monster.GO:is_stalker() then
@@ -6507,7 +7077,7 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
                 self.UIManager:ShowDamage(realDamage, isCrit, monster.IsDead)
                 self.Player:IterateSkills(function(s) return s:OnMonsterHit(monster, isCrit) end)
             end
-            ::__continue53::
+            ::__continue54::
         end
         if wasCrit and IsPctRolled(self.Player:GetStat("FreeShotOnCritChancePct")) and weapon.AmmoElapsed > 0 then
             weapon.AmmoElapsed = weapon.AmmoElapsed + 1
@@ -6516,25 +7086,25 @@ function World.prototype.OnMonstersHit(self, monsterHitsThisFrame)
 end
 function World.prototype.GetDamageBonusStatByWeaponType(self, ____type)
     repeat
-        local ____switch64 = ____type
-        local ____cond64 = ____switch64 == WeaponType.Pistol
-        if ____cond64 then
+        local ____switch65 = ____type
+        local ____cond65 = ____switch65 == WeaponType.Pistol
+        if ____cond65 then
             return "DamageWithPistolBonusPct"
         end
-        ____cond64 = ____cond64 or ____switch64 == WeaponType.SMG
-        if ____cond64 then
+        ____cond65 = ____cond65 or ____switch65 == WeaponType.SMG
+        if ____cond65 then
             return "DamageWithSMGBonusPct"
         end
-        ____cond64 = ____cond64 or ____switch64 == WeaponType.AssaultRifle
-        if ____cond64 then
+        ____cond65 = ____cond65 or ____switch65 == WeaponType.AssaultRifle
+        if ____cond65 then
             return "DamageWithAssaultRifleBonusPct"
         end
-        ____cond64 = ____cond64 or ____switch64 == WeaponType.MachineGun
-        if ____cond64 then
+        ____cond65 = ____cond65 or ____switch65 == WeaponType.MachineGun
+        if ____cond65 then
             return "DamageWithMachingGunBonusPct"
         end
-        ____cond64 = ____cond64 or ____switch64 == WeaponType.SniperRifle
-        if ____cond64 then
+        ____cond65 = ____cond65 or ____switch65 == WeaponType.SniperRifle
+        if ____cond65 then
             return "DamageWithSniperRifleBonusPct"
         end
     until true
@@ -6706,14 +7276,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue104
+                goto __continue105
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue104::
+        ::__continue105::
     end
     return result
 end
@@ -7011,16 +7581,28 @@ function MWObject.prototype.RecalculateStatTotal(self, stat)
     local base = self:GetStatBase(stat)
     local maxValueCfg = MaxValueByStat:get(stat)
     local flatBonus = self:GetTotalFlatBonus(stat)
-    if maxValueCfg and maxValueCfg.Flat then
+    local ____maxValueCfg_Flat_0 = maxValueCfg
+    if ____maxValueCfg_Flat_0 ~= nil then
+        ____maxValueCfg_Flat_0 = ____maxValueCfg_Flat_0.Flat
+    end
+    if ____maxValueCfg_Flat_0 ~= nil then
         flatBonus = math.min(flatBonus, maxValueCfg.Flat)
     end
     local pctBonus = self:GetTotalPctBonus(stat)
-    if maxValueCfg and maxValueCfg.Pct then
+    local ____maxValueCfg_Pct_2 = maxValueCfg
+    if ____maxValueCfg_Pct_2 ~= nil then
+        ____maxValueCfg_Pct_2 = ____maxValueCfg_Pct_2.Pct
+    end
+    if ____maxValueCfg_Pct_2 ~= nil then
         pctBonus = math.min(pctBonus, maxValueCfg.Pct)
     end
     local total = (base + flatBonus) * (1 + pctBonus / 100)
-    if maxValueCfg and maxValueCfg.Total then
-        total = math.min(pctBonus, maxValueCfg.Total)
+    local ____maxValueCfg_Total_4 = maxValueCfg
+    if ____maxValueCfg_Total_4 ~= nil then
+        ____maxValueCfg_Total_4 = ____maxValueCfg_Total_4.Total
+    end
+    if ____maxValueCfg_Total_4 ~= nil then
+        total = math.min(total, maxValueCfg.Total)
     end
     self:Save(
         GetStatTotalField(stat),
@@ -7542,7 +8124,7 @@ ____exports.CriticalBones = {
     Dog = dogBones,
     Boar = {20},
     Cat = {13},
-    ["Pseudo Dog"] = dogBones,
+    PseudoDog = dogBones,
     Bloodsucker = bloodsuckerBones,
     Fracture = {12, 13},
     Snork = {4, 5},

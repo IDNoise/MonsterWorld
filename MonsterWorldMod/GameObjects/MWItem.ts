@@ -23,7 +23,7 @@ export abstract class MWItem extends MWObject {
     get Description(): string{ return "" }
 
     public OnItemPickedUp(){
-        Log(`OnItemPickedUp ${this.SectionId}`)
+        //Log(`OnItemPickedUp ${this.SectionId}`)
         this.IterateSkills((s) => s.OnOwnerPickUp())
     }
 
@@ -31,7 +31,7 @@ export abstract class MWItem extends MWObject {
 
     public OnItemEquipped(){
         this.IsEquipped = true;
-        Log(`OnItemEquipped ${this.SectionId}`)
+        //Log(`OnItemEquipped ${this.SectionId}`)
         for(let stat of this.GetPlayerStatBonusesOnEquip()){
             MonsterWorld.Player.AddStatBonus(stat, StatBonusType.Flat, this.GetTotalFlatBonus(stat), this.SectionId)
             if (!PctStats.includes(stat)){
@@ -43,7 +43,7 @@ export abstract class MWItem extends MWObject {
 
     public OnItemUnequipped(){
         this.IsEquipped = false;
-        Log(`OnItemUnequipped ${this.SectionId}`)
+        //Log(`OnItemUnequipped ${this.SectionId}`)
         for(let stat of this.GetPlayerStatBonusesOnEquip()){
             MonsterWorld.Player.RemoveStatBonus(stat, StatBonusType.Flat, this.SectionId)
             if (!PctStats.includes(stat)){
@@ -54,7 +54,7 @@ export abstract class MWItem extends MWObject {
     }
 
     GenerateStats(){
-        Log(`GenerateStats ${this.SectionId}`)
+        //Log(`GenerateStats ${this.SectionId}`)
     }
 }
 

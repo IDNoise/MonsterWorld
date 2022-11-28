@@ -3,5 +3,5 @@ package.path = package.path .. string.format("%s?.lua;", getFS():update_path("$f
 local mw = require "gamedata\\scripts\\monsterworld"
 
 function on_mcm_load()
-    return mw.MOD.GetMCMConfig()
+    return mw.GetMCMConfig()
 end
