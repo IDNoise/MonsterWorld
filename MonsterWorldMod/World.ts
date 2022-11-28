@@ -1,24 +1,32 @@
 import { Log } from '../StalkerModBase';
-import * as constants from './Configs/Constants';
-import { MonsterWorldMod } from './MonsterWorldMod';
-import { MWMonster } from './GameObjects/MWMonster';
-import { MWPlayer } from './GameObjects/MWPlayer';
-import { MWWeapon, WeaponType } from './GameObjects/MWWeapon';
-import { SpawnManager } from './Managers/SpawnManager';
-import { UIManager } from './Managers/UIManager';
-import { MWObject, ObjectType } from './GameObjects/MWObject';
-import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/Difficulty';
-import { GetDropType, HigherLevelDropChancePct, MaxQuality, GetDropQuality, DropType, GetStimpackByQuality, QualityConfigs } from './Configs/Loot';
+import { MonsterRankConfigs } from './Configs/Enemies';
+import {
+    DropType,
+    GetDropQuality,
+    GetDropType,
+    GetStimpackByQuality,
+    HigherLevelDropChancePct,
+    MaxQuality,
+    QualityConfigs,
+} from './Configs/Loot';
 import { MaxValueByStat, StatType } from './Configs/Stats';
-import { ObjectOrId, GetId, CreateVector, CreateWorldPositionAtPosWithGO, Save } from './Helpers/StalkerAPI';
-import { GetRandomFromArray } from './Helpers/Collections';
-import { IsPctRolled } from './Helpers/Random';
-import { TimerManager } from './Managers/TimerManager';
-import { MWItem, ItemSpawnParams } from './GameObjects/MWItem';
 import { MWArmor } from './GameObjects/MWArmor';
 import { MWArtefact } from './GameObjects/MWArtefact';
-import { MonsterRankConfigs } from './Configs/Enemies';
+import { ItemSpawnParams, MWItem } from './GameObjects/MWItem';
+import { MWMonster } from './GameObjects/MWMonster';
+import { MWObject, ObjectType } from './GameObjects/MWObject';
+import { MWPlayer } from './GameObjects/MWPlayer';
 import { MWStimpack } from './GameObjects/MWStimpack';
+import { MWWeapon, WeaponType } from './GameObjects/MWWeapon';
+import { GetRandomFromArray } from './Helpers/Collections';
+import { GetDifficultyDamageMult, GetDifficultyDropChanceMult } from './Helpers/Difficulty';
+import { IsPctRolled } from './Helpers/Random';
+import { CreateVector, CreateWorldPositionAtPosWithGO, GetId, ObjectOrId, Save } from './Helpers/StalkerAPI';
+import { MCM } from './Managers/MCM';
+import { SpawnManager } from './Managers/SpawnManager';
+import { TimerManager } from './Managers/TimerManager';
+import { UIManager } from './Managers/UIManager';
+import { MonsterWorldMod } from './MonsterWorldMod';
 
 declare global{
     let MonsterWorld: World;
@@ -33,6 +41,7 @@ export class World {
 
     public SpawnManager: SpawnManager;
     public UIManager: UIManager;
+    public MCM: MCM;
     public Timers: TimerManager;
 
     public DeltaTime: number;
@@ -45,6 +54,7 @@ export class World {
         this.SpawnManager = new SpawnManager();
         this.UIManager = new UIManager();
         this.Timers = new TimerManager();
+        this.MCM = new MCM();
 
         this.DoMonkeyPatch();
         this.ChangeQuickSlotItems();

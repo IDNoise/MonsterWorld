@@ -1,11 +1,11 @@
-import { Log, StalkerModBase } from '../StalkerModBase';
-import { HitInfo, World } from './World';
-import { ReloadAnims } from './Constants/WeaponAnimations';
-import { MinQuality, MaxQuality, DropType } from './Configs/Loot';
-import { CriticalBones } from './Constants/CritBones';
-import { CreateWorldPositionAtGO, Save } from './Helpers/StalkerAPI';
-import { ItemSpawnParams } from './GameObjects/MWItem';
+import { MCMMainGroup, StalkerModBase } from '../StalkerModBase';
+import { DropType } from './Configs/Loot';
 import { StatType } from './Configs/Stats';
+import { CriticalBones } from './Constants/CritBones';
+import { ReloadAnims } from './Constants/WeaponAnimations';
+import { ItemSpawnParams } from './GameObjects/MWItem';
+import { CreateWorldPositionAtGO, Save } from './Helpers/StalkerAPI';
+import { HitInfo, World } from './World';
 
 export class MonsterWorldMod extends StalkerModBase {
     public World: World;
@@ -285,12 +285,24 @@ export class MonsterWorldMod extends StalkerModBase {
         this.playerHitsThisFrame.add(attackerId);
         return true;
     }
+
+    override GetMCMConfig(): MCMMainGroup {
+        return this.World.MCM.GetConfig();
+    }
 }
 
 export let MOD : MonsterWorldMod;
 
 export function StartMonsterWorld(){
+    if (MOD != undefined)
+        return;
+        
     MOD = new MonsterWorldMod();
+}
+
+export function GetMCMConfig(){
+    StartMonsterWorld()
+    return MOD.GetMCMConfig();
 }
 
 
