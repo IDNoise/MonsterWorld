@@ -1,11 +1,11 @@
 import { Log } from '../../StalkerModBase';
-import { EnemyEliteChance, EnemyBossChance, EnemyHigherLevelChance } from '../Configs/Constants';
 import { MonsterType, MonsterConfigs, MonsterRank } from '../Configs/Enemies';
 import { GetCurrentLocationCfg, LocationType, LocationConfigs } from '../Configs/Levels';
 import { MonsterSpawnParams } from '../GameObjects/MWMonster';
 import { GetRandomFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
 import { Load, Save, NumberToCondList } from '../Helpers/StalkerAPI';
+import { GetProgressionValue } from './MCM';
 
 export class SpawnManager {
     private safeSmarts: LuaSet<Id>
@@ -163,16 +163,16 @@ export class SpawnManager {
 
         for(let i = 0; i < squadSize;){
             let squadMemberLevel = enemyLvl;
-            if (IsPctRolled(EnemyHigherLevelChance))
+            if (IsPctRolled(GetProgressionValue("EnemyHigherLevelChance")))
             squadMemberLevel++;
 
             let rank = MonsterRank.Common;
 
-            if (!isBossSpawned && IsPctRolled(EnemyEliteChance)) {
+            if (!isBossSpawned && IsPctRolled(GetProgressionValue("EnemyEliteChance"))) {
                 elitesSpawned++;
                 rank = MonsterRank.Elite;
             }
-            else if (!isBossSpawned && elitesSpawned == 0 && IsPctRolled(EnemyBossChance)) {
+            else if (!isBossSpawned && elitesSpawned == 0 && IsPctRolled(GetProgressionValue("EnemyBossChance"))) {
                 isBossSpawned = true
                 rank = MonsterRank.Boss;
             }

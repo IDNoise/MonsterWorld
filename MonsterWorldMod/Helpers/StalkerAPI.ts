@@ -36,13 +36,13 @@ export function NumberToCondList(value: number) : Condlist{
 
 export type ObjectOrId = Id | game_object | cse_alife_object
 
-export function GetId(objOrId: ObjectOrId): Id {
+export function GetId(objOrId: ObjectOrId): Id | undefined {
+    if (objOrId == undefined){
+        return undefined;
+    }
+    
     if (typeof(objOrId) == "number"){
         return objOrId;
-    }
-
-    if (objOrId == undefined){
-        return -1;
     }
 
     if (typeof(objOrId.id) == "number"){
@@ -53,5 +53,5 @@ export function GetId(objOrId: ObjectOrId): Id {
         return objOrId.id();
     }
 
-    return -1;
+    return undefined;
 }

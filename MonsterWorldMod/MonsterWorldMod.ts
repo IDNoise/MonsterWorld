@@ -1,4 +1,4 @@
-import { MCMMainGroup, StalkerModBase } from '../StalkerModBase';
+import { StalkerModBase } from '../StalkerModBase';
 import { DropType } from './Configs/Loot';
 import { StatType } from './Configs/Stats';
 import { CriticalBones } from './Constants/CritBones';
@@ -286,7 +286,7 @@ export class MonsterWorldMod extends StalkerModBase {
         return true;
     }
 
-    override GetMCMConfig(): MCMMainGroup {
+    GetMCMConfig(): MCMMainGroup {
         return this.World.MCM.GetConfig();
     }
 }

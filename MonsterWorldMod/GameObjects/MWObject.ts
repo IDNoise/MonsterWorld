@@ -143,20 +143,19 @@ export abstract class MWObject {
         let maxValueCfg = MaxValueByStat.get(stat);
 
         let flatBonus = this.GetTotalFlatBonus(stat)
-        if (maxValueCfg && maxValueCfg.Flat){
+        if (maxValueCfg?.Flat != undefined){
             flatBonus = math.min(flatBonus, maxValueCfg.Flat)
         }
 
         let pctBonus = this.GetTotalPctBonus(stat)
-        if (maxValueCfg && maxValueCfg.Pct){
+        if (maxValueCfg?.Pct != undefined){
             pctBonus = math.min(pctBonus, maxValueCfg.Pct)
         }
 
         let total = (base + flatBonus) * (1 + pctBonus / 100);
-        if (maxValueCfg && maxValueCfg.Total){
-            total = math.min(pctBonus, maxValueCfg.Total)
+        if (maxValueCfg?.Total != undefined){
+            total = math.min(total, maxValueCfg.Total)
         }
-
         this.Save(GetStatTotalField(stat), total)
         this.OnStatChanged(stat, current, total);
     }

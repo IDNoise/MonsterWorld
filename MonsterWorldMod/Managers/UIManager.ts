@@ -1,12 +1,11 @@
 import { Log } from '../../StalkerModBase';
-import { World } from '../World';
+import { MonsterRankConfigs } from '../Configs/Enemies';
+import { QualityConfigs } from '../Configs/Loot';
+import { StatType } from '../Configs/Stats';
+import { MWArmor } from '../GameObjects/MWArmor';
 import { MWMonster } from '../GameObjects/MWMonster';
 import { ObjectType } from '../GameObjects/MWObject';
 import { MWWeapon } from '../GameObjects/MWWeapon';
-import { MWArmor } from '../GameObjects/MWArmor';
-import { QualityConfigs } from '../Configs/Loot';
-import { MonsterRankConfigs } from '../Configs/Enemies';
-import { StatType } from '../Configs/Stats';
 
 type DamageNumberEntry = {
     showTime: number;

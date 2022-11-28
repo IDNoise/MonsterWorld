@@ -1,14 +1,11 @@
+import { Log } from '../../StalkerModBase';
+import { StatBonusType, StatType } from '../Configs/Stats';
+import { GetProgressionValue } from '../Managers/MCM';
+import { PriceFormulaConstant, Skill } from '../Skills/Skill';
+import { SkillPassiveStatBonus } from '../Skills/SkillPassiveStatBonus';
+import { MWArmor } from './MWArmor';
 import { MWObject, ObjectType } from './MWObject';
 import { MWWeapon } from './MWWeapon';
-import * as cfg from '../Configs/Constants';
-import { PriceFormulaConstant, PriceFormulaLevel, Skill } from "../Skills/Skill";
-import { SkillPassiveStatBonus } from "../Skills/SkillPassiveStatBonus";
-import { SkillAuraOfDeath } from "../Skills/SkillAuraOfDeath";
-import { SkillHealPlayerOnKill } from "../Skills/SkillHealPlayerOnKill";
-import { SkillCriticalDeath } from '../Skills/SkillCriticalDeath';
-import { StatType, StatBonusType } from '../Configs/Stats';
-import { Log } from '../../StalkerModBase';
-import { MWArmor } from './MWArmor';
 
 export class MWPlayer extends MWObject {
     get Type(): ObjectType { return ObjectType.Player }
@@ -17,15 +14,15 @@ export class MWPlayer extends MWObject {
         super.OnFirstTimeInitialize()
         this.Level = 0;
         this.CurrentXP = 0;
-        this.SetStatBase(StatType.MaxHP, cfg.PlayerHPBase)
-        this.SetStatBase(StatType.HPRegen, cfg.PlayerHPRegenBase)
-        this.AddStatBonus(StatType.CritDamagePct, StatBonusType.Flat, cfg.PlayerDefaultCritDamagePct, "initial")
+        this.SetStatBase(StatType.MaxHP, GetProgressionValue("PlayerHPBase"))
+        this.SetStatBase(StatType.HPRegen, GetProgressionValue("PlayerHPRegenBase"))
+        this.AddStatBonus(StatType.CritDamagePct, StatBonusType.Flat, GetProgressionValue("PlayerDefaultCritDamagePct"), "initial")
     }
 
     get RequeiredXP(): number {
-        let expMult = math.pow(cfg.PlayerXPExp, this.Level);
-        let pctMult = (1 + cfg.PlayerXPPct * this.Level / 100)
-        let xp = cfg.PlayerXPForFirstLevel * expMult * pctMult;
+        let expMult = math.pow(GetProgressionValue("PlayerXPExp"), this.Level);
+        let pctMult = (1 + GetProgressionValue("PlayerXPPct")* this.Level / 100)
+        let xp = GetProgressionValue("PlayerXPForFirstLevel")* expMult * pctMult;
         return math.max(1, math.floor(xp))
     }
 
@@ -46,7 +43,7 @@ export class MWPlayer extends MWObject {
 
     private LevelUp(): void{
         this.Level++;
-        this.SkillPoints += cfg.SkillPointsPerLevelUp;
+        this.SkillPoints += GetProgressionValue("SkillPointsPerLevelUp");
         this.UpdateLevelBonuses();
         MonsterWorld.UIManager?.ShowLevelUpMessage(this.Level);
     }
@@ -64,9 +61,9 @@ export class MWPlayer extends MWObject {
     }
 
     UpdateLevelBonuses(): void{
-        this.AddStatBonus(StatType.MaxHP, StatBonusType.Pct, cfg.PlayerHPPerLevel * this.Level, "level_bonus");
-        this.AddStatBonus(StatType.HPRegen, StatBonusType.Pct, cfg.PlayerHPRegenPctPerLevel * this.Level, "level_bonus");
-        this.AddStatBonus(StatType.RunSpeedMult, StatBonusType.Pct, cfg.PlayerRunSpeedPctPerLevel * this.Level, "level_bonus");
+        this.AddStatBonus(StatType.MaxHP, StatBonusType.Pct, GetProgressionValue("PlayerHPPerLevel") * this.Level, "level_bonus");
+        this.AddStatBonus(StatType.HPRegen, StatBonusType.Pct, GetProgressionValue("PlayerHPRegenPctPerLevel") * this.Level, "level_bonus");
+        this.AddStatBonus(StatType.RunSpeedMult, StatBonusType.Pct, GetProgressionValue("PlayerRunSpeedPctPerLevel") * this.Level, "level_bonus");
     }
 
     get SkillPoints(): number { return this.Load("SkillPoints", 0); }
@@ -75,11 +72,11 @@ export class MWPlayer extends MWObject {
     protected override OnStatChanged(stat: StatType, prev: number, current: number): void {
         super.OnStatChanged(stat, prev, current);
         if (stat == StatType.RunSpeedMult){
-            db.actor.set_actor_run_coef(cfg.PlayerRunSpeedCoeff * current)
-            db.actor.set_actor_runback_coef(cfg.PlayerRunBackSpeedCoeff * current)
+            db.actor.set_actor_run_coef(MonsterWorld.MCM.GetProgressionValue("PlayerRunSpeedCoeff") * current)
+            db.actor.set_actor_runback_coef(MonsterWorld.MCM.GetProgressionValue("PlayerRunBackSpeedCoeff") * current)
         }
         else if (stat == StatType.SprintSpeedMult){
-            db.actor.set_actor_sprint_koef(cfg.PlayerSprintSpeedCoeff * current)
+            db.actor.set_actor_sprint_koef(MonsterWorld.MCM.GetProgressionValue("PlayerSprintSpeedCoeff") * current)
         }
     }
 

@@ -1,11 +1,10 @@
 import { MWObject, ObjectType } from './MWObject';
-import * as constants from '../Configs/Constants'
-import * as loot from '../Configs/Loot'
 import { MonsterConfigs, MonsterRank, MonsterRankConfigs, MonsterType } from '../Configs/Enemies';
 import { StatType } from '../Configs/Stats';
 import { GetCurrentLocationType } from '../Configs/Levels';
 import { EnemyLocationTypeMults } from '../Configs/Constants';
 import { Log } from '../../StalkerModBase';
+import { GetProgressionValue } from '../Managers/MCM';
 
 export class MWMonster extends MWObject{
     get Type(): ObjectType { return ObjectType.Monster }
@@ -33,23 +32,23 @@ export class MWMonster extends MWObject{
     }
 
     GetMaxHP(level: number): number{
-        let pctMult = 1 + constants.EnemyHPPctPerLevel / 100 * (level - 1);
-        let expMult = math.pow(constants.EnemyHPExpPerLevel, level - 1);
-        let deltaMult = 1 + math.random(-constants.EnemyHpDeltaPct, constants.EnemyHpDeltaPct) / 100
-        return constants.EnemyHPBase * pctMult * expMult * deltaMult;
+        let pctMult = 1 + GetProgressionValue("EnemyHPPctPerLevel") / 100 * (level - 1);
+        let expMult = math.pow(GetProgressionValue("EnemyHPExpPerLevel"), level - 1);
+        let deltaMult = 1 + math.random(-GetProgressionValue("EnemyHpDeltaPct"), GetProgressionValue("EnemyHpDeltaPct")) / 100
+        return GetProgressionValue("EnemyHPBase") * pctMult * expMult * deltaMult;
     }
 
     GetXPReward(level: number): number{
-        let pctMult = 1 + constants.EnemyXpRewardPctPerLevel / 100 * (level - 1);
-        let expMult = math.pow(constants.EnemyXpRewardExpPerLevel, level - 1);
-        let xp = constants.EnemyXpRewardBase * pctMult * expMult;
+        let pctMult = 1 + GetProgressionValue("EnemyXpRewardPctPerLevel") / 100 * (level - 1);
+        let expMult = math.pow(GetProgressionValue("EnemyXpRewardExpPerLevel"), level - 1);
+        let xp = GetProgressionValue("EnemyXpRewardBase") * pctMult * expMult;
         return math.floor(xp)
     }
 
     GetDamage(level: number) {
-        let pctMult = 1 + constants.EnemyDamagePctPerLevel / 100 * (level - 1);
-        let expMult = math.pow(constants.EnemyDamageExpPerLevel, level - 1)
-        return constants.EnemyDamageBase * pctMult * expMult;
+        let pctMult = 1 + GetProgressionValue("EnemyDamagePctPerLevel") / 100 * (level - 1);
+        let expMult = math.pow(GetProgressionValue("EnemyDamageExpPerLevel"), level - 1)
+        return GetProgressionValue("EnemyDamageBase") * pctMult * expMult;
     }
 
     get Name(): string {

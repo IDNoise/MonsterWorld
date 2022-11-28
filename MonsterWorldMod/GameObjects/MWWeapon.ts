@@ -1,9 +1,9 @@
 import { Log } from '../../StalkerModBase';
-import * as cfg from '../Configs/Constants';
 import { WeaponStatsUsingUpgrades, WeaponStatsForGeneration, GetWeaponUpgradesByStat, GetWeaponSectinFieldNameByStat, GetWeaponBaseValueByStat} from '../Configs/Loot';
 import { StatType, StatBonusType, GetStatBonusForObject, GetBonusDescriptionByType } from '../Configs/Stats';
 import { GetRandomUniqueElementsFromArray } from '../Helpers/Collections';
 import { IsPctRolled } from '../Helpers/Random';
+import { GetProgressionValue } from '../Managers/MCM';
 import { MWItem } from './MWItem';
 import { ObjectType } from './MWObject';
 
@@ -60,7 +60,7 @@ export class MWWeapon extends MWItem {
 
         this.WeaponType = <WeaponType>ini_sys.r_float_ex(this.Section, "weapon_type")
 
-        let baseDPS = cfg.WeaponDPSBase * math.pow(cfg.WeaponDPSExpPerLevel, this.Level - 1);
+        let baseDPS = GetProgressionValue("WeaponDPSBase") * math.pow(GetProgressionValue("WeaponDPSExpPerLevel"), this.Level - 1);
 
         let rpm = GetWeaponBaseValueByStat(this.Section, StatType.Rpm);
         const fireRate = 60 / rpm;
@@ -152,7 +152,7 @@ export class MWWeapon extends MWItem {
             }
         }
 
-        damageBonusPct += cfg.WeaponDPSPctPerQuality * (this.Quality - 1);
+        damageBonusPct += GetProgressionValue("WeaponDPSPctPerQuality") * (this.Quality - 1);
         if (damageBonusPct > 0){
             this.AddStatBonus(StatType.Damage, StatBonusType.Pct, damageBonusPct, "generation")
         }

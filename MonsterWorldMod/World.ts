@@ -72,6 +72,9 @@ export class World {
     public GetMonster(monster: ObjectOrId): MWMonster | undefined {
         //Log(`GetMonster: ${monsterId}`)
         let monsterId = GetId(monster);
+        if (monsterId == undefined) 
+            return undefined;
+
         let se_obj = alife_object(monsterId);
         let go = level.object_by_id(monsterId);
         if (se_obj == null || go == null || !(go.is_monster() || go.is_stalker()))
@@ -89,6 +92,9 @@ export class World {
     
     public GetItem(item: ObjectOrId): MWItem | undefined {
         let itemId = GetId(item);
+        if (itemId == undefined) 
+            return undefined;
+
         let se_obj = alife()?.object(itemId);
         let go = level.object_by_id(itemId);
         if (se_obj == null || go == null)
@@ -220,7 +226,6 @@ export class World {
         this.Timers.Update(deltaTime);
         this.UIManager.Update();
         this.Player.Update(deltaTime);
-        this.Player.IterateSkills((s) => s.Update(deltaTime))
         for(let [_, monster] of this.Monsters){
             monster.Update(deltaTime)
         }
