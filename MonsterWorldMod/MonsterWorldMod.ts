@@ -203,14 +203,6 @@ export class MonsterWorldMod extends StalkerModBase {
         if (weapon == undefined)
             return false;
 
-        let squad = <any>alife_object(monsterGO.squad());
-        if (squad != undefined){
-            squad.scripted_target = "actor";
-            squad.rush_to_target = true;
-            squad.assigned_target_id = 0;
-            squad.current_target_id = 0;
-        }
-
         let isCritPartHit = CriticalBones[monster.MonsterType].includes(boneId)
         let hitInfo = {monster: monster, weapon: weapon, isCritPartHit: isCritPartHit};
         let currentHitInfo = this.monsterHitsThisFrame.get(monster.id);
@@ -226,11 +218,6 @@ export class MonsterWorldMod extends StalkerModBase {
     protected override OnNPCBeforeHit(npc: game_object, shit: hit, boneId: number): boolean {
         super.OnNPCBeforeHit(npc, shit, boneId)
         return this.OnMonsterBeforeHit(npc, shit, boneId);
-    }
-
-    protected override OnNPCDeath(npc: game_object, killer: game_object): void {
-        super.OnNPCDeath(npc, killer);
-        this.OnMonsterDeath(npc, killer)
     }
 
     private debugDropQuality: number = 1;

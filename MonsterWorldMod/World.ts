@@ -365,6 +365,14 @@ export class World {
 
         this.AddTTLTimer(monster.id, 3);
 
+        let squad = <any>alife_object(monster.GO.squad());
+        if (squad != undefined){
+            squad.scripted_target = "actor";
+            squad.rush_to_target = true;
+            squad.assigned_target_id = 0;
+            squad.current_target_id = 0;
+        }
+
         //Log(`OnMonsterKilled END. ${monster.Name} (${monster.SectionId})`)
     }
 

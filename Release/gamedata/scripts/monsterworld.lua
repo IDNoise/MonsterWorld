@@ -2594,7 +2594,6 @@ end
 function StalkerModBase.prototype.OnActorHit(self, amount, localDirection, attacker, boneId)
 end
 function StalkerModBase.prototype.OnMonsterNetSpawn(self, monster, serverObject)
-    ____exports.Log((((("OnMonsterNetSpawn " .. monster:section()) .. ":") .. tostring(monster:id())) .. " - ") .. tostring(serverObject.id))
 end
 function StalkerModBase.prototype.OnMonsterNetDestroy(self, monster)
 end
@@ -3458,10 +3457,6 @@ ____exports.MonsterConfigs.Monolith = {
     EliteSection = "sim_default_monolith_3",
     BossSection = "sim_monolith_sniper"
 }
-return ____exports
- end,
-["MonsterWorldMod.Configs.Constants"] = function(...) 
-local ____exports = {}
 ____exports.EnemyLocationTypeMults = {}
 ____exports.EnemyLocationTypeMults[1] = {HpMult = 1, XpMult = 1, DamageMult = 1, DropChanceMult = 1}
 ____exports.EnemyLocationTypeMults[2] = {HpMult = 1.5, XpMult = 1.5, DamageMult = 1.5, DropChanceMult = 1.25}
@@ -3482,8 +3477,6 @@ local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor
 local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local ____exports = {}
-local ____StalkerModBase = require("StalkerModBase")
-local Log = ____StalkerModBase.Log
 local ____Loot = require("MonsterWorldMod.Configs.Loot")
 local MinQuality = ____Loot.MinQuality
 local MaxQuality = ____Loot.MaxQuality
@@ -3532,7 +3525,6 @@ function MWItem.prototype.OnFirstTimeInitialize(self)
     self:GenerateStats()
 end
 function MWItem.prototype.OnItemPickedUp(self)
-    Log("OnItemPickedUp " .. self.SectionId)
     self:IterateSkills(function(s) return s:OnOwnerPickUp() end)
 end
 function MWItem.prototype.GetPlayerStatBonusesOnEquip(self)
@@ -3540,7 +3532,6 @@ function MWItem.prototype.GetPlayerStatBonusesOnEquip(self)
 end
 function MWItem.prototype.OnItemEquipped(self)
     self.IsEquipped = true
-    Log("OnItemEquipped " .. self.SectionId)
     for ____, stat in ipairs(self:GetPlayerStatBonusesOnEquip()) do
         MonsterWorld.Player:AddStatBonus(
             stat,
@@ -3561,7 +3552,6 @@ function MWItem.prototype.OnItemEquipped(self)
 end
 function MWItem.prototype.OnItemUnequipped(self)
     self.IsEquipped = false
-    Log("OnItemUnequipped " .. self.SectionId)
     for ____, stat in ipairs(self:GetPlayerStatBonusesOnEquip()) do
         MonsterWorld.Player:RemoveStatBonus(stat, "flat", self.SectionId)
         if not __TS__ArrayIncludes(PctStats, stat) then
@@ -3571,7 +3561,6 @@ function MWItem.prototype.OnItemUnequipped(self)
     self:IterateSkills(function(s) return s:OnOwnerUnequip() end)
 end
 function MWItem.prototype.GenerateStats(self)
-    Log("GenerateStats " .. self.SectionId)
 end
 return ____exports
  end,
@@ -4171,10 +4160,9 @@ local ____MWObject = require("MonsterWorldMod.GameObjects.MWObject")
 local MWObject = ____MWObject.MWObject
 local ____Enemies = require("MonsterWorldMod.Configs.Enemies")
 local MonsterRankConfigs = ____Enemies.MonsterRankConfigs
+local EnemyLocationTypeMults = ____Enemies.EnemyLocationTypeMults
 local ____Levels = require("MonsterWorldMod.Configs.Levels")
 local GetCurrentLocationType = ____Levels.GetCurrentLocationType
-local ____Constants = require("MonsterWorldMod.Configs.Constants")
-local EnemyLocationTypeMults = ____Constants.EnemyLocationTypeMults
 local ____MCM = require("MonsterWorldMod.Managers.MCM")
 local GetProgressionValue = ____MCM.GetProgressionValue
 local GetMonsterConfig = ____MCM.GetMonsterConfig
@@ -7142,6 +7130,13 @@ function World.prototype.OnMonsterKilled(self, monster, isCrit)
     end
     self.Player:IterateSkills(function(s) return s:OnMonsterKill(monster, isCrit) end)
     self:AddTTLTimer(monster.id, 3)
+    local squad = alife_object(monster.GO:squad())
+    if squad ~= nil then
+        squad.scripted_target = "actor"
+        squad.rush_to_target = true
+        squad.assigned_target_id = 0
+        squad.current_target_id = 0
+    end
 end
 function World.prototype.GenerateDrop(self, monster)
     local ____type = GetDropType(monster.Rank)
@@ -7276,14 +7271,14 @@ function World.prototype.GetMonstersInRange(self, pos, range)
     for _, monster in pairs(MonsterWorld.Monsters) do
         do
             if monster.GO == nil or monster.IsDead then
-                goto __continue105
+                goto __continue106
             end
             local distanceSqr = monster.GO:position():distance_to_sqr(pos)
             if distanceSqr <= rangeSqr then
                 result[#result + 1] = monster
             end
         end
-        ::__continue105::
+        ::__continue106::
     end
     return result
 end
@@ -8015,7 +8010,9 @@ ____exports.ArtefactStatsForGeneration = {
     "SprintSpeedMult",
     "ReloadSpeedBonusPct",
     "XPGainMult",
-    "DamageResistancePct"
+    "DamageResistancePct",
+    "EvasionChancePct",
+    "FreeShotOnCritChancePct"
 }
 ____exports.WeaponStatsForGeneration = {
     "Damage",
@@ -8403,13 +8400,9 @@ function MonsterWorldMod.prototype.OnNPCBeforeHit(self, npc, shit, boneId)
     StalkerModBase.prototype.OnNPCBeforeHit(self, npc, shit, boneId)
     return self:OnMonsterBeforeHit(npc, shit, boneId)
 end
-function MonsterWorldMod.prototype.OnNPCDeath(self, npc, killer)
-    StalkerModBase.prototype.OnNPCDeath(self, npc, killer)
-    self:OnMonsterDeath(npc, killer)
-end
 function MonsterWorldMod.prototype.OnKeyRelease(self, key)
     StalkerModBase.prototype.OnKeyRelease(self, key)
-    local noTest = true
+    local noTest = false
     if noTest then
         return
     end
@@ -8491,6 +8484,8 @@ function ____exports.GetMCMConfig()
     return ____exports.MOD:GetMCMConfig()
 end
 return ____exports
+ end,
+["MonsterWorldMod.Configs.Constants"] = function(...) 
  end,
 ["StalkerAPI.scripts.db.t"] = function(...) 
  end,

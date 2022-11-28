@@ -49,7 +49,7 @@ export class StalkerModBase {
 
     //Monster
     protected OnMonsterNetSpawn(monster: game_object, serverObject: cse_alife_monster_base): void {
-        Log(`OnMonsterNetSpawn ${monster.section()}:${monster.id()} - ${serverObject.id}`)
+        //Log(`OnMonsterNetSpawn ${monster.section()}:${monster.id()} - ${serverObject.id}`)
     }
     protected OnMonsterNetDestroy(monster: game_object): void {
         //Log(`OnMonsterNetDestroy ${monster.section()}:${monster.id()}`)
