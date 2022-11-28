@@ -1,5 +1,4 @@
 import { Log } from '../../StalkerModBase';
-import * as cfg from '../Configs/Constants';
 import { ArmorStatsForGeneration } from '../Configs/Loot';
 import { StatType, StatBonusType, PctStats, GetBonusDescription, WeaponDamageBonusesByType as WeaponTypeDamageBonuses, GetStatBonusForObject, DamageBonusesByEnemyType, GetBonusDescriptionByType } from '../Configs/Stats';
 import { GetRandomUniqueElementsFromArray, GetRandomFromArray } from '../Helpers/Collections';

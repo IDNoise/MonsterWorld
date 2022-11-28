@@ -68,6 +68,8 @@ export let ArtefactStatsForGeneration = [
     StatType.ReloadSpeedBonusPct,
     StatType.XPGainMult,
     StatType.DamageResistancePct,
+    StatType.EvasionChancePct,
+    StatType.FreeShotOnCritChancePct
 ]
 
 export let WeaponStatsForGeneration = [

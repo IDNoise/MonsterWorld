@@ -1,4 +1,4 @@
-import { StalkerModBase } from '../StalkerModBase';
+import { Log, StalkerModBase } from '../StalkerModBase';
 import { DropType } from './Configs/Loot';
 import { StatType } from './Configs/Stats';
 import { CriticalBones } from './Constants/CritBones';
@@ -203,6 +203,14 @@ export class MonsterWorldMod extends StalkerModBase {
         if (weapon == undefined)
             return false;
 
+        let squad = <any>alife_object(monsterGO.squad());
+        if (squad != undefined){
+            squad.scripted_target = "actor";
+            squad.rush_to_target = true;
+            squad.assigned_target_id = 0;
+            squad.current_target_id = 0;
+        }
+
         let isCritPartHit = CriticalBones[monster.MonsterType].includes(boneId)
         let hitInfo = {monster: monster, weapon: weapon, isCritPartHit: isCritPartHit};
         let currentHitInfo = this.monsterHitsThisFrame.get(monster.id);
@@ -229,7 +237,7 @@ export class MonsterWorldMod extends StalkerModBase {
     protected override OnKeyRelease(key: DIK_keys): void {
         super.OnKeyRelease(key)
 
-        let noTest = true;
+        let noTest = false;//true;
         if (noTest) 
             return;
 

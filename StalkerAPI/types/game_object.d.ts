@@ -264,7 +264,7 @@ declare interface game_object {
   // function give_talk_message(string, string, string)
   // function not_yet_visible_objects() const
   // function set_mental_state(enum MonsterSpace::EMentalState)
-  // function squad() const
+  squad(): Id,
   // function reset_action_queue()
   // function burer_set_force_gravi_attack(boolean)
   // function set_actor_direction(number)

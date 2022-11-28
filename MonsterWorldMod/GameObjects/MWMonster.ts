@@ -1,8 +1,7 @@
 import { MWObject, ObjectType } from './MWObject';
-import { MonsterRank, MonsterRankConfigs, MonsterType } from '../Configs/Enemies';
+import { MonsterRank, MonsterRankConfigs, MonsterType, EnemyLocationTypeMults } from '../Configs/Enemies';
 import { StatType } from '../Configs/Stats';
 import { GetCurrentLocationType } from '../Configs/Levels';
-import { EnemyLocationTypeMults } from '../Configs/Constants';
 import { Log } from '../../StalkerModBase';
 import { GetProgressionValue, GetMonsterConfig } from '../Managers/MCM';
 

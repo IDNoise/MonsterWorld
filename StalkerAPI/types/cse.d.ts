@@ -142,7 +142,7 @@ declare interface cse_alife_online_offline_group extends cse_alife_dynamic_objec
   // function get_current_task()
   // function commander()
   // function unregister_member(number)
-  // function squad_members() const
+  squad_members(): {id: Id}[]
   // function force_change_position(vector)
   // function add_location_type(string)
   npc_count(): number;

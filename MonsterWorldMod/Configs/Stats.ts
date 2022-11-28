@@ -43,6 +43,12 @@ export const enum StatType{
     DamageWithAssaultRifleBonusPct = "DamageWithAssaultRifleBonusPct",
     DamageWithMachingGunBonusPct = "DamageWithMachingGunBonusPct",
     DamageWithSniperRifleBonusPct = "DamageWithSniperRifleBonusPct",
+
+    //Damage types
+    // FireDamagePct = "FireDamage",
+    // GravyDamagePct = "GravityDamage",
+    // ElectraDamagePCt = "ElectricityDamage",
+    // RadDamagePct = "RadiationDamage",
 }
 
 export let StatTitles: {[key in StatType]: string} = {
@@ -79,6 +85,11 @@ export let StatTitles: {[key in StatType]: string} = {
     [StatType.DamageWithAssaultRifleBonusPct]: "Damage with Assault Rifles",
     [StatType.DamageWithMachingGunBonusPct]: "Damage with Machine Guns",
     [StatType.DamageWithSniperRifleBonusPct]: "Damage with Sniper Rifles",
+
+    // [StatType.FireDamagePct]: "Fire Damage",
+    // [StatType.GravyDamagePct]: "Gravy Damage",
+    // [StatType.ElectraDamagePCt]: "Electra Damage",
+    // [StatType.RadDamagePct]: "Rad Damage",
 }
 
 export const enum StatBonusType{
